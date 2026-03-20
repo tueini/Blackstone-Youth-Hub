@@ -67,3 +67,24 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Mac System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Firebase Temporary Files
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# Node/Build Files (if you ever use them)
+node_modules/
+dist/
+build/
+
+# IDE/Local Settings
+.antigravity/
+.vscode/
+.idea/
