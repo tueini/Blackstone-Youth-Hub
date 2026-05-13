@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 Youth Hub</title>
+    <title>Youth Hub</title>
+    <script src="security-config.js"></script>
+    <script src="cfm-config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -18,18 +20,17 @@
     </style>
 </head>
 <body>
-    <header class="py-16 px-6 text-center bg-gradient-to-b from-slate-900 to-slate-950">
-        <h1 class="text-4xl md:text-6xl font-black mb-3 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-            2026 Youth Hub
-        </h1>
-        <p class="text-slate-500 text-sm font-bold uppercase tracking-[0.3em]">Blackstone Ward</p>
+    <header class="py-5 px-4 bg-gradient-to-b from-slate-900 to-slate-950 text-center flex justify-center">
+        <a href="./index.html" class="inline-block">
+            <img src="./images/BlackstoneYouthHubLogo.png" alt="Blackstone Ward Youth Hub" style="max-height: 150px; width: auto;" class="object-contain">
+        </a>
     </header>
 
     <main class="max-w-7xl mx-auto px-6 pb-12">
+        <h2 class="text-3xl font-black text-white mb-6 uppercase tracking-widest pl-2">Activities</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <a href="/Combined/" class="card-hover card-combined p-8 md:p-12 rounded-2xl block text-center md:col-span-3">
-                <span class="absolute top-4 right-4 bg-blue-600 text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest">Master</span>
-                <h3 class="text-2xl md:text-3xl font-black text-white mb-2">Combined Activities</h3>
+                <h3 class="text-2xl md:text-3xl font-black text-white mb-2">Combined</h3>
                 <p class="text-blue-400 text-[10px] font-bold uppercase tracking-widest">Dances • Conferences • Ward Nights</p>
             </a>
 
@@ -49,41 +50,40 @@
                 <h3 class="text-lg font-bold text-white uppercase tracking-wider">Primary</h3>
             </a>
         </div>
+        
+        <hr class="border-slate-800 my-10 max-w-7xl mx-auto">
+        <h2 class="text-3xl font-black text-white mb-6 uppercase tracking-widest pl-2">General Announcements</h2>
     </main>
 
     <section class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-20">
         <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl flex flex-col shadow-xl">
-            <h2 class="text-xs font-black mb-6 uppercase tracking-[0.2em] text-blue-500">Ward Announcements</h2>
+            <h2 class="text-xs font-black mb-6 uppercase tracking-[0.2em] text-blue-500">Announcements</h2>
             <div id="announcement-list" class="space-y-4 text-slate-300 text-sm mb-6 flex-1">
                 <p class="italic opacity-50">Loading announcements...</p>
             </div>
             
             <div id="admin-controls" class="hidden space-y-4 border-t border-slate-800 pt-6">
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase">New Announcement</label>
-                    <textarea id="new-ann-text" class="admin-input h-20" placeholder="Type here..."></textarea>
-                    <button id="saveAnnBtn" class="btn-primary w-full py-3 rounded-lg text-xs">Post Announcement</button>
+                    <input type="hidden" id="edit-ann-id">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">New Announcement</label>
+                    <textarea id="new-ann-text" class="admin-input h-20 mb-3" placeholder="Type here..."></textarea>
+                    
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2 mb-1 block">Quick Link (Optional)</label>
+                    <input type="text" id="new-ann-link-text" class="admin-input mb-2" placeholder="Button Text (e.g. FSY Reg)">
+                    <input type="text" id="new-ann-link-url" class="admin-input mb-3" placeholder="URL (e.g. https://...)">
+                    
+                    <div class="flex gap-2 mt-2">
+                        <button id="saveAnnBtn" class="btn-primary flex-1 py-3 rounded-lg text-xs">Post Announcement</button>
+                        <button id="cancelAnnBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg text-xs hidden" onclick="window.resetAnnForm()">Cancel</button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl flex flex-col shadow-xl">
-            <h2 class="text-xs font-black mb-6 uppercase tracking-[0.2em] text-emerald-500">General Info</h2>
-            <div id="info-content" class="flex-1 space-y-8">
-                <div>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-widest">2026 Youth Theme</p>
-                    <p id="display-theme" class="text-lg text-white font-medium italic leading-relaxed">Loading...</p>
-                </div>
-                <div class="pt-6 border-t border-slate-800">
-                    <div class="flex items-center gap-2 mb-2">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Next Combined Event</p>
-                        <span class="flex h-2 w-2 relative">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                    </div>
-                    <p id="next-combined-text" class="text-emerald-400 font-black text-xl leading-tight">Syncing...</p>
-                </div>
+            <h2 class="text-xs font-black mb-6 uppercase tracking-[0.2em] text-emerald-500">Next Combined Events</h2>
+            <div id="info-content" class="flex-1 space-y-4">
+                <p class="italic text-slate-500 text-sm">Syncing...</p>
             </div>
 
             <div id="info-admin-controls" class="hidden mt-8 space-y-4 border-t border-slate-800 pt-6">
@@ -96,19 +96,110 @@
         </div>
     </section>
 
+    <section class="max-w-7xl mx-auto px-6 mb-20">
+        <h2 class="text-3xl font-black text-white mb-6 uppercase tracking-widest pl-2">Youth Spotlights</h2>
+        <div id="spotlights-list" class="space-y-6">
+            <p class="italic opacity-50 text-slate-300 text-sm pl-2">Loading spotlights...</p>
+        </div>
+
+        <div id="spotlight-gate-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm">
+            <div class="bg-slate-900 border border-blue-500/30 rounded-2xl p-8 max-w-md w-full shadow-2xl relative text-center">
+                <button onclick="window.closeSpotlightGate()" class="absolute top-4 right-4 text-slate-500 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h3 class="text-xl font-black text-white mb-2 uppercase tracking-widest">Verify Access</h3>
+                <p class="text-slate-400 text-sm mb-6 leading-relaxed">Enter the last name of any adult YW/YM leader to unlock the spotlights.</p>
+                <input type="text" id="gate-input-name" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 mb-4 focus:ring-2 focus:ring-blue-500 outline-none text-center" placeholder="Leader Last Name" onkeydown="if(event.key==='Enter') window.confirmSpotlightUnlock()">
+                <p id="gate-error-text" class="text-red-400 text-xs mb-4 hidden font-medium">Incorrect entry</p>
+                <button onclick="window.confirmSpotlightUnlock()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg uppercase tracking-widest text-sm">Submit</button>
+            </div>
+        </div>
+        
+        <div id="spotlights-admin-controls" class="hidden mt-8 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+            <h3 class="text-xs font-black mb-4 uppercase tracking-[0.2em] text-amber-500">Manage Spotlight</h3>
+            <div class="space-y-4">
+                <input type="hidden" id="edit-spot-id" value="">
+                <select id="new-spot-org" class="admin-input">
+                    <option value="" disabled selected>Select Organization</option>
+                    <option value="Combined">Combined</option>
+                    <option value="Priests">Priests</option>
+                    <option value="Teachers">Teachers</option>
+                    <option value="Deacons">Deacons</option>
+                    <option value="Young Women">Young Women</option>
+                    <option value="Primary">Primary</option>
+                </select>
+                <input type="date" id="new-spot-date" class="admin-input cursor-pointer">
+                <div>
+                    <input type="file" id="new-spot-upload" accept="image/*" class="admin-input w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-500 file:text-white hover:file:bg-emerald-400 cursor-pointer">
+                    <img id="spot-preview-img" class="hidden w-full h-auto mt-3 rounded-lg border border-slate-700 max-h-[150px] object-cover" />
+                </div>
+                <input type="text" id="new-spot-video" class="admin-input" placeholder="Video URL (YouTube/Vimeo/Church - Optional)">
+                <textarea id="new-spot-desc" class="admin-input h-24" placeholder="Spotlight Description..."></textarea>
+                <div class="flex gap-2">
+                    <button id="cancelSpotBtn" class="hidden bg-slate-700 hover:bg-slate-600 text-white font-bold w-1/3 py-3 rounded-lg text-xs transition uppercase tracking-widest">Cancel</button>
+                    <button id="saveSpotBtn" class="btn-primary flex-1 py-3 rounded-lg text-xs">Publish Spotlight</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="teachers-admin-controls" class="hidden mt-8 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+            <h3 class="text-xs font-black mb-4 uppercase tracking-[0.2em] text-violet-500">Manage Teachers</h3>
+            <div class="space-y-4">
+                <input type="hidden" id="edit-teacher-id" value="">
+                <input type="text" id="new-teacher-name" class="admin-input" placeholder="Teacher Name">
+                <select id="new-teacher-org" class="admin-input">
+                    <option value="" disabled selected>Select Organization</option>
+                    <option value="General">General</option>
+                    <option value="Priests">Priests</option>
+                    <option value="Teachers">Teachers</option>
+                    <option value="Deacons">Deacons</option>
+                    <option value="Young Women">Young Women</option>
+                    <option value="Primary">Primary</option>
+                </select>
+                <div class="flex gap-2">
+                    <button id="cancelTeacherBtn" class="hidden bg-slate-700 hover:bg-slate-600 text-white font-bold w-1/3 py-3 rounded-lg text-xs transition uppercase tracking-widest">Cancel</button>
+                    <button id="saveTeacherBtn" class="btn-primary flex-1 py-3 rounded-lg text-xs">Save Teacher</button>
+                </div>
+            </div>
+            
+            <div class="mt-6 border-t border-slate-800 pt-6">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="p-3 font-black text-xs text-slate-400 uppercase tracking-widest border-b border-slate-800">Name</th>
+                            <th class="p-3 font-black text-xs text-slate-400 uppercase tracking-widest border-b border-slate-800">Organization</th>
+                            <th class="p-3 font-black text-xs text-slate-400 uppercase tracking-widest border-b border-slate-800 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacher-table-body" class="divide-y divide-slate-800/50">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <footer class="text-center pb-20">
+        <p id="display-theme" class="text-lg text-emerald-400 font-medium italic mb-6 px-4">Loading theme...</p>
         <button id="hubUnlockBtn" class="text-[10px] font-bold text-slate-700 hover:text-blue-400 uppercase tracking-widest transition">
             Manage Hub Content
         </button>
         <button id="hubLockBtn" class="hidden text-[10px] font-bold text-red-900 hover:text-red-500 uppercase tracking-widest transition">
             Lock Hub Tools
         </button>
-        <p class="text-[9px] text-slate-800 mt-4">v4.8 Power Hub</p>
+        <button id="globalFeedbackBtn" class="text-[10px] ml-4 font-bold text-blue-400 hover:text-white tracking-widest transition uppercase">
+            Suggestions & Help
+        </button>
+        <p class="app-version-display text-[9px] text-slate-400 mt-4 font-bold uppercase tracking-widest">Blackstone Ward Youth Hub V7.11.0</p>
     </footer>
 
+    <script src="/cfm-config.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc, getDoc, query, orderBy, limit, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, updateDoc, setDoc, doc, deleteDoc, getDoc, query, orderBy, limit, where, Timestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDrWB07WNqObtjiZb_NntJQZ0dhHyLRBas",
@@ -122,19 +213,178 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const MASKED_PASS = "Y2FwdGFpbm1vcm9uaQ==";
+        window._firebaseDb = db;
+        
+        let isAdminMode = false;
+        
+        // --- Spotlight Image Processing ---
+        let currentSpotlightImageData = null;
+        
+        document.getElementById('new-spot-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) {
+                document.getElementById('spot-preview-img').classList.add('hidden');
+                currentSpotlightImageData = null;
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_WIDTH = 800;
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width);
+                        width = MAX_WIDTH;
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    currentSpotlightImageData = dataUrl;
+                    const preview = document.getElementById('spot-preview-img');
+                    preview.src = dataUrl;
+                    preview.classList.remove('hidden');
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        });
+        
+        window.resetSpotlightForm = () => {
+            document.getElementById('edit-spot-id').value = '';
+            document.getElementById('new-spot-org').value = '';
+            document.getElementById('new-spot-date').value = '';
+            document.getElementById('new-spot-desc').value = '';
+            document.getElementById('new-spot-upload').value = '';
+            document.getElementById('new-spot-video').value = '';
+            document.getElementById('spot-preview-img').src = '';
+            document.getElementById('spot-preview-img').classList.add('hidden');
+            document.getElementById('saveSpotBtn').innerText = 'Publish Spotlight';
+            document.getElementById('cancelSpotBtn').classList.add('hidden');
+            currentSpotlightImageData = null;
+        };
+        // ----------------------------------
 
         async function initHub() {
+            try {
+                // ONE-SHOT STATIC MIGRATION
+                const rawSpots = await getDocs(collection(db, "home_spotlights"));
+                let triggerMigrate = false;
+                const mBatch = writeBatch(db);
+                rawSpots.forEach(sDoc => {
+                    if (sDoc.data().sortOrder === undefined) {
+                        triggerMigrate = true;
+                        let initSOrder = sDoc.data().timestamp ? 100000000000 - sDoc.data().timestamp.toMillis() : 5000000 + Math.floor(Math.random() * 10000);
+                        let sDate = new Date().toISOString().split('T')[0];
+                        if (sDoc.data().timestamp && typeof sDoc.data().timestamp.toDate === "function") {
+                            sDate = sDoc.data().timestamp.toDate().toISOString().split('T')[0];
+                        }
+                        mBatch.update(doc(db, "home_spotlights", sDoc.id), { sortOrder: initSOrder, spotDate: sDate });
+                    }
+                });
+                if (triggerMigrate) await mBatch.commit();
+            } catch (e) { console.error("Migration Err", e); }
+
+            try {
+                // ONE-SHOT TEACHER MIGRATION
+                const tRef = collection(db, "home_teachers");
+                const tDocs = await getDocs(tRef);
+                if (tDocs.empty && typeof TEACHER_LIST !== "undefined") {
+                    console.log("Migrating static TEACHER_LIST to Firestore...");
+                    const tBatch = writeBatch(db);
+                    TEACHER_LIST.forEach(teacherName => {
+                        const newDocRef = doc(tRef);
+                        tBatch.set(newDocRef, { name: teacherName, org: "General" });
+                    });
+                    await tBatch.commit();
+                } else if (!tDocs.empty) {
+                    const tBatch = writeBatch(db);
+                    let migratedAny = false;
+                    tDocs.forEach(d => {
+                        if (!d.data().org) {
+                            migratedAny = true;
+                            tBatch.update(doc(db, "home_teachers", d.id), { org: "General" });
+                        }
+                    });
+                    if (migratedAny) await tBatch.commit();
+                }
+            } catch (e) {
+                console.error("Teacher Migration Err:", e);
+            }
+
+            try {
+                // 0. Birthdays
+                const bdaySnap = await getDocs(query(collection(db, "birthdays")));
+                const todayMMDD = new Date().toISOString().split('T')[0].substring(5);
+                const bdayNames = [];
+                bdaySnap.forEach(d => {
+                    const b = d.data();
+                    if (b.date && b.date.substring(5) === todayMMDD) {
+                        const parts = b.name.trim().split(' ');
+                        const fName = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1].charAt(0)}.` : b.name;
+                        bdayNames.push(fName);
+                    }
+                });
+                
+                if (bdayNames.length > 0) {
+                    let formattedNames = bdayNames.join(' and ');
+                    if (bdayNames.length > 2) {
+                        formattedNames = bdayNames.slice(0, -1).join(', ') + ', and ' + bdayNames[bdayNames.length - 1];
+                    }
+                    const bHTML = `
+                    <div class="mb-10 text-center relative z-30">
+                        <div class="inline-block relative w-full sm:w-auto">
+                            <div class="absolute inset-0 bg-emerald-500 blur-xl opacity-20 rounded-2xl animate-pulse"></div>
+                            <div class="relative bg-slate-900 border border-emerald-500 flex flex-col sm:flex-row items-center justify-center p-6 rounded-2xl shadow-xl gap-4">
+                                <span class="text-4xl hidden sm:block animate-bounce" style="animation-duration: 2s;">🎉</span>
+                                <h2 class="text-xl md:text-2xl font-black text-white uppercase tracking-widest leading-tight text-center">
+                                    Happy Birthday <br class="sm:hidden"/><span class="text-emerald-400 mt-2 sm:mt-0 inline-block">${formattedNames}!</span>
+                                </h2>
+                                <span class="text-4xl animate-bounce" style="animation-duration: 2s; animation-delay: 0.5s;">🎈</span>
+                            </div>
+                        </div>
+                    </div>`;
+                    const mainSec = document.querySelector('main.max-w-7xl');
+                    if (mainSec) mainSec.insertAdjacentHTML('afterbegin', bHTML);
+                }
+            } catch(e) { console.error("Bday fetch:", e); }
+
             try {
                 // 1. Announcements
                 const annSnap = await getDocs(query(collection(db, "home_announcements"), orderBy("timestamp", "desc")));
                 const annContainer = document.getElementById('announcement-list');
                 let annHTML = '';
-                annSnap.forEach(s => {
+                const annDocs = annSnap.docs;
+                annDocs.forEach((s, idx) => {
+                    const data = s.data();
+                    let finalLinkText = data.linkText || 'View More';
+                    let linkHTML = data.linkUrl ? `<a href="${data.linkUrl}" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 px-4 py-2 bg-blue-500/10 text-blue-400 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/20 hover:bg-blue-500/20 transition cursor-pointer">${finalLinkText}</a>` : '';
+                    
+                    let moveUpHTML = idx > 0 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx - 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Up">↑</button>` : '';
+                    let moveDownHTML = idx < annDocs.length - 1 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx + 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Down">↓</button>` : '';
+
                     annHTML += `
-                        <div class="group flex justify-between items-start border-l-2 border-blue-600 pl-4 py-1">
-                            <p class="text-white font-medium">${s.data().text}</p>
-                            <button onclick="window.delAnn('${s.id}')" class="hidden group-hover:block text-[8px] text-red-500 font-black ml-2 pt-1 uppercase">Delete</button>
+                        <div class="relative flex justify-between items-start border-l-2 border-blue-600 pl-4 py-2 my-1 transition-all ${isAdminMode ? 'border border-amber-500/30 bg-amber-900/10 shadow-[0_0_10px_rgba(245,158,11,0.1)] rounded-r pr-24' : ''}">
+                            <div class="flex flex-col pr-2 w-full">
+                                <p class="text-white font-medium whitespace-pre-wrap">${data.text}</p>
+                                ${linkHTML}
+                            </div>
+                            ${isAdminMode ? `
+                                <div class="absolute top-2 right-2 flex gap-1 z-10 bg-slate-900/80 rounded p-1">
+                                    ${moveUpHTML}
+                                    ${moveDownHTML}
+                                    <button onclick="window.editAnn('${s.id}', \`${data.text.replace(/`/g, '\\`').replace(/'/g, "\\'")}\`, \`${data.linkText || ''}\`, \`${data.linkUrl || ''}\`)" class="p-1.5 bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white rounded transition shadow-sm flex items-center justify-center shrink-0 ml-1" title="Edit Announcement">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    </button>
+                                    <button onclick="window.delAnn('${s.id}')" class="p-1.5 bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white rounded transition shadow-sm flex items-center justify-center shrink-0" title="Delete Announcement">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>`;
                 });
                 annContainer.innerHTML = annHTML || '<p class="italic opacity-30 text-xs">No active announcements.</p>';
@@ -146,18 +396,141 @@
                     document.getElementById('edit-theme').value = themeDoc.data().theme || "";
                 }
 
-                // 3. Next Combined (AUTO)
+                // 3. Next Combined (Dynamic Height Balancing)
                 const todayStr = new Date().toISOString().split('T')[0];
-                const qCombined = query(collection(db, "Combined_events"), where("date", ">=", todayStr), orderBy("date", "asc"), limit(1));
-                const combinedSnap = await getDocs(qCombined);
-                const nextBox = document.getElementById('next-combined-text');
-                if (!combinedSnap.empty) {
-                    const ev = combinedSnap.docs[0].data();
-                    const d = new Date(ev.date + "T00:00:00");
-                    nextBox.innerText = `${ev.name} — ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-                } else {
-                    nextBox.innerText = "Check back soon!";
+                let dynamicLimit = 4;
+                if (window.innerWidth >= 1024) {
+                    const annHeight = annContainer.offsetHeight || 0;
+                    if (annHeight > 0) dynamicLimit = Math.max(2, Math.floor(annHeight / 110));
                 }
+                const qCombined = query(collection(db, "Combined_events"), where("date", ">=", todayStr), orderBy("date", "asc"), limit(dynamicLimit));
+                const combinedSnap = await getDocs(qCombined);
+                const infoContainer = document.getElementById('info-content');
+                let infoHTML = '';
+                if (!combinedSnap.empty) {
+                    combinedSnap.docs.forEach(s => {
+                        const ev = s.data();
+                        const d = new Date(ev.date + "T00:00:00");
+                        infoHTML += `
+                            <div class="mb-4 bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="flex h-2 w-2 relative">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                    </span>
+                                    <p class="text-emerald-400 font-bold text-xs leading-tight uppercase tracking-widest">${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' })}</p>
+                                </div>
+                                <p class="text-white font-black text-lg leading-tight uppercase">${ev.name}</p>
+                            </div>
+                        `;
+                    });
+                    infoContainer.innerHTML = infoHTML;
+                } else {
+                    infoContainer.innerHTML = '<p class="italic text-slate-500 text-sm">Check back soon for events!</p>';
+                }
+
+                // 4. Youth Spotlights
+                const spotContainer = document.getElementById('spotlights-list');
+                const isUnlocked = sessionStorage.getItem('spotlightsUnlocked') === 'true' || isAdminMode;
+
+                if (!isUnlocked) {
+                    spotContainer.innerHTML = `
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col md:flex-row relative">
+                            <div class="w-full md:w-1/3 min-h-[250px] bg-slate-800 flex-shrink-0 relative overflow-hidden">
+                                <img src="/images/spotlight.jpeg" class="absolute inset-0 w-full h-full object-cover">
+                            </div>
+                            <div class="p-6 md:p-8 flex flex-col justify-center flex-1">
+                                <span class="text-xs font-black uppercase tracking-widest text-amber-500 mb-4 block">Privacy Lock</span>
+                                <p class="text-slate-300 leading-relaxed text-sm md:text-base mb-6">Youth Spotlights are protected. Please verify your access to view these images.</p>
+                                <button onclick="window.triggerSpotlightGate()" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition shadow-lg w-full md:w-auto self-start">Click to Unlock Youth Spotlights</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const spotSnap = await getDocs(query(collection(db, "home_spotlights"), orderBy("sortOrder", "asc")));
+                    let spotHTML = '';
+                    const spotDocs = spotSnap.docs;
+                spotDocs.forEach((s, idx) => {
+                    try {
+                        const data = s.data() || {};
+                        let moveUpHTML = idx > 0 ? `<button onclick="window.swapSpot('${s.id}', '${spotDocs[idx - 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Up">↑</button>` : '';
+                        let moveDownHTML = idx < spotDocs.length - 1 ? `<button onclick="window.swapSpot('${s.id}', '${spotDocs[idx + 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Down">↓</button>` : '';
+                        
+                        const safeVideoUrl = (data.video_url || data.videoUrl || '');
+                        const safeImageUrl = data.image_url || '';
+                        let thumbHTML = '';
+                        if (safeVideoUrl) {
+                            if (safeImageUrl) {
+                                thumbHTML = `<img src="${safeImageUrl}" class="absolute inset-0 w-full h-full object-cover">`;
+                            } else if (safeVideoUrl.includes && safeVideoUrl.includes('youtube.com')) {
+                                const m = safeVideoUrl.match(/embed\/([^?]+)/);
+                                thumbHTML = `<img src="https://img.youtube.com/vi/${m ? m[1] : ''}/hqdefault.jpg" class="absolute inset-0 w-full h-full object-cover">`;
+                            } else {
+                                thumbHTML = `<div class="absolute inset-0 bg-slate-900 border border-slate-800"></div>`;
+                            }
+                        }
+
+                        spotHTML += `
+                            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col md:flex-row relative">
+                                ${isAdminMode ? `
+                                    <div class="absolute top-4 right-4 flex gap-1 z-10 items-center bg-slate-900/80 rounded p-1">
+                                        ${moveUpHTML}
+                                        ${moveDownHTML}
+                                        <button data-id="${s.id}" class="edit-spot-btn p-1.5 bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition shadow flex items-center justify-center shrink-0 ml-1" title="Edit">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        </button>
+                                        <button data-id="${s.id}" class="del-spot-btn p-1.5 bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition shadow flex items-center justify-center shrink-0" title="Delete">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </div>
+                                ` : ''}
+                                <div class="w-full md:w-1/3 min-h-[250px] bg-slate-800 flex-shrink-0 relative overflow-hidden">
+                                    ${safeVideoUrl ? `
+                                        <div class="absolute inset-0 cursor-pointer group" onclick="this.parentElement.innerHTML='<iframe src=&quot;${safeVideoUrl}&quot; class=&quot;absolute inset-0 w-full h-full&quot; frameborder=&quot;0&quot; allow=&quot;autoplay; fullscreen&quot; allowfullscreen></iframe>'">
+                                            ${thumbHTML}
+                                            <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition flex items-center justify-center">
+                                                <div class="w-16 h-16 bg-blue-600/90 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition border border-white/20">
+                                                    <svg class="w-8 h-8 text-white ml-2 drop-shadow-md" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ` : (safeImageUrl ? `<img src="${safeImageUrl}" class="absolute inset-0 w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center text-slate-600"><svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`)}
+                                </div>
+                                <div class="p-6 md:p-8 flex flex-col justify-center flex-1">
+                                    <span class="text-xs font-black uppercase tracking-widest text-amber-500 mb-4 block flex items-center gap-3">
+                                        ${data.org || ''} ${data.spotDate ? `<span class="px-2 py-0.5 bg-slate-800 text-[9px] text-slate-400 rounded-lg whitespace-nowrap">${data.spotDate}</span>` : ''}
+                                    </span>
+                                    <p class="text-slate-300 leading-relaxed text-sm md:text-base">${(data.desc || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+                                </div>
+                            </div>`;
+                    } catch (err) {
+                        console.error('Error rendering spotlight:', s.id, err);
+                    }
+                });
+                spotContainer.innerHTML = spotHTML || '<p class="italic opacity-30 text-xs pl-2">No active spotlights.</p>';
+
+                if (isAdminMode) {
+                    document.querySelectorAll('.edit-spot-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const tID = btn.getAttribute('data-id');
+                            const tDoc = spotDocs.find(d => d.id === tID);
+                            if (tDoc) {
+                                const d = tDoc.data();
+                                window.editSpot(tDoc.id, d.org, d.desc, d.image_url, d.spotDate || '', d.video_url || '');
+                            }
+                        });
+                    });
+                    document.querySelectorAll('.del-spot-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const tID = btn.getAttribute('data-id');
+                            const tDoc = spotDocs.find(d => d.id === tID);
+                            if (tDoc) {
+                                window.delSpot(tDoc.id, tDoc.data().image_url);
+                            }
+                        });
+                    });
+                }
+                } // End isUnlocked else
             } catch (e) { console.error("Hub Load Error:", e); }
         }
 
@@ -167,44 +540,493 @@
         const adminToolsAnn = document.getElementById('admin-controls');
         const adminToolsInfo = document.getElementById('info-admin-controls');
 
+        const adminToolsSpot = document.getElementById('spotlights-admin-controls');
+
         unlockBtn.onclick = () => {
-            const p = prompt("Password:");
-            if (p && btoa(p.toLowerCase().trim()) === MASKED_PASS) {
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('passwordInput').focus(), 50);
+        };
+        
+        document.getElementById('passwordCancelBtn').onclick = () => {
+            document.getElementById('passwordModal').classList.add('hidden');
+            document.getElementById('passwordInput').value = '';
+        };
+        
+        document.getElementById('passwordInput').addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') document.getElementById('passwordSubmitBtn').click();
+            if(e.key === 'Escape') document.getElementById('passwordCancelBtn').click();
+        });
+
+        document.getElementById('passwordSubmitBtn').onclick = async () => {
+            const p = document.getElementById('passwordInput').value;
+            if (!p) return;
+            
+            const btn = document.getElementById('passwordSubmitBtn');
+            const originalText = btn.innerText;
+            btn.innerText = 'VERIFYING...';
+            btn.disabled = true;
+            
+            document.getElementById('passwordModal').classList.add('hidden');
+            btn.innerText = originalText;
+            btn.disabled = false;
+            
+            const suppliedPass = await hashInput(p);
+            if (suppliedPass === SECURE_AUTH_HASHES.MASTER) {
+                isAdminMode = true;
+                document.body.classList.add('admin-active');
                 unlockBtn.classList.add('hidden');
                 lockBtn.classList.remove('hidden');
                 adminToolsAnn.classList.remove('hidden');
                 adminToolsInfo.classList.remove('hidden');
-                // Force show delete buttons
-                document.querySelectorAll('.group button').forEach(b => b.classList.remove('hidden'));
+                adminToolsSpot.classList.remove('hidden');
+                document.getElementById('teachers-admin-controls').classList.remove('hidden');
+                initHub();
             }
         };
 
         lockBtn.onclick = () => location.reload();
 
         document.getElementById('saveAnnBtn').onclick = async () => {
+            const editId = document.getElementById('edit-ann-id')?.value;
             const text = document.getElementById('new-ann-text').value;
+            const linkText = document.getElementById('new-ann-link-text')?.value || '';
+            const linkUrl = document.getElementById('new-ann-link-url')?.value || '';
+            
             if (text) {
-                await addDoc(collection(db, "home_announcements"), { text, timestamp: Timestamp.now() });
-                initHub(); 
-                document.getElementById('new-ann-text').value = '';
+                try {
+                    if (editId) {
+                        await updateDoc(doc(db, "home_announcements", editId), { 
+                            text, 
+                            linkText: linkText || null, 
+                            linkUrl: linkUrl || null 
+                        });
+                        alert("Announcement Updated!");
+                    } else {
+                        await addDoc(collection(db, "home_announcements"), { 
+                            text, 
+                            linkText: linkText || null, 
+                            linkUrl: linkUrl || null, 
+                            timestamp: Timestamp.now() 
+                        });
+                    }
+                    initHub(); 
+                    if (window.resetAnnForm) window.resetAnnForm();
+                } catch (err) {
+                    alert('Firebase Error: ' + err.message);
+                }
+            } else {
+                alert("Please provide text for the announcement.");
             }
         };
 
         document.getElementById('saveThemeBtn').onclick = async () => {
             const theme = document.getElementById('edit-theme').value;
-            await setDoc(doc(db, "home_content", "general_info"), { theme }, { merge: true });
-            initHub();
-            alert("Theme Updated!");
+            try {
+                await setDoc(doc(db, "home_content", "general_info"), { theme }, { merge: true });
+                initHub();
+                alert("Theme Updated!");
+            } catch (err) { alert('Firebase Error: ' + err.message); }
         };
 
-        window.delAnn = async (id) => {
-            if (confirm("Remove this announcement?")) {
-                await deleteDoc(doc(db, "home_announcements", id));
-                initHub();
+        document.getElementById('saveSpotBtn').onclick = async () => {
+            const org = document.getElementById('new-spot-org').value;
+            const desc = document.getElementById('new-spot-desc').value;
+            const editId = document.getElementById('edit-spot-id').value;
+            const spotDate = document.getElementById('new-spot-date').value;
+            const rawVid = document.getElementById('new-spot-video').value.trim();
+            
+            let finalVidUrl = rawVid;
+            if (rawVid) {
+                const allowed = ['youtube.com', 'youtu.be', 'vimeo.com', 'churchofjesuschrist.org'];
+                try {
+                    const u = new URL(rawVid);
+                    if (!allowed.some(domain => u.hostname.includes(domain))) {
+                        alert("Invalid Video URL. Must be from YouTube, Vimeo, or ChurchOfJesusChrist.org.");
+                        return;
+                    }
+                    if (u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be')) {
+                        let vidId = u.hostname.includes('youtu.be') ? u.pathname.slice(1) : u.searchParams.get('v');
+                        if (vidId) finalVidUrl = `https://www.youtube.com/embed/${vidId}?rel=0&modestbranding=1&autoplay=1`;
+                    } else if (u.hostname.includes('vimeo.com')) {
+                        let vidId = u.pathname.split('/').pop();
+                        if (vidId) finalVidUrl = `https://player.vimeo.com/video/${vidId}?autoplay=1`;
+                    }
+                } catch(e) { alert("Invalid Video URL format."); return; }
+            }
+            
+            if (org && desc && spotDate) {
+                try {
+                    let finalImageUrl = "";
+                    
+                    if (currentSpotlightImageData) {
+                        document.getElementById('saveSpotBtn').innerText = "Processing Image...";
+                        finalImageUrl = currentSpotlightImageData;
+                    } else if (editId) {
+                        const spotDoc = await getDoc(doc(db, "home_spotlights", editId));
+                        if(spotDoc.exists()) {
+                            finalImageUrl = spotDoc.data().image_url || "";
+                        }
+                    }
+
+                    if (editId) {
+                        await updateDoc(doc(db, "home_spotlights", editId), { org, image_url: finalImageUrl, desc, spotDate: spotDate, video_url: finalVidUrl });
+                    } else {
+                        // Hybrid Sandwich Algorithm
+                        let finalSortOrder = 1000000;
+                        const dbSpots = await getDocs(query(collection(db, "home_spotlights"), orderBy("sortOrder", "asc")));
+                        let topNeighbor = null;
+                        let bottomNeighbor = null;
+                        for (let i = 0; i < dbSpots.docs.length; i++) {
+                            let sd = dbSpots.docs[i].data().spotDate;
+                            if(sd && sd <= spotDate) {
+                                bottomNeighbor = dbSpots.docs[i].data();
+                                topNeighbor = i > 0 ? dbSpots.docs[i-1].data() : null;
+                                break;
+                            }
+                        }
+                        if (bottomNeighbor && topNeighbor) {
+                            finalSortOrder = (topNeighbor.sortOrder + bottomNeighbor.sortOrder) / 2;
+                        } else if (bottomNeighbor && !topNeighbor) {
+                            finalSortOrder = bottomNeighbor.sortOrder - 1000;
+                        } else {
+                            if (dbSpots.docs.length > 0) {
+                                finalSortOrder = dbSpots.docs[dbSpots.docs.length - 1].data().sortOrder + 1000;
+                            }
+                        }
+                        await addDoc(collection(db, "home_spotlights"), { org, image_url: finalImageUrl, desc, timestamp: Timestamp.now(), spotDate: spotDate, sortOrder: finalSortOrder, video_url: finalVidUrl });
+                    }
+
+                    initHub();
+                    resetSpotlightForm();
+                    alert(editId ? "Spotlight updated!" : "Spotlight published!");
+                } catch (err) {
+                    console.error("Publishing Exception:", err);
+                    alert('Error: ' + err.message + '\\n(Ensure your Firebase Storage & Database Rules allow writes!)');
+                    document.getElementById('saveSpotBtn').innerText = editId ? "Update Spotlight" : "Publish Spotlight";
+                }
+            } else {
+                alert("Please select organization and enter a description.");
             }
         };
 
+        window.editSpot = (id, org, desc, img, spotDate, vidUrl) => {
+            document.getElementById('saveSpotBtn').innerText = 'Update Spotlight';
+            document.getElementById('cancelSpotBtn').classList.remove('hidden');
+            
+            document.getElementById('edit-spot-id').value = id;
+            document.getElementById('new-spot-org').value = org;
+            document.getElementById('new-spot-desc').value = desc;
+            document.getElementById('new-spot-date').value = spotDate || '';
+            document.getElementById('new-spot-video').value = vidUrl || '';
+            
+            const preview = document.getElementById('spot-preview-img');
+            if (img) {
+                currentSpotlightImageData = img;
+                preview.src = img;
+                preview.classList.remove('hidden');
+            } else {
+                currentSpotlightImageData = null;
+                preview.src = '';
+                preview.classList.add('hidden');
+            }
+            document.getElementById('new-spot-upload').value = '';
+            
+            // Scroll to form
+            document.getElementById('spotlights-admin-controls').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.triggerSpotlightGate = () => {
+            document.getElementById('spotlight-gate-modal').classList.remove('hidden');
+            document.getElementById('spotlight-gate-modal').classList.add('flex');
+            document.getElementById('gate-input-name').focus();
+        };
+
+        window.closeSpotlightGate = () => {
+            document.getElementById('spotlight-gate-modal').classList.add('hidden');
+            document.getElementById('spotlight-gate-modal').classList.remove('flex');
+            document.getElementById('gate-error-text').classList.add('hidden');
+            document.getElementById('gate-input-name').value = '';
+        };
+
+        async function hashInput(name) {
+            const normalized = name.trim().toLowerCase();
+            const encoder = new TextEncoder();
+            const data = encoder.encode(normalized);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        window.confirmSpotlightUnlock = async () => {
+            const inputVal = document.getElementById('gate-input-name').value;
+            if (!inputVal) return;
+
+            const hashHex = await hashInput(inputVal);
+
+            if (SPOTLIGHT_APPROVED_HASHES.includes(hashHex)) {
+                sessionStorage.setItem('spotlightsUnlocked', 'true');
+                window.closeSpotlightGate();
+                initHub();
+            } else {
+                document.getElementById('gate-error-text').classList.remove('hidden');
+            }
+        };
+
+        window.swapSpot = async (id1, id2) => {
+            try {
+                const doc1 = await getDoc(doc(db, "home_spotlights", id1));
+                const doc2 = await getDoc(doc(db, "home_spotlights", id2));
+                if(doc1.exists() && doc2.exists()){
+                    const batch = writeBatch(db);
+                    batch.update(doc(db, "home_spotlights", id1), { sortOrder: doc2.data().sortOrder });
+                    batch.update(doc(db, "home_spotlights", id2), { sortOrder: doc1.data().sortOrder });
+                    await batch.commit();
+                    initHub();
+                }
+            } catch (err) { alert('Swap Error: ' + err.message); }
+        };
+
+        window.delSpot = async (id, imgUrl) => {
+            if (confirm("Remove this spotlight?")) {
+                try {
+                    await deleteDoc(doc(db, "home_spotlights", id));
+                    initHub();
+                } catch (err) { alert('Firebase Error: ' + err.message); }
+            }
+        };
+
+        window.delAnn = async (id) => {
+            if (confirm("Delete this announcement?")) {
+                try {
+                    await deleteDoc(doc(db, "home_announcements", id));
+                    initHub();
+                } catch (err) { alert('Error: ' + err.message); }
+            }
+        };
+
+        window.swapAnn = async (id1, id2) => {
+            try {
+                const doc1 = await getDoc(doc(db, "home_announcements", id1));
+                const doc2 = await getDoc(doc(db, "home_announcements", id2));
+                if(doc1.exists() && doc2.exists()){
+                    const batch = writeBatch(db);
+                    batch.update(doc(db, "home_announcements", id1), { timestamp: doc2.data().timestamp });
+                    batch.update(doc(db, "home_announcements", id2), { timestamp: doc1.data().timestamp });
+                    await batch.commit();
+                    initHub();
+                }
+            } catch (err) { alert('Swap Error: ' + err.message); }
+        };
+
+        window.editAnn = (id, text, linkText, linkUrl) => {
+            document.getElementById('edit-ann-id').value = id;
+            document.getElementById('new-ann-text').value = text;
+            document.getElementById('new-ann-link-text').value = linkText;
+            document.getElementById('new-ann-link-url').value = linkUrl;
+            document.getElementById('saveAnnBtn').innerText = 'Update Announcement';
+            document.getElementById('cancelAnnBtn').classList.remove('hidden');
+            document.getElementById('admin-controls').scrollIntoView({ behavior: 'smooth' });
+        };
+        
+        window.resetAnnForm = () => {
+            document.getElementById('edit-ann-id').value = '';
+            document.getElementById('new-ann-text').value = '';
+            document.getElementById('new-ann-link-text').value = '';
+            document.getElementById('new-ann-link-url').value = '';
+            document.getElementById('saveAnnBtn').innerText = 'Post Announcement';
+            document.getElementById('cancelAnnBtn').classList.add('hidden');
+        };
+
+        // --- Teacher Admin Logic ---
+        window.resetTeacherForm = () => {
+            document.getElementById('edit-teacher-id').value = '';
+            document.getElementById('new-teacher-name').value = '';
+            document.getElementById('new-teacher-org').value = '';
+            document.getElementById('saveTeacherBtn').innerText = 'Save Teacher';
+            document.getElementById('cancelTeacherBtn').classList.add('hidden');
+        };
+
+        document.getElementById('cancelTeacherBtn').addEventListener('click', window.resetTeacherForm);
+
+        document.getElementById('saveTeacherBtn').addEventListener('click', async () => {
+            const id = document.getElementById('edit-teacher-id').value;
+            const name = document.getElementById('new-teacher-name').value.trim();
+            const org = document.getElementById('new-teacher-org').value;
+            if (!name || !org) return alert('Name and Organization required.');
+
+            try {
+                if (id) {
+                    await updateDoc(doc(db, "home_teachers", id), { name, org });
+                } else {
+                    await addDoc(collection(db, "home_teachers"), { name, org });
+                }
+                window.resetTeacherForm();
+                renderTeachers();
+            } catch (e) { console.error('Teacher Save Err:', e); }
+        });
+
+        window.editTeacher = (id, name, org) => {
+            document.getElementById('edit-teacher-id').value = id;
+            document.getElementById('new-teacher-name').value = name;
+            document.getElementById('new-teacher-org').value = org;
+            document.getElementById('saveTeacherBtn').innerText = 'Update Teacher';
+            document.getElementById('cancelTeacherBtn').classList.remove('hidden');
+            document.getElementById('teachers-admin-controls').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.delTeacher = async (id) => {
+            if (!confirm('Delete this teacher?')) return;
+            try {
+                await deleteDoc(doc(db, "home_teachers", id));
+                renderTeachers();
+            } catch (e) { console.error('Teacher Delete Err:', e); }
+        };
+
+        async function renderTeachers() {
+            try {
+                const snap = await getDocs(query(collection(db, "home_teachers"), orderBy("name")));
+                let html = '';
+                const orgMap = {};
+                snap.forEach(d => {
+                    const t = d.data();
+                    const org = t.org || 'General';
+                    if (!orgMap[org]) orgMap[org] = [];
+                    orgMap[org].push({ id: d.id, ...t });
+                });
+
+                const sortedOrgs = Object.keys(orgMap).sort();
+                for (const org of sortedOrgs) {
+                    html += `
+                        <tr>
+                            <td colspan="3" class="p-3 bg-slate-800 text-amber-500 font-black text-xs uppercase tracking-widest border-t border-slate-700">
+                                ${org}
+                            </td>
+                        </tr>
+                    `;
+                    orgMap[org].forEach(t => {
+                        html += `
+                            <tr class="hover:bg-slate-800/30 transition">
+                                <td class="p-3 text-white text-xs font-medium pl-6">${t.name}</td>
+                                <td class="p-3 text-violet-400 text-[10px] font-bold uppercase tracking-widest">${t.org || 'General'}</td>
+                                <td class="p-3 text-right">
+                                    <button onclick="window.editTeacher('${t.id}', \`${t.name.replace(/`/g, '\\`')}\`, '${t.org}')" class="text-blue-400 hover:text-blue-300 font-bold text-[10px] uppercase tracking-widest mr-3">Edit</button>
+                                    <button onclick="window.delTeacher('${t.id}')" class="text-red-400 hover:text-red-300 font-bold text-[10px] uppercase tracking-widest">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                document.getElementById('teacher-table-body').innerHTML = html || '<tr><td colspan="3" class="text-center p-4 text-slate-500 text-xs italic">No teachers found.</td></tr>';
+            } catch (e) { console.error('Render Teachers Err:', e); }
+        }
+
+        const originalInitHub = initHub;
+        initHub = async () => {
+            originalInitHub();
+            if (isAdminMode) renderTeachers();
+        };
+
         initHub();
+    </script>
+    
+
+    <!-- Password Modal -->
+    <div id="passwordModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm pointer-events-auto">
+        <div class="bg-slate-900 border border-slate-700/50 w-full max-w-sm rounded-2xl p-8 shadow-2xl text-center relative overflow-hidden">
+            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+            <h3 class="text-xl font-black text-white mb-2 uppercase tracking-widest">Admin Access</h3>
+            <p class="text-slate-400 text-[10px] mb-6 font-bold uppercase tracking-widest">Authentication Required</p>
+            <input type="password" id="passwordInput" class="w-full bg-slate-950 text-white rounded-xl px-4 py-4 border border-slate-800 focus:border-blue-500 outline-none text-sm mb-4 text-center font-mono" placeholder="••••••••">
+            <div class="flex gap-3">
+                <button id="passwordSubmitBtn" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl uppercase tracking-widest text-[10px] transition active:scale-95">Unlock</button>
+                <button id="passwordCancelBtn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-4 rounded-xl uppercase tracking-widest text-[10px] transition active:scale-95">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Feedback Modal -->
+    <div id="feedbackModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700/50 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden text-left">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
+                <h2 class="font-black text-lg text-white uppercase tracking-widest">Feedback</h2>
+                <button id="closeFeedbackBtn" class="text-slate-400 hover:text-white transition font-black text-xl active:scale-95">✕</button>
+            </div>
+            <div class="p-6">
+                <div id="feedbackSuccess" class="hidden mb-4 p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-lg text-emerald-400 text-xs font-black text-center uppercase tracking-widest">
+                    Success! Your feedback has been sent.
+                </div>
+                <form id="feedbackForm" class="flex flex-col gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Your Name</label>
+                        <input type="text" id="feedbackName" required class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm shadow-inner">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Category</label>
+                        <select id="feedbackCategory" required class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm shadow-inner">
+                            <option value="Suggestion">💡 Suggestion</option>
+                            <option value="Help">🙋 Help / Question</option>
+                            <option value="Bug">🐛 Report a Bug</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Message</label>
+                        <textarea id="feedbackMessage" rows="4" required class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm resize-none shadow-inner"></textarea>
+                    </div>
+                    <button type="submit" id="feedbackSubmitBtn" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-4 rounded-xl shadow-lg transition active:scale-95 uppercase tracking-widest">
+                        Send Message
+                    </button>
+                    <button type="button" id="feedbackCloseBtn" class="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold text-[10px] py-3 rounded-xl transition active:scale-95 uppercase tracking-widest">Close</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+        const fModal = document.getElementById('feedbackModal');
+        const fClose = document.getElementById('closeFeedbackBtn');
+        const fClose2 = document.getElementById('feedbackCloseBtn');
+        const fBtnFooter = document.getElementById('globalFeedbackBtn');
+        const fBtnSide = document.getElementById('feedbackBtnSidebar');
+
+        const openFeedback = () => {
+            fModal.classList.remove('hidden');
+            document.getElementById('feedbackSuccess').classList.add('hidden');
+            document.getElementById('feedbackForm').reset();
+        };
+
+        if(fBtnFooter) fBtnFooter.addEventListener('click', openFeedback);
+        if(fBtnSide) fBtnSide.addEventListener('click', openFeedback);
+        
+        const closeM = () => fModal.classList.add('hidden');
+        if(fClose) fClose.addEventListener('click', closeM);
+        if(fClose2) fClose2.addEventListener('click', closeM);
+        
+        document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('feedbackSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = 'Sending...';
+            try {
+                const dbInstance = getFirestore();
+                await addDoc(collection(dbInstance, "site_feedback"), {
+                    Name: document.getElementById('feedbackName').value.trim(),
+                    Category: document.getElementById('feedbackCategory').value,
+                    Message: document.getElementById('feedbackMessage').value.trim(),
+                    timestamp: new Date().toISOString()
+                });
+                document.getElementById('feedbackForm').reset();
+                document.getElementById('feedbackSuccess').classList.remove('hidden');
+            } catch(err) {
+                alert('Permissions or Network Error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Send Message';
+            }
+        });
     </script>
 </body>
 </html>

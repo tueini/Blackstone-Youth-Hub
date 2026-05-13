@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /Combined_events/{id} { allow read, write: if true; }
+    match /Priests_events/{id} { allow read, write: if true; }
+    match /Teachers_events/{id} { allow read, write: if true; }
+    match /Deacons_events/{id} { allow read, write: if true; }
+    match /YW_events/{id} { allow read, write: if true; }
+    match /Primary_events/{id} { allow read, write: if true; }
+    
+    match /Combined_lessons/{id} { allow read, write: if true; }
+    match /Priests_lessons/{id} { allow read, write: if true; }
+    match /Teachers_lessons/{id} { allow read, write: if true; }
+    match /Deacons_lessons/{id} { allow read, write: if true; }
+    match /YW_lessons/{id} { allow read, write: if true; }
+    match /Primary_lessons/{id} { allow read, write: if true; }
+    
+    // Home Page Content
+    match /home_announcements/{id} { allow read, write: if true; }
+    match /home_content/{id} { allow read, write: if true; }
+    match /home_spotlights/{id} { allow read, write: if true; }
+    match /home_teachers/{id} { allow read, write: if true; }
+    match /site_feedback/{id} { allow read, write: if true; }
+    match /birthdays/{id} { allow read, write: if true; }
+  }
+}

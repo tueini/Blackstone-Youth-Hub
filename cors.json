@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://localhost", "http://127.0.0.1", "https://blackstoneward-b861c.web.app", "https://blackstoneward-b861c.firebaseapp.com"],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "responseHeader": ["Content-Type", "Authorization", "X-Firebase-Storage-Version", "X-Requested-With", "Accept", "Origin", "Access-Control-Allow-Origin"],
+    "maxAgeSeconds": 3600
+  }
+]

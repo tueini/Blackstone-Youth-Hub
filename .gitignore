@@ -88,3 +88,8 @@ build/
 .antigravity/
 .vscode/
 .idea/
+
+# API, APP, Client IDs
+config.js
+.firebaserc
+zzGoogle/
