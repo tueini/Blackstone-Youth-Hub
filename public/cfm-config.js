@@ -59,7 +59,7 @@ const CFM_LOOKUP = {
     "2026-12-27": "CFM: Christmas"
 };
 
-window.APP_VERSION_GLOBAL = "7.11.0";
+window.APP_VERSION_GLOBAL = "7.11.1";
 window.renderGlobalFooter = function() {
     try {
         const footers = document.querySelectorAll('.app-version-display');
