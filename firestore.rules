@@ -20,7 +20,13 @@ service cloud.firestore {
     match /home_content/{id} { allow read, write: if true; }
     match /home_spotlights/{id} { allow read, write: if true; }
     match /home_teachers/{id} { allow read, write: if true; }
+    match /home_leaders/{document=**} { allow read, write: if true; }
+    match /teachers/{document=**} { allow read, write: if true; }
     match /site_feedback/{id} { allow read, write: if true; }
     match /birthdays/{id} { allow read, write: if true; }
+    match /site_settings/{document=**} { 
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }

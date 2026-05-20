@@ -49,13 +49,32 @@ const dbLogic = `
             try {
                 if (ORGANIZATION_NAME !== 'Combined') {
                     const bdaySnap = await getDocs(collection(db, "birthdays"));
-                    const todayStr = new Date().toISOString().split('T')[0].substring(5); // MM-DD
                     const bdayNames = [];
                     
                     bdaySnap.forEach(d => {
                         const binfo = d.data();
-                        if (binfo.org === ORGANIZATION_NAME && binfo.date && binfo.date.substring(5) === todayStr) {
-                            bdayNames.push(formatPrivacyName(binfo.name));
+                        if (binfo.org === ORGANIZATION_NAME && binfo.date) {
+                            let match = false;
+                            let mMonth = "", mDay = "";
+                            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                            const mMap = { "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun", "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec", "1": "Jan", "2": "Feb", "3": "Mar", "4": "Apr", "5": "May", "6": "Jun", "7": "Jul", "8": "Aug", "9": "Sep" };
+                            if (binfo.date.includes('-')) {
+                                const p = binfo.date.split('-');
+                                if (p.length === 3) { mMonth = mMap[p[1]]||"Jan"; mDay = parseInt(p[2]).toString(); }
+                                else if (p.length === 2) { mMonth = mMap[p[0]]||"Jan"; mDay = parseInt(p[1]).toString(); }
+                            } else if (binfo.date.includes('/')) {
+                                const p = binfo.date.split('/');
+                                mMonth = mMap[p[0]]||"Jan"; mDay = parseInt(p[1]).toString();
+                            } else {
+                                const p = binfo.date.split(' ');
+                                mMonth = p[0]; mDay = parseInt(p[1]||1).toString();
+                            }
+                            const today = new Date();
+                            if (mMonth === monthNames[today.getMonth()] && mDay === today.getDate().toString()) match = true;
+                            
+                            if (match) {
+                                bdayNames.push(formatPrivacyName(binfo.name));
+                            }
                         }
                     });
                     

@@ -1,22 +1,72 @@
 # Project State & Documentation
 
-## Current Stable Version
-**v7.11.1** (As referenced in `public/cfm-config.js`).
+**Environment**: Beta Testing Environment (Staging)
+**Version**: v7.12.67
+**Active Branch**: `beta-admin`
+**Hosting Target**: `test-blackstoneward` (Staging Environment)
+**DevOps**: The beta environment is now securely tracked and isolated on the beta-admin branch of the GitHub repository.
 
-## Recent Updates
-- **Aesthetic Header Fix**: Removed hard-coded gradient background from the Home page header and standardized `<header>` tags across all organizational subpages for consistent, transparent global branding.
+- **Teacher Dropdown UI Polish**: Removed the "Combined" option from the Teacher Organization dropdown in the inline editing UI. "Combined" is an event scope, and ensuring teachers are strictly mapped to proper organizations (or "General") prevents data pollution.
+
+- **Teachers UI Standardization & Render Fix**: Resolved a critical rendering failure in the Teachers module where `localeCompare` crashed on undefined names. Synced `fullOrgTeachers` state back to the `window` object in the Firebase `onSnapshot` listener to unblock the rendering pipeline, and explicitly appended a `renderTeacherList()` UI refresh call at the end of the `saveEditedTeacher` execution to prevent silent save states. Rebuilt the `#teachers-section` HTML structure to match the Leaders module, successfully injecting the missing responsive `overflow-x-auto` wrapper and explicit Grid-based data columns (Teacher Name, Organization, Actions).
+- **Teacher Rendering & Strict Mode Fix**: Diagnosed and resolved a fatal `ReferenceError` preventing the `+ Add Teacher` button from updating the UI. The issue occurred because ES Module strict mode blocked `renderTeacherList()` from implicitly accessing the `fullOrgTeachers` variable without a `window.` declaration. Injected `const orgTeachers = window.fullOrgTeachers;` to fix the reference crash. Simultaneously corrected the `<select>` dropdown options in the edit pane to explicitly match the new unified organizational structures (Combined, Priests, Teachers, Deacons, Young Women, Primary, General) and updated the read-only logic check for `General`.
+- **Leader CRUD Initialization Fix**: Repaired the `+ Add Leader` button in the Settings & Privacy tab which was completely unresponsive due to an event propagation/default submission clash. Injected `e.preventDefault()` and `e.stopPropagation()` into the listener, and replaced the hardcoded `org: 'Priests'` default with a dynamic `window.ORGANIZATION_NAME` assignment to ensure clean data generation across all ward organizations.
+- **Teacher CRUD Parity**: Fully deprecated the legacy "Add/Edit Teacher" popup modal in favor of the standard inline responsive flex-card editing experience. Additionally patched the `+ Add Teacher` button to resolve an event propagation conflict by injecting `e.preventDefault()` and `e.stopPropagation()`. The button now injects a `temp_` row immediately into the list for fluid, in-place data entry, utilizing `addDoc` correctly upon save to eliminate database collisions.
+- **Admin Announcements & Leaders Hotfix**: Corrected a bug where Announcements were overly filtered by organization rather than serving as global broadcasts, and wrapped the edit controls in a strict Master Admin RBAC check. Expanded the Spotlights module to utilize the standardized responsive flex-cards with complete inline editing inputs (removing outdated `prompt()` dialogs). Upgraded the parent `#teachers-section` and `#leaders-section` UI wrappers to feature unified flexbox headers and text gradients. Finally, updated `firestore.rules` to explicitly grant read/write access to the `home_leaders` collection (`{document=**}`), permanently resolving the "Missing or insufficient permissions" error during leader creation.
+- **Admin CRUD Parity & Bug Fixes**: Resolved persistent "Loading..." hangs for Announcements and Spotlights by correcting misaligned DOM IDs (`announcements-data`) and ensuring missing Firebase Firestore exports (`orderBy`, `addDoc`) were explicitly imported. Upgraded both the Teachers and Leaders modules to achieve full CRUD UI parity with the Activities tab, replacing rigid tables with responsive flex-cards featuring inline `<input>` editing, hover-state action columns, and keyboard support (Enter to save, Escape to cancel).
+- **Tabbed Settings Refactor & Dynamic Privacy Gate**: Overhauled the Settings & Privacy UI from a dual-pane sidebar to a horizontal tabbed interface. Standardized the CRUD operations for both Announcements and Spotlights, implementing uniform responsive Flexbox Cards mirroring the Activities module. Eliminated the legacy manual "Privacy Gate Configuration" and the "Danger Zone" entirely. Engineered a dynamic synchronization hook (`syncPrivacyGate`) that automatically extracts leader last names from the new Leaders database table upon any CRUD operation, actively managing the `site_settings/privacy_config` without manual intervention.
+- **Settings & Privacy Dual-Pane Architecture**: Refactored the `#system-settings-container` into a responsive dual-pane layout, isolating navigation controls on the left and dynamic content modules on the right. Integrated existing Announcements, Spotlights, and Teachers tools as togglable `.settings-module` panes.
+- **Leaders UI Skeleton & Settings RBAC**: Built the structural frontend foundation for a new "Leaders" management module, complete with a data table for tracking names, organizations, and callings. Enforced Tier 2 (Org Leader) vs Tier 3 (Admin) Role-Based Access Control logic on the Settings navigation, allowing Tier 2 to manage Spotlights and Teachers while restricting access to Announcements and Leaders.
+- **Strict CSV Mapping & Privacy Standardization**: Refactored the CSV import and export logic (`processCSV` and `generateSymmetricCSV`) in the Admin Portal to strictly enforce privacy-first mappings. Birthdays are now explicitly exported and imported using isolated `Month` and `Day` columns, entirely dropping the legacy date string parsing. Data extraction points across all modules (Activities, Lessons, Birthdays) are now strictly trimmed to prevent whitespace drift, and CSV headers were explicitly hardcoded for structural consistency.
+- **PDF Export Standardization & JS Bleed Fix**: Extracted the duplicate PDF generation logic from the inline scripts of all secondary organization pages (Priests, Teachers, Deacons, YW, Primary, Combined) into a new, cleanly imported module (`public/js/print-handler.js`). Corrected improperly formatted multiline strings in the mobile print handler that contained unescaped `</script>` tags, successfully eliminating the critical "JavaScript bleed" bug where raw code was rendering directly onto the HTML pages.
+- **Feedback Modal Logic & Syntax Stabilization**: Removed an accidental duplicate inclusion of `cfm-config.js` in `public/index.html` that was causing a fatal `SyntaxError: Identifier 'CFM_LOOKUP' has already been declared` and halting parsing. Consolidated the "Suggestions & Help" modal trigger logic exclusively within the inline `index.html` module script (eliminating the redundant `DOMContentLoaded` listener from `cfm-config.js`). Additionally, explicitly toggled `.hidden` and `.flex` CSS utility classes directly during the JavaScript `openFeedback()` execution to prevent Tailwind parsing conflicts.
+- **Dual-UX Responsive Architecture**: Implemented a responsive slide-out drawer sidebar for mobile devices (`md:hidden` hamburger toggle) while retaining the static left-pane on desktop. Converted the rigid Activities table (`#data-editor-list`) into a dynamic CSS Flexbox card layout that stacks vertically on mobile devices and aligns horizontally on larger screens.
+- **Privacy-First Birthday Refactor**: Removed year data from the Birthdays management UI to enhance privacy. Replaced the native date input with dynamic Month and Day dropdowns (`.b-month-select` and `.b-day-select`). Updated saving and parsing logic to seamlessly parse legacy `YYYY-MM-DD` entries and export a clean `MMM DD` format. Additionally, refactored the frontend banner logic in `inject_bdays.js` and `birthday-protocol.js` to strictly match on Month and Day components, entirely ignoring the year.
+- **Birthday Native Date Implementation**: Fixed missing calendar UI on the Birthdays tab by migrating the input from a hardcoded `type="text"` to a native `type="date"` field. The date picker now displays the browser's native dark-themed icon correctly and inherits the standardized `w-[140px]` class for consistent alignment across all dashboard modules.
+- **Date Input Standardization & Theming**: Standardized date and layout constraints across `renderDataManager()`, `renderLessonManager()`, and `renderBirthdayManager()` by enforcing a universal `w-[140px] shrink-0` class for consistent spacing. Injected the Tailwind `[color-scheme:dark]` modifier into all input strings to force the browser to render the native calendar popup icons in a light color scheme, contrasting flawlessly with the dark dashboard aesthetic.
+- **Admin UI/UX Refinements**: Fixed organization switcher persistence to explicitly show a "Loading Data..." state on `#lesson-schedule-data` and `#admin-birthdays-list` while fetching new organization arrays. Restored native HTML5 `<input type="date">` functionality by removing custom calendar emojis, and implemented smooth scrolling to newly spawned inputs within the Birthdays manager.
+- **Authorization Variable Sync**: Replaced legacy `isAdminMode` security checks with the active `window.currentUserRole` state for the "Save Changes to Database" (.sync-firebase-btn) and "Danger Zone" (#wipeBtn) buttons in `admin-app.js`, completely resolving the silent failure block while enforcing correct RBAC tiers.
+- **Admin Memory Leak & Sync Alignment**: Resolved a JavaScript memory leak by ensuring the `birthdays` array clears consistently upon organization switching in `admin-app.js`. Replicated the "Save Changes to Database" function universally across Activities, Lessons, and Birthdays tabs using shared query selectors, standardizing database commits.
+- **Combined Tab Lockdown & UI Cleanup**: Enforced conditional tab visibility for the "Combined" organization, restricting it securely to the Activities view while hiding redundant tabs. Cleaned up outdated HTML sub-headers from Admin Manager sections and injected contextual calendar emoji identifiers directly into all date-based input modules.
+- **Lesson UI HTML Injection**: Restored the missing `#lessons-section` UI directly below the `#teachers-section` within the `#lessons-manager` container in `public/admin/index.html` and properly closed the container to prevent DOM collapse.
+- **HTML Structural Balancing**: Repaired a critical HTML nesting bug in `public/admin/index.html` where the `#lessons-manager` container was physically trapped inside the `#activities-section`. Inserted the proper closing `</div>` immediately before the lessons manager, and removed the orphaned closing tag directly before `#birthdays-section` to perfectly balance the DOM tree and ensure tabs render as true siblings.
+- **Master UI Unhide (Visibility Fix)**: Removed hardcoded `.hidden` classes from the `#dashboard-tabs` and `#admin-dashboard` root containers in `public/admin/index.html`. These parent wrappers were structurally blocking the entire UI from rendering even after successful authentication and data injection. Additionally verified the tab-switching logic in `admin-app.js` correctly maintains visibility of these containers when switching between organizations, ensuring the dashboard properly displays.
+- **Hard HTML Overwrite & JS Lockdown**: Executed a hard HTML replacement of the `#lessons-manager` tab to entirely rebuild the UI structure with dedicated `div`-based containers (`#teacher-roster-data` and `#lesson-schedule-data`). The previous table-based layout (`<tbody>`) was completely replaced with modern Tailwind flex/grid components, fixing the blank UI issue. Updated button IDs to `addTeacherBtn` and `addLessonBtn` and locked down the JavaScript logic in `admin-app.js` and `admin-data.js` to strictly target the new inner data elements, permanently preventing the parent UI components from being overwritten or stripped out by browser rendering engines.
+- **Stacked UI Component Integrity Verification**: Verified that `#teachers-section` and `#lessons-section` Stacked UI elements (including their `+ Add` buttons and data wrappers) are solidly injected within the `#lessons-manager` HTML tree. Adjusted the `admin-app.js` data-binding empty state injection to perfectly format the `<p>No teachers found.</p>` fallback message directly into `#teacher-roster-data`, ensuring total UI control separation.
+
+## Application Version
+**7.12.60** (May 2026 DB Sync Pending)
+
+## Recent Significant Actions
+- **Pipeline Halt Resolution & HTML Structure Repair**: Discovered that an unprotected `.replace()` on potentially undefined properties (`item.details`) in the *Activities* module was silently throwing a TypeError, halting the global `refreshUI()` pipeline and completely preventing the *Lessons* and *Birthdays* rendering functions from ever executing (explaining the blank screens). Applied strict `String()` wrappers across the `renderDataManager` template to resolve. Additionally, repaired misaligned `</div>` closures in `index.html` that had inadvertently orphaned the Lessons and Birthdays tab containers outside the `#admin-dashboard` layout flow.
+- **Data Rendering TypeError Fix**: Addressed a critical bug causing the Lessons and Birthdays tabs to render blank. Applied safety fallbacks (`(item.property || '')`) to string `.replace()` methods within the HTML template generation loops in `admin-app.js` to gracefully handle undefined object values without throwing an uncaught TypeError.
+- **Legacy Script Decoupling**: Safely decoupled the legacy `admin-data.js` script from the Admin Portal by deleting its `<script>` inclusion in `index.html` and removing its initialization call (`window.initAdminDashboard`) from `authAdmin()`. This eradicated a critical data clobbering collision where the legacy script was wiping out `#lesson-schedule-data` and `#admin-birthdays-list` via `.innerHTML` shortly after `admin-app.js` rendered them.
+- **Activity UI Restoration & Filter Fix**: Rebuilt the missing `data-editor-list` HTML table structure within the Activities tab. Hardened the "See Past" filtering algorithms in `admin-app.js` to rely on strict local timezone parsing (`new Date()`) instead of UTC ISO strings to prevent date boundary clipping.
+- **Admin Tab Standardization**: Implemented universal UI parity across the Activities, Lessons, and Birthdays tabs. All three managers now feature visually identical Gradient Header typographies and perfectly unified row-level styling (dark mode hover states, padding, borders, and flex layouts).
+- **Universal CSV Operations**: Injected dedicated Upload/Download CSV control blocks into the Lessons and Birthdays sections. Re-engineered `processCSV()` and `generateSymmetricCSV()` to be fully context-aware based on the user's active tab, enabling distinct spreadsheet import/exports for scheduled events, curriculum topics, and member milestones.
+- **Data Clobbering Resolution**: Nullified redundant rendering routines in `admin-data.js` to ensure `admin-app.js` securely manages all Admin Live Editor scopes without HTML DOM collisions.
+
+- **DOM Parsing & Race Condition Fix**: Wrapped the `.dash-tab` event listener initialization block inside `admin-app.js` with a `document.addEventListener('DOMContentLoaded', ...)` closure. This prevents execution timing failures by guaranteeing the HTML structure is entirely parsed and rendered by the browser before the JS attempts to query and bind the navigation buttons. Additionally, confirmed the `admin-app.js` module script tag remains physically situated at the absolute bottom of the `<body>` in `index.html`.
+- **Tab Navigation Listener Restoration**: Successfully reconnected the `.dash-tab` click event listeners by injecting them directly into `admin-app.js`. This guarantees that the tab switching logic is safely initialized as part of the JavaScript bundle cycle rather than relying on inline HTML scripting. The internal listener logic now correctly utilizes `e.currentTarget` to handle padding clicks and executes explicit `classList` toggling to unhide specific `#targetId` DOM containers like `#lessons-manager`.
+- **DOM Parsing Fix for Dashboard Tabs**: Repaired the `.dash-tab` click event listeners in `public/admin/index.html`. The previous refactor incorrectly placed the synchronous query selector logic inside the `<head>` tag, which failed because the `<body>` elements had not yet been parsed. Relocated the initialization script block to the very bottom of the `<body>`, guaranteeing the DOM elements are fully constructed before binding click handlers and ensuring the RBAC engine programmatic clicks from `admin-app.js` trigger successfully. This restored full functionality to the "Lessons & Teachers" tab.
+- **Admin Tab Switching Race Condition Fix**: Diagnosed and resolved a critical race condition where programmatic tab-clicking by the RBAC engine (`admin-app.js`) fired before the visual `.dash-tab` listeners were registered to the DOM via `DOMContentLoaded`. Restructured the primary tab-switching logic in `index.html` to execute synchronously immediately upon HTML parsing. Additionally, hardened the event listener to utilize `e.currentTarget` rather than `e.target`, ensuring deep clicks on button padding reliably execute the unhide logic for `#lessons-manager`.
+- **Visibility & Rendering Hotfix**: Diagnosed and resolved the core issue causing the "Lessons & Teachers" tab to remain hidden for Tier 2 Admins. Updated the `setupRBAC` engine pointer in `admin-app.js` to correctly target `[data-target="lessons-manager"]` (instead of the deprecated `-section`), ensuring the tab safely unhides itself on authentication. Additionally, verified that the `renderTeacherList()` function gracefully injects a purely cosmetic "No teachers tracked yet" message without ever mutating the `.hidden` classes of the structural `#teachers-section` wrapper, permanently protecting the "+ Add Teacher" invocation button.
+- **Teacher UI Invocation Audit**: Conducted a final physical audit of the `+ Add Teacher` button. Confirmed it is prominently injected at the top of `#teachers-section` within the "Lessons & Teachers" tab (rather than globally in the Live Editor). Verified that no rogue Tailwind classes or RBAC logic hide this button from Tier 2 administrators. The modal successfully triggers and inherently scales its input fields based on the active user role.
+- **Data Binding & RBAC Enforcement**: Validated the complete connection between the Firestore data streams (`home_teachers` and organizational lessons) and the new Stacked UI containers. Successfully enforced Tier 2 vs Tier 3 RBAC constraints across both rendering logic and save payloads.
+- **Stacked UI Layout Engine**: Refactored the "Lessons & Teachers" tab into a vertically stacked interface (`#lessons-manager`). Created a dedicated `#teachers-section` at the top (featuring the Teacher Roster and the "+ Add Teacher" invocation) and nested the `#lessons-section` below it. Implemented smooth-scrolling local anchor links (`⬇ Skip to Lesson Schedule` and `⬆ Back to Teacher Roster`) for rapid vertical navigation.
 
 ## GitHub Tracking Status
 - **Repository**: [tueini/Blackstone-Youth-Hub](https://github.com/tueini/Blackstone-Youth-Hub)
-- **Status**: The project has been successfully initialized as a Git repository. Version **v7.11.1** is currently live on Firebase and securely tracked on the `main` branch.
+- **Status**: The project has been successfully initialized as a Git repository. Version **v7.12.24** is currently live on Firebase and securely tracked on the `beta-admin` branch.
 - **Sanitization**: All legacy `.zip` archives, the `zzarch/` and `zzimport/` directories, and obsolete files like `set_version.html` were successfully deleted.
 - **Security**: Firebase secrets (e.g., `.firebaserc`, `zzGoogle/`) and `node_modules` are safely ignored in `.gitignore`.
 
 ## SMTP & Email Settings
 - **Provider**: SendGrid (`@sendgrid/mail`)
-- **Sender**: `hub@blackstoneward.org`
+- **Sender**: `"Blackstone Ward Hub" <hub@blackstoneward.org>`
 - **Recipient**: `duanepharris@gmail.com`
 - **Authentication**: Uses Firebase Secrets (`SENDGRID_API_KEY`) within Cloud Functions.
+- **Status**: **LIVE & VERIFIED** in Beta Environment.
 - **Trigger**: An `onDocumentCreated` listener on the `site_feedback/{docId}` Firestore collection invokes the `sendFeedbackEmail` function, routing structured feedback messages directly over SMTP.
 
 ## Base64 Image Logic Status
@@ -40,47 +90,9 @@ Admin/Credentials_Teachers.docx
 Admin/Credentials_YW.docx
 Blackstone Ward Youth Hub Tech Doc.docx
 CHANGELOG.md
-Youth_Hub_Backup/2026-04-04_2157_Blackstone_Hub_V5.8.1.zip
-Youth_Hub_Backup/2026-04-04_2230_Blackstone_Hub_V6.0.zip
-Youth_Hub_Backup/2026-04-04_2238_Blackstone_Hub_V6.1.zip
-Youth_Hub_Backup/2026-04-04_2245_Blackstone_Hub_V6.2.zip
-Youth_Hub_Backup/2026-04-04_2307_Blackstone_Hub_V6.3.zip
-Youth_Hub_Backup/2026-04-04_2348_Blackstone_Hub_V6.4.zip
-Youth_Hub_Backup/2026-04-04_Blackstone_Hub_V5.8.0.zip
-Youth_Hub_Backup/2026-04-05_0001_Blackstone_Hub_V6.4.zip
-Youth_Hub_Backup/2026-04-05_1448_Blackstone_Hub_V6.5.zip
-Youth_Hub_Backup/2026-04-05_1804_Blackstone_Hub_V6.6.zip
-Youth_Hub_Backup/2026-04-05_1818_Blackstone_Hub_V6.7.zip
-Youth_Hub_Backup/2026-04-05_1832_Blackstone_Hub_V6.8.zip
-Youth_Hub_Backup/2026-04-05_1844_Blackstone_Hub_V6.9.zip
-Youth_Hub_Backup/2026-04-05_1901_Blackstone_Hub_V6.10.zip
-Youth_Hub_Backup/2026-04-05_1912_Blackstone_Hub_V6.11.zip
-Youth_Hub_Backup/2026-04-05_1941_Blackstone_Hub_V6.12.zip
-Youth_Hub_Backup/2026-04-05_1946_Blackstone_Hub_V6.13.zip
-Youth_Hub_Backup/2026-04-05_2038_Blackstone_Hub_V7.0.zip
-Youth_Hub_Backup/2026-04-05_2113_Blackstone_Hub_V7.0.1.zip
-Youth_Hub_Backup/2026-04-05_2141_Blackstone_Hub_V7.1.0.zip
-Youth_Hub_Backup/2026-04-05_2158_Blackstone_Hub_V7.1.1.zip
-Youth_Hub_Backup/2026-04-05_2203_Blackstone_Hub_V7.1.2.zip
-Youth_Hub_Backup/2026-04-05_2244_Blackstone_Hub_V7.1.3.zip
-Youth_Hub_Backup/2026-04-06_1016_Blackstone_Hub_V7.1.6.zip
-Youth_Hub_Backup/2026-04-06_1204_Blackstone_Hub_V7.1.7.zip
-Youth_Hub_Backup/2026-04-07_1107_Blackstone_Hub_V7.1.8.zip
-Youth_Hub_Backup/2026-04-07_2020_Blackstone_Hub_V7.1.9.zip
-Youth_Hub_Backup/2026-04-07_2026_Blackstone_Hub_V7.1.10.zip
-Youth_Hub_Backup/2026-04-07_2108_Blackstone_Hub_V7.1.11.zip
-Youth_Hub_Backup/2026-04-12_1949_Blackstone_Hub_V7.1.12.zip
-Youth_Hub_Backup/2026-04-13_0100_Blackstone_Hub_V7.2.1.zip
-Youth_Hub_Backup/2026-04-17_0005_Blackstone_Hub_V7.10.5.zip
+PROJECT_STATE.md
 Youth_Hub_Backup/BACKUP_LOG.md
-Youth_Hub_Backup/Backup_V7.4.0_SafeGuard.zip
-Youth_Hub_Backup/PRE_VIDEO_STABLE_V7.10.2_2026-04-16_11-38.zip
-Youth_Hub_Backup/SUCCESS_STABLE_SMTP_V7.10.2_2026-04-13_02-01.zip
-Youth_Hub_Backup/V7.10.0_Snapshot2.zip
-Youth_Hub_Backup/V7.5.0_Snapshot.zip
-Youth_Hub_Backup/V7.6.0_Snapshot.zip
-Youth_Hub_Backup/V7.7.0_Snapshot.zip
-Youth_Hub_Backup/V7.8.0_Snapshot.zip
+Youth_Hub_Backup/Blackstone_Hub_V7.11.0_Snapshot.zip
 cors.json
 firebase.json
 firestore.rules
@@ -122,47 +134,5 @@ public/js/birthday-protocol.js
 public/js/config.js
 public/security-config.js
 public/server.log
-public/set_version.html
 update_subpages.js
-zzGoogle/client_secret_956450429708-116fpbs1e1d3j2qvvg91se6crt0dd0ds.apps.googleusercontent.com.json
-zzRes/.DS_Store
-zzRes/0master.json
-zzRes/priests_20260404.jpeg
-zzRes/site_structure.json
-zzSchedule_Export/2026 Youth Activities.pdf
-zzarch/.DS_Store
-zzarch/Priests/index_v4-0.html
-zzarch/Priests/index_v4-1.html
-zzarch/firebase_20260317.json
-zzarch/index_20260316.html
-zzarch/index_20260317v1.html
-zzarch/index_20260317v3.html
-zzarch/index_20260317v4.html
-zzarch/index_20260317v5.html
-zzarch/index_20260317v6.html
-zzarch/index_20260317v7.html
-zzarch/index_v1.html
-zzarch/index_v2.html
-zzimport/.DS_Store
-zzimport/Combined/.DS_Store
-zzimport/Combined/20260317_import.csv
-zzimport/Combined/20260321_import.csv
-zzimport/Combined/Apple_Picking_3Amigos_20250918.jpeg
-zzimport/Combined/Apple_Picking_Chair_20250918.jpeg
-zzimport/Combined/Apple_Picking_Tractor_20250918.jpeg
-zzimport/Combined/ChristmasProgram_20241113.jpg
-zzimport/Combined/Service_PizzaBreak2_20241116.jpeg
-zzimport/Combined/Service_PizzaBreak_20241116.jpeg
-zzimport/Combined/spotlight.jpeg
-zzimport/Deacons/20260317_import.csv
-zzimport/Home/EthanWildLion.mov
-zzimport/Membership/YM_20260406.pdf
-zzimport/Membership/YW_20260406.pdf
-zzimport/Priests/.DS_Store
-zzimport/Priests/20260317_priests_import.csv
-zzimport/Priests/priests_20260404.jpeg
-zzimport/Teachers/20260318_teachers_import.csv
-zzimport/YW/20260321_yw_import.csv
-zzimport/lessons/2026_come_follow_me_for_home_and_church_old_testament.pdf
-zzimport/lessons/CFM_Lessons and Dates.pdf
 ```

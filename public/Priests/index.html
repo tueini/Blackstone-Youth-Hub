@@ -61,20 +61,24 @@
             .print-cat-combined { color: #3b82f6; }
         }
     </style>
+
+<!-- Birthday Protocol -->
+<style>
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(5deg); }
+    }
+    @keyframes confetti-fall {
+        0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+    .balloon { animation: float 3s ease-in-out infinite; }
+    .confetti { position: absolute; width: 10px; height: 10px; animation: confetti-fall 4s linear infinite; }
+</style>
 </head>
 <body class="flex flex-col lg:flex-row min-h-screen">
     <div id="print-area" class="hidden p-8 text-black bg-white min-h-screen w-full absolute top-0 left-0 z-[999]"></div>
-    <div id="customModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 modal-bg">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-8 shadow-2xl text-center">
-            <h3 class="text-xl font-black text-white mb-2">Sync Options</h3>
-            <p id="modalMsg" class="text-slate-400 text-sm mb-8 leading-relaxed">Wipe existing calendar before sync? (Recommended for full updates)</p>
-            <div class="flex flex-col gap-3">
-                <button id="modalYes" class="bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl uppercase tracking-widest text-xs">Yes, Wipe & Sync</button>
-                <button id="modalNo" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-black py-3 rounded-xl uppercase tracking-widest text-xs">No, Just Add New Items</button>
-                <button id="modalCancel" class="text-slate-600 hover:text-white font-bold text-[10px] mt-2 uppercase tracking-widest">Cancel Entire Import</button>
-            </div>
-        </div>
-    </div>
+    
 
     <!-- Day Detail Popover for Grid Tap -->
     <div id="dayDetailModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 modal-bg">
@@ -133,58 +137,12 @@
         <div id="active-months" class="calendar-grid mb-12"></div>
         <div id="list-view" class="hidden flex-col gap-3 mb-12"></div>
         
-        <div id="admin-main-view" class="hidden flex-col gap-4 w-full mb-12 animate-fade-in">
-            <div class="flex flex-wrap items-center justify-between mb-4 border-b border-slate-800 pb-4 gap-4">
-                <div>
-                    <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Live Editor</h2>
-                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Direct Database Access</p>
-                </div>
-                <div class="flex gap-2">
-                    <button id="adminToggleViewBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest border border-slate-700 shadow-lg shrink-0">Preview Mode</button>
-                    <button id="addNewRowBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Activity</button>
-                    <button id="addNewLessonBtn" class="bg-amber-600 hover:bg-amber-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Lesson</button>
-                </div>
-            </div>
-            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-2 border-b border-slate-800 pb-2">Activity Schedule</h3>
-            <div class="bg-slate-900/80 border border-slate-700/50 w-full overflow-x-auto rounded-2xl shadow-2xl backdrop-blur-sm mb-4">
-                <table class="w-full text-left border-collapse whitespace-nowrap lg:whitespace-normal" id="admin-table">
-                    <thead>
-                        <tr class="bg-slate-900 text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-700/50">
-                            <th class="p-4 font-black w-[15%]">Date</th>
-                            <th class="p-4 font-black w-[25%] lg:w-[30%]">Activity</th>
-                            <th class="p-4 font-black w-[15%]">Category</th>
-                            <th class="p-4 font-black w-[35%]">Details</th>
-                            <th class="p-4 font-black text-center w-[10%] action-col">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="data-editor-list" class="divide-y divide-slate-800/50">
-                        <!-- rows -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="flex justify-between items-end mb-1 mt-4 border-b border-slate-800 pb-2 pl-2 pr-2">
-                <h3 class="text-[10px] font-black text-amber-500/80 uppercase tracking-widest leading-none">Sunday Lessons</h3>
-                <button id="addNewLessonHeaderBtn" class="bg-amber-600 hover:bg-amber-500 text-white text-[9px] items-center flex font-bold py-1.5 px-3 rounded-lg transition uppercase tracking-widest shadow-lg shrink-0 leading-none">+ Add Lesson</button>
-            </div>
-            <div class="bg-slate-900/80 border border-amber-500/30 w-full overflow-x-auto rounded-2xl shadow-2xl backdrop-blur-sm">
-                <table class="w-full text-left border-collapse whitespace-nowrap lg:whitespace-normal" id="admin-lessons-table">
-                    <thead>
-                        <tr class="bg-slate-900 text-amber-500/80 text-[10px] uppercase tracking-widest border-b border-amber-500/30">
-                            <th class="p-4 font-black w-[15%]">Date</th>
-                            <th class="p-4 font-black w-[35%] lg:w-[40%]">Topic</th>
-                            <th class="p-4 font-black w-[40%] text-slate-400">Teacher</th>
-                            <th class="p-4 font-black text-center w-[10%] action-col">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="data-lessons-list" class="divide-y divide-amber-900/30"></tbody>
-                </table>
-            </div>
-        </div>
+        
         <footer class="text-center pt-12 pb-6 mt-12 border-t border-slate-800">
             <button class="globalFeedbackBtn text-[10px] font-bold text-blue-400 hover:text-white tracking-widest transition uppercase">
                 Suggestions & Help
             </button>
+            <a href="/admin/index.html" class="text-[10px] ml-4 font-bold text-amber-500 hover:text-white tracking-widest transition uppercase">Admin Portal</a>
             <p class="app-version-display text-[9px] text-slate-500 mt-4 font-bold uppercase tracking-widest">Loading version...</p>
         </footer>
 
@@ -203,35 +161,8 @@
             <div id="unscheduled-ideas" class="space-y-2"></div>
         </div>
         <div class="mt-6 pt-6 border-t border-slate-800 space-y-3">
-            <div id="import-gate">
-                <button id="unlockBtn" class="w-full bg-slate-800 hover:bg-blue-600 text-white text-xs font-bold py-3 px-4 rounded-lg transition-all uppercase tracking-widest leading-none border border-slate-700">Manage Data</button>
-                <button id="feedbackBtnSidebar" class="w-full mt-2 bg-slate-800/50 hover:bg-slate-800 text-blue-500 font-bold py-3 px-4 rounded-lg transition-all uppercase tracking-widest leading-none border border-blue-500/30 text-[10px]">Suggestions & Help</button>
-            </div>
-            <div id="import-controls" class="hidden space-y-3">
-                <h2 class="text-2xl font-black mb-2 text-white uppercase tracking-tighter">ADMIN MODE</h2>
-                
-                <h3 class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 mt-4">Database Import</h3>
-                <label for="csvFileInput" class="custom-file-upload border-emerald-500/50 text-emerald-400 bg-emerald-900/20 hover:bg-emerald-900/40 m-0 w-full block">Upload CSV</label>
-                <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
-                <button id="googleDriveBtn" class="hidden custom-file-upload border-emerald-500/50 text-emerald-400 bg-emerald-900/20 hover:bg-emerald-900/40 m-0 w-full">Import CSV</button>
-                <p id="driveLoading" class="hidden text-[10px] text-emerald-400 font-bold uppercase text-center mt-1 animate-pulse">Connecting to Google... </p>
-                <button id="exportCsvBtn" class="custom-file-upload border-blue-500/50 text-blue-400 bg-blue-900/20 hover:bg-blue-900/40 m-0 mt-2 w-full block">Download CSV Backup</button>
-                
-                <hr class="border-slate-800 my-4">
-                <h3 class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Database Sync</h3>
-                <button id="syncFirebaseBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-[12px] font-black py-4 rounded-xl transition-all shadow-lg uppercase tracking-widest flex items-center justify-center gap-2 border border-blue-500/50">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    <span>Save Changes</span>
-                </button>
-                <div id="toast" class="hidden mt-2 p-3 bg-emerald-900/40 border border-emerald-500/50 rounded-lg text-emerald-400 text-[10px] font-bold text-center uppercase tracking-widest shadow-lg">Saved Successfully!</div>
-                
-                <hr class="border-slate-800 my-4">
-                <h3 class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Danger Zone</h3>
-                <div class="flex gap-2">
-                    <button id="wipeBtn" class="flex-1 bg-red-900/10 hover:bg-red-600 text-red-500 hover:text-white text-[10px] font-black py-3 rounded-lg transition-all uppercase tracking-widest border border-red-900/30">Wipe All</button>
-                    <button id="lockBtn" class="flex-1 text-[10px] text-slate-400 hover:text-white font-bold uppercase tracking-widest bg-slate-800 rounded-lg border border-slate-700 transition hover:bg-slate-700">Lock Tools</button>
-                </div>
-            </div>
+            
+            
         </div>
     </aside>
 
@@ -239,6 +170,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc, writeBatch, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { GOOGLE_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_APP_ID } from "/js/config.js";
+        import { initPrintHandler } from "/js/print-handler.js";
 
         const pathSegments = window.location.pathname.split('/').filter(p => p && p.toLowerCase() !== 'index.html');
         const ORGANIZATION_NAME = pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] : "Combined";
@@ -264,7 +196,7 @@
         const db = getFirestore(app);
         window._firebaseDb = db;
         
-        let events = [], unscheduled = [], lessons = [], orgTeachers = [];
+        let events = [], unscheduled = [], lessons = [], orgTeachers = [], bdays = [];
         const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
         const today = new Date();
 
@@ -289,6 +221,12 @@
 
             try {
                 const allData = [];
+                
+                const bSnap = await getDocs(collection(db, "birthdays"));
+                const bAllData = [];
+                bSnap.forEach(d => bAllData.push({...d.data(), id: d.id}));
+                bdays = bAllData;
+        
                 const orgSnap = await getDocs(collection(db, `${ORGANIZATION_NAME}_events`));
                 orgSnap.forEach(d => allData.push({...d.data(), id: d.id, sourceOrg: ORGANIZATION_NAME}));
                 if (!isCombinedPage) {
@@ -298,6 +236,62 @@
                 events = allData.filter(d => d.type === 'scheduled');
                 unscheduled = allData.filter(d => d.type === 'unscheduled');
                 
+                
+            try {
+                if (ORGANIZATION_NAME !== 'Combined') {
+                    const bdaySnap = await getDocs(collection(db, "birthdays"));
+                    const bdayNames = [];
+                    
+                    bdaySnap.forEach(d => {
+                        const binfo = d.data();
+                        if (binfo.org === ORGANIZATION_NAME && binfo.date) {
+                            let match = false;
+                            let mMonth = "", mDay = "";
+                            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                            const mMap = { "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun", "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec", "1": "Jan", "2": "Feb", "3": "Mar", "4": "Apr", "5": "May", "6": "Jun", "7": "Jul", "8": "Aug", "9": "Sep" };
+                            if (binfo.date.includes('-')) {
+                                const p = binfo.date.split('-');
+                                if (p.length === 3) { mMonth = mMap[p[1]]||"Jan"; mDay = parseInt(p[2]).toString(); }
+                                else if (p.length === 2) { mMonth = mMap[p[0]]||"Jan"; mDay = parseInt(p[1]).toString(); }
+                            } else if (binfo.date.includes('/')) {
+                                const p = binfo.date.split('/');
+                                mMonth = mMap[p[0]]||"Jan"; mDay = parseInt(p[1]).toString();
+                            } else {
+                                const p = binfo.date.split(' ');
+                                mMonth = p[0]; mDay = parseInt(p[1]||1).toString();
+                            }
+                            const today = new Date();
+                            if (mMonth === monthNames[today.getMonth()] && mDay === today.getDate().toString()) match = true;
+                            
+                            if (match) {
+                                bdayNames.push(formatPrivacyName(binfo.name));
+                            }
+                        }
+                    });
+                    
+                    if (bdayNames.length > 0 && !sessionStorage.getItem('birthdayShown_' + ORGANIZATION_NAME)) {
+                        const m = document.getElementById('bdayModal');
+                        if (m) {
+                            document.getElementById('bdayNames').innerText = bdayNames.join(' & ');
+                            m.classList.remove('hidden');
+                            
+                            // Generate Confetti
+                            const cCont = document.getElementById('confetti-container');
+                            const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+                            for (let k = 0; k < 50; k++) {
+                                const c = document.createElement('div');
+                                c.className = 'confetti';
+                                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                                c.style.left = Math.random() * 100 + '%';
+                                c.style.animationDelay = Math.random() * 3 + 's';
+                                c.style.animationDuration = Math.random() * 2 + 3 + 's';
+                                cCont.appendChild(c);
+                            }
+                        }
+                    }
+                }
+            } catch(e) { console.error("Bday fetch error:", e); }
+
                 const lessonSnap = await getDocs(collection(db, `${ORGANIZATION_NAME}_lessons`));
                 lessonSnap.forEach(d => lessons.push({...d.data(), id: d.id, sourceOrg: ORGANIZATION_NAME}));
                 if (!isCombinedPage) {
@@ -491,711 +485,14 @@
                 });
             }
         });
-        const handlePrint = async (filter = 'all', selectNode = null) => {
-            let html = "";
-            const colors = { social: '#3b82f6', physical: '#f97316', spiritual: '#8b5cf6', intellectual: '#eab308', combined: '#10b981' };
-
-            if (filter === 'all' || filter === 'activities') {
-                html += `<h1 style="font-size:24px; font-weight:bold; margin-bottom:20px;">2026 ${displayOrg} Activities</h1>`;
-                html += `<h2 style="font-size:18px; font-weight:bold; margin-top:20px; border-bottom:1px solid #ccc; padding-bottom:5px;">Scheduled Events</h2>`;
-                const sortedEvents = events.sort((a,b) => new Date(a.date) - new Date(b.date));
-                sortedEvents.forEach(e => {
-                    const d = new Date(e.date + "T00:00:00");
-                    html += `<div style="margin-bottom:8px;"><strong style="color: ${colors[e.cat] || '#000'}">${e.isService ? '⭐' : '•'}</strong> <strong>${months[d.getMonth()]} ${d.getDate()}:</strong> ${e.name} ${e.details ? '— <i>'+e.details+'</i>' : ''}</div>`;
-                });
-                if (unscheduled.length > 0) {
-                    html += `<h2 style="font-size:18px; font-weight:bold; margin-top:20px; border-bottom:1px solid #ccc; padding-bottom:5px;">Ideas (Unscheduled)</h2>`;
-                    unscheduled.forEach(i => {
-                        html += `<div style="margin-bottom:8px;"><strong style="color: ${colors[i.cat] || '#000'}">${i.isService ? '⭐' : '•'}</strong> ${i.name} ${i.details ? '— <i>'+i.details+'</i>' : ''}</div>`;
-                    });
-                }
-            }
-
-            if (filter === 'all' || filter === 'lessons') {
-                html += `<h1 style="font-size:24px; font-weight:bold; margin-bottom:20px; ${filter==='all' ? 'margin-top:40px;' : ''}">2026 ${displayOrg} Sunday Lessons</h1>`;
-                const sortedLessons = lessons.sort((a,b) => new Date(a.date) - new Date(b.date));
-                sortedLessons.forEach(l => {
-                    if(!l.date) return;
-                    const d = new Date(l.date + "T00:00:00");
-                    html += `<div style="margin-bottom:8px;"><strong style="color: #8b5cf6;">•</strong> <strong>${months[d.getMonth()]} ${d.getDate()}:</strong> ${l.topic} <strong>[${l.teacher || 'Unassigned'}]</strong> ${l.notes ? '<br><i style="font-size: 11px; margin-left: 20px;">Notes: '+l.notes+'</i>' : ''}</div>`;
-                });
-            }
-
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            const printContent = `<div style="padding: 20px; font-family: sans-serif; background: #ffffff; color: #000000; width: 800px; display: block;">${html}</div>`;
-
-            let exportName = 'YHub_All_Sched.pdf';
-            if (filter === 'activities') exportName = 'YHub_Activities_Sched.pdf';
-            if (filter === 'lessons') exportName = 'YHub_Lessons_Sched.pdf';
-
-            const opt = {
-                margin: 10,
-                filename: exportName,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            if (isMobile) {
-                let popWindow = window.open('', '_blank');
-                if (popWindow) popWindow.document.write('<body style="background:#0f172a;color:white;font-family:sans-serif;text-align:center;padding-top:20vh;"><h2>Generating PDF... Please wait...</h2></body>');
-                
-                html2pdf().from(printContent).set(opt).outputPdf('bloburl').then((res) => {
-                    if (popWindow) popWindow.location.href = res;
-                    else window.location.href = res;
-                    if (selectNode) {
-                        selectNode.options[0].text = "Download Schedule (PDF) ▾";
-                        selectNode.disabled = false;
-                        selectNode.value = "";
-                    }
-                });
-            } else {
-                html2pdf().from(printContent).set(opt).save().then(() => {
-                    if (selectNode) {
-                        selectNode.options[0].text = "Download Schedule (PDF) ▾";
-                        selectNode.disabled = false;
-                        selectNode.value = "";
-                    }
-                });
-            }
-        };
-
-        const onChangePrint = (e) => { 
-            if(e.target.value) { 
-                e.target.options[0].text = "Generating PDF...";
-                e.target.disabled = true;
-                handlePrint(e.target.value, e.target); 
-            } 
-        };
-        if(document.getElementById('printBtnList')) document.getElementById('printBtnList').addEventListener('change', onChangePrint);
-        if(document.getElementById('printBtnGrid')) document.getElementById('printBtnGrid').addEventListener('change', onChangePrint);
-
-        function parseCSVRow(t) { const re = /(?!\s*$)\s*(?:'([^']*)'|"([^"]*)"|([^,]*))\s*(?:,|$)/g; const res = []; t.replace(re, (m, p1, p2, p3) => { res.push(p1 || p2 || p3 || ""); return ""; }); return res; }
-        function parseCSVDate(s) { if (!s || !s.trim()) return null; const p = s.split('/'); if (p.length !== 3) return null; let y = p[2]; if(y.length===2) y="20"+y; return `${y}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`; }
-        function sanitizeId(t) { return t.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').toLowerCase(); }
-
-        // --- CUSTOM MODAL & SYNC LOGIC ---
-        const modal = document.getElementById('customModal');
-        const modalYes = document.getElementById('modalYes');
-        const modalNo = document.getElementById('modalNo');
-        const modalCancel = document.getElementById('modalCancel');
-        const fileInput = document.getElementById('csvFileInput');
-
-        let currentFile = null;
-        let currentCSVText = null;
-
-        const processCSV = (csvText, shouldWipe) => {
-            if (shouldWipe) {
-                events = events.filter(e => e.sourceOrg !== ORGANIZATION_NAME);
-                unscheduled = unscheduled.filter(e => e.sourceOrg !== ORGANIZATION_NAME);
-            }
-            const rows = csvText.split(/\r?\n/).slice(1);
-            let count = 0;
-            for (const row of rows) {
-                if (!row.trim()) continue;
-                try {
-                    const cols = parseCSVRow(row);
-                    const dD = parseCSVDate(cols[0]);
-                    const newId = (dD ? dD + '_' : 'idea_') + sanitizeId(cols[1]) + "_" + Math.floor(Math.random()*1000);
-                    
-                    const newItem = {
-                        id: newId,
-                        date: dD || '',
-                        name: cols[1] || 'Unnamed',
-                        cat: (cols[2] || 'social').toLowerCase(),
-                        details: cols[3] || '',
-                        type: dD ? 'scheduled' : 'unscheduled',
-                        sourceOrg: ORGANIZATION_NAME
-                    };
-                    
-                    if (dD) events.push(newItem);
-                    else unscheduled.push(newItem);
-                    count++;
-                } catch (err) { console.error(err); }
-            }
-            alert(`Loaded ${count} items into the Editor. Review and click 'Save Changes' to permanently save!`);
-            currentFile = null;
-            fileInput.value = '';
-            markPending();
-            refreshUI();
-            
-            const adminView = document.getElementById('admin-main-view');
-            if (adminView && !adminView.classList.contains('hidden')) {
-                adminView.scrollIntoView({ behavior: 'smooth' });
-            }
-        };
-
-        const performSync = (shouldWipe) => {
-            if (currentCSVText) {
-                processCSV(currentCSVText, shouldWipe);
-            } else if (currentFile) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    processCSV(ev.target.result, shouldWipe);
-                };
-                reader.readAsText(currentFile);
-            }
-        };
-
-        fileInput.addEventListener('change', (e) => {
-            currentFile = e.target.files[0];
-            currentCSVText = null;
-            if (currentFile) modal.classList.remove('hidden');
-        });
-
-        // --- GOOGLE DRIVE PICKER INTEGRATION ---
-        let tokenClient;
-        let accessToken = null;
-        let apisEnabled = false;
-
-        const googleDriveBtn = document.getElementById('googleDriveBtn');
-        const driveLoading = document.getElementById('driveLoading');
-
-        googleDriveBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        googleDriveBtn.innerText = "LOADING APIS...";
-
-        function checkApisReady() {
-            googleDriveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            googleDriveBtn.innerText = "SELECT FROM GOOGLE DRIVE";
-            apisEnabled = true;
-        }
-
-        function initGoogleApis() {
-            if (!GOOGLE_API_KEY || GOOGLE_API_KEY === "YOUR_API_KEY") {
-                googleDriveBtn.innerText = "MISSING JS/CONFIG.JS KEYS";
-                return;
-            }
-            gapi.load('client:picker', () => {
-                gapi.client.init({ apiKey: GOOGLE_API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] })
-                .then(checkApisReady)
-                .catch(e => { console.error("GAPI Error", e); googleDriveBtn.innerText = "API ERROR"; });
-            });
-
-            try {
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: GOOGLE_CLIENT_ID,
-                    scope: 'https://www.googleapis.com/auth/drive.readonly',
-                    callback: (response) => {
-                        if (response.error !== undefined) {
-                            googleDriveBtn.innerText = "SELECT FROM GOOGLE DRIVE";
-                            driveLoading.classList.add('hidden');
-                            throw (response);
-                        }
-                        accessToken = response.access_token;
-                        buildPicker();
-                    },
-                });
-            } catch(e) { console.error("GIS Error", e); }
-        }
-
-        const apiCheckTimer = setInterval(() => {
-            if (window.gapi && window.google) {
-                clearInterval(apiCheckTimer);
-                initGoogleApis();
-            }
-        }, 100);
-
-        googleDriveBtn.addEventListener('click', () => {
-            if (!apisEnabled) return;
-            
-            driveLoading.classList.remove('hidden');
-            driveLoading.innerText = "Connecting to Google...";
-            googleDriveBtn.innerText = "AUTHENTICATING...";
-
-            if (!accessToken) {
-                tokenClient.requestAccessToken({prompt: 'consent'});
-            } else {
-                buildPicker();
-            }
-        });
-
-        function buildPicker() {
-            driveLoading.classList.add('hidden');
-            googleDriveBtn.innerText = "SELECT FROM GOOGLE DRIVE";
-
-            const view = new google.picker.DocsView(google.picker.ViewId.DOCS);
-            view.setMimeTypes('text/csv');
-            view.setQuery(ORGANIZATION_NAME);
-
-            const picker = new google.picker.PickerBuilder()
-                .enableFeature(google.picker.Feature.NAV_HIDDEN)
-                .setDeveloperKey(GOOGLE_API_KEY)
-                .setAppId(GOOGLE_APP_ID)
-                .setOAuthToken(accessToken)
-                .addView(view)
-                .setCallback(pickerCallback)
-                .build();
-            picker.setVisible(true);
-        }
-
-        async function pickerCallback(data) {
-            if (data.action === google.picker.Action.PICKED) {
-                const docId = data.docs[0].id;
-                try {
-                    driveLoading.classList.remove('hidden');
-                    driveLoading.innerText = "Downloading CSV...";
-                    const response = await gapi.client.drive.files.get({
-                        fileId: docId,
-                        alt: 'media'
-                    });
-                    currentCSVText = response.body;
-                    currentFile = null;
-                    driveLoading.classList.add('hidden');
-                    driveLoading.innerText = "Connecting to Google Drive...";
-                    modal.classList.remove('hidden');
-                } catch(e) {
-                    console.error('Error fetching file', e);
-                    alert("Failed to download CSV from Google Drive.");
-                    driveLoading.classList.add('hidden');
-                    driveLoading.innerText = "Connecting to Google Drive...";
-                }
-            } else if (data.action === google.picker.Action.CANCEL) {
-                driveLoading.classList.add('hidden');
-            }
-        }
-
-        modalYes.onclick = () => { modal.classList.add('hidden'); performSync(true); };
-        modalNo.onclick = () => { modal.classList.add('hidden'); performSync(false); };
-        modalCancel.onclick = () => { modal.classList.add('hidden'); fileInput.value = ''; };
-
-        // --- ADMIN DATA EDITOR & EXPORT ---
-        let pendingEdits = false;
-        let isEditMode = true;
-        let currentlyEditingId = null;
-        let currentlyEditingLessonId = null;
-
-        document.getElementById('adminToggleViewBtn').addEventListener('click', () => {
-            isEditMode = !isEditMode;
-            document.getElementById('adminToggleViewBtn').innerText = isEditMode ? "Preview Mode" : "Edit Mode";
-            const actionCols = document.querySelectorAll('.action-col');
-            actionCols.forEach(col => col.classList.toggle('hidden', !isEditMode));
-            renderDataManager();
-        });
-
-        function renderDataManager() {
-            const list = document.getElementById('data-editor-list');
-            if (!list) return;
-            list.innerHTML = '';
-            
-            const orgData = [...events, ...unscheduled].filter(e => e.sourceOrg === ORGANIZATION_NAME).sort((a,b) => {
-                if(a.type==='scheduled'&&b.type==='scheduled') return new Date(a.date)-new Date(b.date);
-                if(a.type==='scheduled') return -1;
-                return b.type==='scheduled' ? 1 : 0;
-            });
-            if (orgData.length === 0) { list.innerHTML = `<tr><td colspan="5" class="p-8 text-[11px] text-slate-500 italic text-center">No data natively tracked on ${ORGANIZATION_NAME} yet. Add a row or import CSV to begin.</td></tr>`; return; }
-            
-            orgData.forEach((item) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/30 transition group";
-                
-                let displayDate = '';
-                let formInputDate = '';
-                if (item.type === 'scheduled' && item.date) {
-                    const [y, m, d] = item.date.split('-');
-                    displayDate = `${m}/${d}/${y.substring(2)}`;
-                    formInputDate = item.date;
-                }
-                
-                const isWriting = currentlyEditingId === item.id;
-                
-                if (isWriting) {
-                    tr.classList.add('bg-slate-800/80');
-                    tr.classList.remove('hover:bg-slate-800/30');
-                    tr.innerHTML = `
-                        <td class="p-4 border-b border-slate-800"><input type="date" class="bg-slate-900 text-slate-300 rounded-lg px-2 py-2 w-full max-w-[120px] border border-slate-600 focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 outline-none h-[45px] max-h-[45px] date-input text-xs font-mono" value="${formInputDate}"></td>
-                        <td class="p-4 border-b border-slate-800">
-                            <input type="text" class="bg-slate-900 text-white rounded-lg px-3 py-2 w-full border border-blue-500 focus:ring-2 focus:ring-blue-500/50 outline-none h-[45px] max-h-[45px] name-input text-xs font-bold mb-2" placeholder="Activity" value="${item.name.replace(/"/g, '&quot;')}">
-                            <label class="flex items-center gap-2 cursor-pointer text-[10px] uppercase font-bold text-slate-400"><input type="checkbox" class="service-input w-3 h-3 rounded border-slate-600 bg-slate-900 text-amber-500 focus:ring-amber-500" ${item.isService ? 'checked' : ''}> Is Service Project?</label>
-                        </td>
-                        <td class="p-4 border-b border-slate-800"><select class="bg-slate-900 text-slate-300 rounded-lg px-2 py-2 w-full border border-blue-500 outline-none h-[45px] max-h-[45px] cat-input text-[10px] uppercase font-bold tracking-wider cursor-pointer">
-                            <option value="social" ${item.cat==='social'?'selected':''}>Social</option>
-                            <option value="physical" ${item.cat==='physical'?'selected':''}>Physical</option>
-                            <option value="spiritual" ${item.cat==='spiritual'?'selected':''}>Spiritual</option>
-                            <option value="intellectual" ${item.cat==='intellectual'?'selected':''}>Intellectual</option>
-                            <option value="combined" ${item.cat==='combined'?'selected':''}>Combined</option>
-                        </select></td>
-                        <td class="p-4 border-b border-slate-800"><input type="text" class="bg-slate-900 text-slate-400 rounded-lg px-3 py-2 w-full border border-blue-500 focus:ring-2 focus:ring-blue-500/50 outline-none h-[45px] max-h-[45px] details-input text-[11px]" placeholder="Details" value="${(item.details||'').replace(/"/g, '&quot;')}"></td>
-                        <td class="p-4 border-b border-slate-800 text-center action-col ${!isEditMode?'hidden':''}">
-                            <div class="flex justify-center gap-2">
-                                <button class="text-emerald-400 hover:text-white bg-emerald-900/40 hover:bg-emerald-600 rounded-lg w-8 h-8 flex items-center justify-center transition-all save-btn shadow-lg" title="Save Row">✓</button>
-                                <button class="text-slate-400 hover:text-white bg-slate-700/50 hover:bg-slate-600 rounded-lg w-8 h-8 flex items-center justify-center transition-all cancel-btn" title="Cancel">✕</button>
-                            </div>
-                        </td>
-                    `;
-                    
-                    const performSave = () => {
-                        const newDate = tr.querySelector('.date-input').value.trim();
-                        item.name = tr.querySelector('.name-input').value.trim() || 'Unnamed';
-                        item.isService = tr.querySelector('.service-input').checked;
-                        item.cat = tr.querySelector('.cat-input').value.toLowerCase();
-                        item.details = tr.querySelector('.details-input').value.trim();
-                        
-                        events = events.filter(e => e.id !== item.id);
-                        unscheduled = unscheduled.filter(e => e.id !== item.id);
-                        
-                        if (newDate) {
-                            item.date = newDate; item.type = 'scheduled'; events.push(item);
-                        } else {
-                            item.date = ''; item.type = 'unscheduled'; unscheduled.push(item);
-                        }
-                        
-                        currentlyEditingId = null;
-                        renderCalendar(); renderDefaultPane(); renderUnscheduled(); renderDataManager(); 
-                        markPending(); 
-                    };
-
-                    tr.querySelector('.save-btn').addEventListener('click', performSave);
-                    tr.querySelectorAll('input, select').forEach(inp => inp.addEventListener('keydown', (ek) => {
-                        if(ek.key === 'Enter') performSave();
-                        if(ek.key === 'Escape') { currentlyEditingId = null; renderDataManager(); }
-                    }));
-                    tr.querySelector('.cancel-btn').addEventListener('click', () => { currentlyEditingId = null; renderDataManager(); });
-                } else {
-                    tr.innerHTML = `
-                        <td class="p-4 border-b border-slate-800/50 text-[11px] font-mono text-slate-500 group-hover:text-slate-300 transition">${displayDate||'<span class="opacity-30">N/A</span>'}</td>
-                        <td class="p-4 border-b border-slate-800/50 text-sm font-bold text-white group-hover:text-blue-400 transition truncate"><span class="truncate max-w-[200px] lg:max-w-none inline-block align-middle" title="${item.name.replace(/"/g,'&quot;')}">${item.name}</span>${item.isService ? '<span class="text-yellow-400 ml-2 text-[10px] inline-block align-middle drop-shadow-sm" title="Service Project">★</span>' : ''}</td>
-                        <td class="p-4 border-b border-slate-800/50">
-                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-widest bg-slate-800 text-slate-300 border border-slate-700">
-                                <span class="w-1.5 h-1.5 rounded-full dot-${item.cat}"></span>${item.cat}
-                            </span>
-                        </td>
-                        <td class="p-4 border-b border-slate-800/50 text-[11px] text-slate-400 group-hover:text-slate-200 transition truncate"><span class="truncate block max-w-[200px] lg:max-w-xs" title="${item.details.replace(/"/g,'&quot;')}">${item.details||'<span class="opacity-30">None</span>'}</span></td>
-                        <td class="p-4 border-b border-slate-800/50 text-center action-col ${!isEditMode?'hidden':''}">
-                            <div class="flex justify-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                                <button class="text-blue-400 hover:text-white bg-blue-900/30 hover:bg-blue-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors edit-btn text-sm" title="Edit Row">✎</button>
-                                <button class="text-red-400 hover:text-white bg-red-900/20 hover:bg-red-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors del-btn text-sm" title="Delete Row">🗑</button>
-                            </div>
-                        </td>
-                    `;
-                    tr.querySelector('.edit-btn')?.addEventListener('click', () => {
-                        currentlyEditingId = item.id; renderDataManager();
-                        setTimeout(() => { const activeInp = document.querySelector('.name-input'); if(activeInp) activeInp.focus(); }, 50);
-                    });
-                    tr.querySelector('.del-btn')?.addEventListener('click', () => {
-                        events = events.filter(e => e.id !== item.id);
-                        unscheduled = unscheduled.filter(e => e.id !== item.id);
-                        renderCalendar(); renderDefaultPane(); renderUnscheduled(); renderDataManager(); markPending();
-                    });
-                    tr.addEventListener('dblclick', (e) => {
-                        if(isEditMode && !e.target.closest('button')) { currentlyEditingId = item.id; renderDataManager(); }
-                    });
-                }
-                list.appendChild(tr);
-            });
-        }
-
-        function renderLessonManager() {
-            const list = document.getElementById('data-lessons-list');
-            if (!list) return;
-            list.innerHTML = '';
-            
-            const orgLessons = lessons.filter(e => e.sourceOrg === ORGANIZATION_NAME).sort((a,b) => new Date(a.date) - new Date(b.date));
-            if (orgLessons.length === 0) { list.innerHTML = `<tr><td colspan="4" class="p-8 text-[11px] text-slate-500 italic text-center">No lessons configured. Add a lesson row to begin tracking curriculum.</td></tr>`; return; }
-            
-            orgLessons.forEach((item) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-amber-900/10 transition group";
-                
-                let displayDate = '';
-                let formInputDate = '';
-                if (item.date) {
-                    const [y, m, d] = item.date.split('-');
-                    displayDate = `${m}/${d}/${y.substring(2)}`;
-                    formInputDate = item.date;
-                }
-                
-                const isWriting = currentlyEditingLessonId === item.id;
-                
-                if (isWriting) {
-                    tr.classList.add('bg-slate-800/80');
-                    tr.classList.remove('hover:bg-amber-900/10');
-                    tr.innerHTML = `
-                        <td colspan="4" class="p-4 border-b border-amber-900/50">
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
-                                <input type="date" class="bg-slate-900 text-slate-300 rounded-lg px-2 py-2 border border-slate-600 focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 outline-none h-[45px] max-h-[45px] l-date-input text-xs font-mono" value="${formInputDate}">
-                                <input type="text" class="bg-slate-900 text-amber-400 rounded-lg px-3 py-2 border border-amber-500 focus:ring-2 focus:ring-amber-500/50 outline-none h-[45px] max-h-[45px] l-topic-input text-xs font-bold md:col-span-2" placeholder="Lesson Topic" value="${(item.topic||'').replace(/"/g, '&quot;')}">
-                                <select class="bg-slate-900 text-slate-400 rounded-lg px-3 py-2 border border-amber-500 focus:ring-2 focus:ring-amber-500/50 outline-none h-[45px] max-h-[45px] l-teacher-input text-xs">
-                                    <option value="">Teacher Name</option>
-                                    ${orgTeachers.map(t => `<option value="${t}" ${item.teacher === t ? 'selected' : ''}>${t}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div class="flex gap-3 items-start">
-                                <textarea class="bg-slate-900 text-slate-300 rounded-lg px-3 py-2 w-full border border-amber-500/50 focus:ring-2 focus:ring-amber-500/50 outline-none l-notes-input text-xs min-h-[60px]" placeholder="Notes (Links, Reminders)">${(item.notes||'').replace(/</g, '&lt;')}</textarea>
-                                <div class="flex flex-col gap-2 shrink-0 action-col ${!isEditMode?'hidden':''}">
-                                    <button class="text-emerald-400 hover:text-white bg-emerald-900/40 hover:bg-emerald-600 rounded-lg w-8 h-8 flex items-center justify-center transition-all l-save-btn shadow-lg" title="Save Row">✓</button>
-                                    <button class="text-slate-400 hover:text-white bg-slate-700/50 hover:bg-slate-600 rounded-lg w-8 h-8 flex items-center justify-center transition-all l-cancel-btn" title="Cancel">✕</button>
-                                </div>
-                            </div>
-                        </td>
-                    `;
-                    
-                    setTimeout(() => {
-                        const dateInput = tr.querySelector('.l-date-input');
-                        const topicInput = tr.querySelector('.l-topic-input');
-                        if (dateInput && topicInput) {
-                            dateInput.addEventListener('change', (e) => {
-                                const matched = CFM_LOOKUP[e.target.value];
-                                if (matched) topicInput.value = matched;
-                            });
-                        }
-                    }, 0);
-                    
-                    const performSave = () => {
-                        const newDate = tr.querySelector('.l-date-input').value.trim();
-                        item.topic = tr.querySelector('.l-topic-input').value.trim() || 'Sunday Lesson';
-                        item.teacher = tr.querySelector('.l-teacher-input').value.trim() || '';
-                        item.notes = tr.querySelector('.l-notes-input').value.trim() || '';
-                        
-                        lessons = lessons.filter(e => e.id !== item.id);
-                        item.date = newDate; lessons.push(item);
-                        
-                        currentlyEditingLessonId = null;
-                        renderCalendar(); renderDefaultPane(); renderLessonManager(); 
-                        markPending(); 
-                    };
-
-                    tr.querySelector('.l-save-btn').addEventListener('click', performSave);
-                    tr.querySelectorAll('input').forEach(inp => inp.addEventListener('keydown', (ek) => {
-                        if(ek.key === 'Enter') performSave();
-                        if(ek.key === 'Escape') { currentlyEditingLessonId = null; renderLessonManager(); }
-                    }));
-                    tr.querySelector('.l-cancel-btn').addEventListener('click', () => { currentlyEditingLessonId = null; renderLessonManager(); });
-                } else {
-                    tr.innerHTML = `
-                        <td class="p-4 border-b border-amber-900/30 text-slate-300 text-xs font-mono">${displayDate}</td>
-                        <td class="p-4 border-b border-amber-900/30">
-                            <div class="text-amber-400 text-sm font-bold truncate max-w-[200px]">${item.topic || 'Sunday Lesson'}</div>
-                            ${item.notes ? `<div class="text-[10px] text-slate-500 mt-1 truncate max-w-[200px] md:max-w-[300px] whitespace-normal">${item.notes}</div>` : ''}
-                        </td>
-                        <td class="p-4 border-b border-amber-900/30 text-slate-400 text-xs">${item.teacher || 'TBD'}</td>
-                        <td class="p-4 border-b border-amber-900/30 text-center action-col ${!isEditMode?'hidden':''}">
-                            <div class="flex justify-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                                <button class="text-amber-400 hover:text-white bg-amber-900/30 hover:bg-amber-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors l-edit-btn text-sm" title="Edit Row">✎</button>
-                                <button class="text-red-400 hover:text-white bg-red-900/20 hover:bg-red-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors l-del-btn text-sm" title="Delete Row">🗑</button>
-                            </div>
-                        </td>
-                    `;
-                    tr.querySelector('.l-edit-btn')?.addEventListener('click', () => {
-                        currentlyEditingLessonId = item.id; renderLessonManager();
-                        setTimeout(() => { const activeInp = document.querySelector('.l-topic-input'); if(activeInp) activeInp.focus(); }, 50);
-                    });
-                    tr.querySelector('.l-del-btn')?.addEventListener('click', () => {
-                        lessons = lessons.filter(e => e.id !== item.id);
-                        renderCalendar(); renderDefaultPane(); renderLessonManager(); markPending();
-                    });
-                    tr.addEventListener('dblclick', (e) => {
-                        if(isEditMode && !e.target.closest('button')) { currentlyEditingLessonId = item.id; renderLessonManager(); }
-                    });
-                }
-                list.appendChild(tr);
-            });
-        }
-
-        function markPending() {
-            pendingEdits = true;
-            const btn = document.getElementById('syncFirebaseBtn');
-            btn.classList.add('ring-2', 'ring-blue-400', 'ring-offset-2', 'ring-offset-slate-900');
-            btn.innerHTML = `<svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> <span>Save Changes*</span>`;
-        }
-
-        document.getElementById('addNewRowBtn').addEventListener('click', () => {
-            const newId = 'idealoc_' + Math.random().toString(36).substr(2, 9);
-            unscheduled.push({ id: newId, date: '', name: '', cat: 'social', details: '', type: 'unscheduled', sourceOrg: ORGANIZATION_NAME, isService: false });
-            currentlyEditingId = newId;
-            markPending(); refreshUI();
-            setTimeout(() => {
-                const newRowInp = document.querySelector('input.name-input');
-                if(newRowInp) { newRowInp.scrollIntoView({behavior:'smooth', block: 'center'}); newRowInp.focus(); }
-            }, 50);
-        });
-
-        const spawnNewLesson = () => {
-            const newId = 'lessonloc_' + Math.random().toString(36).substr(2, 9);
-            lessons.push({ id: newId, date: '', topic: '', teacher: '', sourceOrg: ORGANIZATION_NAME });
-            currentlyEditingLessonId = newId;
-            markPending(); refreshUI();
-            setTimeout(() => {
-                const newRowInp = document.querySelector('input.l-date-input');
-                if(newRowInp) { newRowInp.scrollIntoView({behavior:'smooth', block: 'center'}); newRowInp.focus(); }
-            }, 50);
-        };
-        document.getElementById('addNewLessonBtn').addEventListener('click', spawnNewLesson);
-        document.getElementById('addNewLessonHeaderBtn').addEventListener('click', spawnNewLesson);
-
-        document.getElementById('syncFirebaseBtn').addEventListener('click', async () => {
-            if (!isAdminMode) return;
-            if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !window.DEBUG_MODE) {
-                alert('Production Data Integrity Guard: Firestore Sync is disabled on localhost.\n\nPlease use the Firebase Emulator for local data testing, or explicitly set window.DEBUG_MODE = true in the developer console to override.');
-                return;
-            }
-            const btn = document.getElementById('syncFirebaseBtn');
-            btn.innerHTML = `<span class="animate-pulse flex items-center gap-2"><svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...</span>`; 
-            btn.disabled = true;
-            try {
-                const batch = writeBatch(db);
-                const s = await getDocs(collection(db, `${ORGANIZATION_NAME}_events`));
-                s.forEach(x => batch.delete(doc(db, `${ORGANIZATION_NAME}_events`, x.id)));
-                
-                const orgData = [...events, ...unscheduled].filter(e => e.sourceOrg === ORGANIZATION_NAME);
-                orgData.forEach(item => {
-                    let safeId = item.id;
-                    if (!safeId || safeId.includes('idealoc_')) safeId = (item.date ? item.date + '_' : 'idea_') + sanitizeId(item.name || 'unknown') + "_" + Math.floor(Math.random()*1000);
-                    batch.set(doc(db, `${ORGANIZATION_NAME}_events`, safeId), { date: item.date || '', name: item.name || '', cat: item.cat || 'social', details: item.details || '', type: item.type || 'scheduled', isService: item.isService || false });
-                });
-                
-                const lSnap = await getDocs(collection(db, `${ORGANIZATION_NAME}_lessons`));
-                lSnap.forEach(x => batch.delete(doc(db, `${ORGANIZATION_NAME}_lessons`, x.id)));
-                
-                const orgLessons = lessons.filter(l => l.sourceOrg === ORGANIZATION_NAME);
-                orgLessons.forEach(item => {
-                    let safeId = item.id;
-                    if (!safeId || safeId.includes('lessonloc_')) safeId = 'lesson_' + sanitizeId(item.topic || 'unknown') + "_" + Math.floor(Math.random()*1000);
-                    batch.set(doc(db, `${ORGANIZATION_NAME}_lessons`, safeId), { date: item.date || '', topic: item.topic || '', teacher: item.teacher || '', notes: item.notes || '' });
-                });
-                
-                await batch.commit();
-                
-                btn.classList.remove('ring-2', 'ring-blue-400', 'ring-offset-2', 'ring-offset-slate-900', 'bg-blue-600', 'hover:bg-blue-500');
-                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
-                btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> <span>Saved!</span>`;
-                
-                const toast = document.getElementById('toast');
-                toast.classList.remove('hidden');
-                
-                setTimeout(() => { 
-                    btn.classList.add('bg-blue-600', 'hover:bg-blue-500');
-                    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
-                    btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> <span>Save Changes</span>`; 
-                    btn.disabled = false; pendingEdits = false; toast.classList.add('hidden');
-                }, 3000);
-            } catch(e) { console.error("Batch error", e); btn.innerText = "ERROR"; btn.disabled = false; }
-        });
-
-        function generateSymmetricCSV() {
-            let csvContent = "Date,Activity,Category,Details\n";
-            const orgData = [...events, ...unscheduled].filter(e => e.sourceOrg === ORGANIZATION_NAME).sort((a,b) => {
-                if(a.type==='scheduled'&&b.type==='scheduled') return new Date(a.date)-new Date(b.date);
-                if(a.type==='scheduled') return -1;
-                return b.type==='scheduled' ? 1 : 0;
-            });
-            orgData.forEach(e => {
-                let formattedDate = '';
-                if (e.type === 'scheduled' && e.date) {
-                    const [y, m, d] = e.date.split('-');
-                    formattedDate = `${m}/${d}/${y.substring(2)}`;
-                }
-                const safeName = `"${(e.name||'').replace(/"/g, '""')}"`;
-                const safeCat = `"${(e.cat||'').replace(/"/g, '""')}"`;
-                const safeDetails = `"${(e.details||'').replace(/"/g, '""')}"`;
-                csvContent += `${formattedDate},${safeName},${safeCat},${safeDetails}\n`;
-            });
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.setAttribute("href", URL.createObjectURL(blob));
-            link.setAttribute("download", `2026_${ORGANIZATION_NAME}_Backup.csv`);
-            link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        }
-        if(document.getElementById('exportCsvBtn')) document.getElementById('exportCsvBtn').addEventListener('click', generateSymmetricCSV);
-
-        // ADMIN BUTTONS
-        let isAdminMode = false;
-        document.getElementById('unlockBtn').onclick = () => {
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('passwordModal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('passwordInput').focus(), 50);
-        };
-        
-        document.getElementById('passwordCancelBtn').onclick = () => {
-            document.getElementById('passwordModal').classList.add('hidden');
-            document.getElementById('passwordInput').value = '';
-        };
-        
-        document.getElementById('passwordInput').addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') document.getElementById('passwordSubmitBtn').click();
-            if(e.key === 'Escape') document.getElementById('passwordCancelBtn').click();
-        });
-
-        document.getElementById('passwordSubmitBtn').onclick = async () => {
-            const p = document.getElementById('passwordInput').value;
-            if (!p) return;
-            
-            const btn = document.getElementById('passwordSubmitBtn');
-            const originalText = btn.innerText;
-            btn.innerText = 'VERIFYING...';
-            btn.disabled = true;
-            
-            document.getElementById('passwordModal').classList.add('hidden');
-            btn.innerText = originalText;
-            btn.disabled = false;
-            
-            const suppliedPass = await hashInput(p);
-            const pageKey = ORGANIZATION_NAME.toUpperCase();
-            if (suppliedPass === SECURE_AUTH_HASHES.MASTER || suppliedPass === SECURE_AUTH_HASHES[pageKey]) {
-                isAdminMode = true;
-                document.getElementById('import-gate').classList.add('hidden');
-                document.getElementById('import-controls').classList.remove('hidden');
-                
-                document.getElementById('grid-controls-wrapper').classList.add('hidden');
-                document.getElementById('active-months').classList.add('hidden');
-                document.getElementById('list-view').classList.add('hidden');
-                if(document.getElementById('viewToggleBtn')) document.getElementById('viewToggleBtn').parentElement.classList.add('hidden');
-                
-                document.getElementById('admin-main-view').classList.remove('hidden');
-                document.getElementById('admin-main-view').classList.add('flex');
-                
-                renderDataManager();
-                renderLessonManager();
-            } else if (p) {
-                renderDataManager();
-            }
-        };
-        document.getElementById('lockBtn').onclick = () => {
-            isAdminMode = false;
-            document.getElementById('import-gate').classList.remove('hidden');
-            document.getElementById('import-controls').classList.add('hidden');
-            
-            document.getElementById('admin-main-view').classList.add('hidden');
-            document.getElementById('admin-main-view').classList.remove('flex');
-            
-            if(document.getElementById('viewToggleBtn')) document.getElementById('viewToggleBtn').parentElement.classList.remove('hidden');
-            document.getElementById('grid-controls-wrapper').classList.toggle('hidden', isListView);
-            document.getElementById('active-months').classList.toggle('hidden', isListView);
-            document.getElementById('list-view').classList.toggle('hidden', !isListView);
-        };
-        document.getElementById('wipeBtn').onclick = async () => {
-            if (!isAdminMode) return;
-            if (confirm(`Clear all ${ORGANIZATION_NAME} events?`)) {
-                const s = await getDocs(collection(db, `${ORGANIZATION_NAME}_events`));
-                const d = [];
-                s.forEach(x => d.push(deleteDoc(doc(db, `${ORGANIZATION_NAME}_events`, x.id))));
-                
-                const lS = await getDocs(collection(db, `${ORGANIZATION_NAME}_lessons`));
-                lS.forEach(x => d.push(deleteDoc(doc(db, `${ORGANIZATION_NAME}_lessons`, x.id))));
-                
-                        await Promise.all(d);
-                location.reload();
-            }
-        };
+        initPrintHandler(() => ({ events, lessons, unscheduled, displayOrg, months }));
 
         initApp();
     </script>
     
 
     <!-- Password Modal -->
-    <div id="passwordModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm pointer-events-auto">
-        <div class="bg-slate-900 border border-slate-700/50 w-full max-w-sm rounded-2xl p-8 shadow-2xl text-center relative overflow-hidden">
-            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
-            <h3 class="text-xl font-black text-white mb-2 uppercase tracking-widest">Admin Access</h3>
-            <p class="text-slate-400 text-[10px] mb-6 font-bold uppercase tracking-widest">Authentication Required</p>
-            <input type="password" id="passwordInput" class="w-full bg-slate-950 text-white rounded-xl px-4 py-4 border border-slate-800 focus:border-blue-500 outline-none text-sm mb-4 text-center font-mono" placeholder="••••••••">
-            <div class="flex gap-3">
-                <button id="passwordSubmitBtn" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl uppercase tracking-widest text-[10px] transition active:scale-95">Unlock</button>
-                <button id="passwordCancelBtn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-4 rounded-xl uppercase tracking-widest text-[10px] transition active:scale-95">Cancel</button>
-            </div>
-        </div>
-    </div>
+    
 
     <!-- Global Feedback Modal -->
     <div id="feedbackModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
