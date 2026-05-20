@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Youth Hub Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .nav-tab.active { background: #1e293b; color: white; border-left: 4px solid #3b82f6; }
+    </style>
+    <script src="/security-config.js"></script>
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            console.error("Global Error: ", msg, "at", url, line, col);
+            const errEl = document.getElementById('login-error');
+            if (errEl) {
+                errEl.innerText = "JS Error: " + msg;
+                errEl.classList.remove('hidden');
+            }
+        };
+        window.addEventListener("unhandledrejection", function(event) {
+            console.error("Unhandled Promise Rejection: ", event.reason);
+            const errEl = document.getElementById('login-error');
+            if (errEl) {
+                errEl.innerText = "Promise Error: " + event.reason;
+                errEl.classList.remove('hidden');
+            }
+        });
+
+        async function hashInput(name) {
+            const normalized = name.trim().toLowerCase();
+            const encoder = new TextEncoder();
+            const data = encoder.encode(normalized);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function authAdmin() {
+            const role = document.getElementById('login-role').value;
+            const pass = document.getElementById('login-password').value;
+            if (!pass) return;
+            
+            document.getElementById('login-btn').innerText = 'Verifying...';
+            
+            try {
+                const hash = await hashInput(pass);
+                let hashMatch = false;
+                
+                if (role === 'Admin' && hash === SECURE_AUTH_HASHES.MASTER) hashMatch = true;
+                else if (role === 'Combined' && hash === SECURE_AUTH_HASHES.COMBINED) hashMatch = true;
+                else if (role === 'Deacons' && hash === SECURE_AUTH_HASHES.DEACONS) hashMatch = true;
+                else if (role === 'Priests' && hash === SECURE_AUTH_HASHES.PRIESTS) hashMatch = true;
+                else if (role === 'Teachers' && hash === SECURE_AUTH_HASHES.TEACHERS) hashMatch = true;
+                else if (role === 'Young Women' && hash === SECURE_AUTH_HASHES.YW) hashMatch = true;
+                else if (role === 'Primary' && hash === SECURE_AUTH_HASHES.PRIMARY) hashMatch = true;
+
+                if (hashMatch) {
+                    window.currentUserRole = role; 
+                    document.getElementById('login-view').classList.add('hidden');
+                    document.getElementById('dashboard-view').classList.remove('hidden');
+                    document.getElementById('dashboard-view').classList.add('flex');
+                    
+                    if (typeof window.setupRBAC === 'function') {
+                        window.setupRBAC();
+                    }
+                } else {
+                    const errEl = document.getElementById('login-error');
+                    errEl.innerText = `Incorrect password for ${role}`;
+                    errEl.classList.remove('hidden');
+                    document.getElementById('login-btn').innerText = 'Authenticate';
+                }
+            } catch (err) {
+                const errEl = document.getElementById('login-error');
+                errEl.innerText = "Error hashing passphrase: " + err;
+                errEl.classList.remove('hidden');
+                document.getElementById('login-btn').innerText = 'Authenticate';
+            }
+        }
+        window.authAdmin = authAdmin;
+    </script>
+</head>
+<body class="min-h-screen">
+    <!-- LOGIN VIEW -->
+    <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-md shadow-2xl text-center">
+            <a href="/" class="inline-block transition hover:opacity-80"><img src="/images/BlackstoneYouthHubLogo.png" class="h-20 mx-auto mb-6 object-contain"></a>
+            <h2 class="text-2xl font-black uppercase tracking-widest text-white mb-2">Admin Portal</h2>
+            <p class="text-xs text-slate-400 mb-8">Secure Access Required</p>
+            
+            <select id="login-role" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white mb-4 outline-none focus:border-blue-500 transition">
+                <option value="Admin">Master Admin</option>
+                <option value="Combined">Combined Leader</option>
+                <option value="Deacons">Deacons Leader</option>
+                <option value="Priests">Priests Leader</option>
+                <option value="Teachers">Teachers Leader</option>
+                <option value="Young Women">Young Women Leader</option>
+                <option value="Primary">Primary Leader</option>
+            </select>
+            
+            <input type="password" id="login-password" placeholder="Passphrase" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white mb-6 outline-none focus:border-blue-500 transition text-center" onkeydown="if(event.key==='Enter') document.getElementById('login-btn').click()">
+            <p id="login-error" class="text-red-400 text-xs font-bold hidden mb-4">Invalid Access Credentials</p>
+            <button id="login-btn" onclick="window.authAdmin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg transition active:scale-95 uppercase tracking-widest text-sm">Authenticate</button>
+            
+            <a href="/" class="block mt-6 text-sm font-bold text-blue-400 hover:text-blue-300 transition tracking-wide">&larr; Back to Main Site</a>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard-view" class="hidden w-full min-h-screen flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <aside id="admin-sidebar" class="fixed z-50 inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 w-64 glass-panel border-r border-slate-800 p-6 flex flex-col h-screen shrink-0 bg-slate-900 md:bg-transparent">
+            <div class="flex justify-between items-start mb-8">
+                <a href="/" class="inline-block transition hover:opacity-80"><img src="/images/BlackstoneYouthHubLogo.png" class="h-12 object-contain"></a>
+                <button id="close-sidebar-btn" class="md:hidden text-slate-400 hover:text-white transition font-black text-xl">✕</button>
+            </div>
+            <div id="org-tabs" class="flex flex-col gap-2 flex-1 overflow-y-auto">
+                <h3 class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-2">Organizations</h3>
+                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Combined">Combined</button>
+                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Priests">Priests</button>
+                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Teachers">Teachers</button>
+                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Deacons">Deacons</button>
+                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Young Women">Young Women</button>
+                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Primary">Primary</button>
+            </div>
+            <div class="mt-auto pt-6 border-t border-slate-800">
+                <h3 class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-2">System</h3>
+                <button id="settings-tab" class="hidden w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 transition mb-2" data-org="System Settings">Settings & Privacy</button>
+                <button id="logout-btn" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition">Log Out</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-y-auto h-screen relative bg-slate-900">
+            <header class="mb-8 border-b border-slate-800 pb-4">
+                <div class="flex items-center gap-4 mb-4 flex-col sm:flex-row">
+                    <div class="flex items-center gap-4 w-full sm:w-auto">
+                        <button id="mobile-menu-btn" class="md:hidden text-white font-black text-2xl">☰</button>
+                        <h1 id="active-org-title" class="text-3xl font-black text-white uppercase tracking-widest">Select Organization</h1>
+                    </div>
+                </div>
+                <div id="dashboard-tabs" class="flex gap-4 overflow-x-auto mt-2">
+                    <button class="dash-tab active px-4 py-2 text-sm font-bold border-b-2 border-blue-500 text-blue-400 transition" data-target="activities-section">Activities</button>
+                    <button class="dash-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition" data-target="lessons-manager">Lessons</button>
+                    <button class="dash-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition" data-target="birthdays-section">Birthdays</button>
+                </div>
+            </header>
+
+            <div id="admin-dashboard" class="w-full">
+                <div id="activities-section" class="tab-pane active space-y-8">
+                <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl mb-8 p-6">
+                    <!-- Org specific tools (Activities) -->
+                <div class="flex flex-wrap items-center justify-between mb-4 border-b border-slate-800 pb-4 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Activities Manager</h2>
+                    </div>
+                    <div class="flex gap-4 items-center">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-400"><input type="checkbox" id="togglePastActivities" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-blue-500"> See Past Activities</label>
+                        <button id="addNewRowBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Activity</button>
+                    </div>
+                    </div>
+                    <div class="mt-4 mb-8">
+                        <div id="data-editor-list" class="flex flex-col gap-4">
+                            <!-- Data rows go here -->
+                        </div>
+                    </div>
+                    <h3 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-500 mb-4 mt-8">Database Backup & Sync</h3>
+                <div class="flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                    <div class="flex-1 min-w-[250px]">
+                        <label for="csvFileInput" class="w-full inline-block bg-slate-700 hover:bg-emerald-600 text-emerald-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-widest border border-emerald-500/30">Upload CSV Import</label>
+                        <input type="file" id="csvFileInput" accept=".csv" class="hidden">
+                    </div>
+                    <div class="flex-1 min-w-[250px]">
+                        <button id="exportCsvBtn" class="w-full bg-slate-700 hover:bg-blue-600 text-blue-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-widest border border-blue-500/30">Download CSV Backup</button>
+                    </div>
+                    <div class="flex-1 min-w-[250px]">
+                        <button class="sync-firebase-btn w-full bg-emerald-600 hover:bg-emerald-500 text-white text-[12px] font-black py-3 rounded-xl transition shadow-lg uppercase tracking-widest flex items-center justify-center gap-2">Save Changes to Database</button>
+                    </div>
+                </div>
+                </div>
+                <!-- End Activities Section -->
+                </div>
+                <div id="lessons-manager" class="tab-pane hidden space-y-8">
+                    <div id="lessons-section">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                            <div>
+                                <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Lessons Manager</h2>
+                            </div>
+                            <div class="flex gap-4 items-center">
+                                <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-400"><input type="checkbox" id="togglePastLessons" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-blue-500"> See Past Lessons</label>
+                                <button id="addLessonBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Lesson</button>
+                            </div>
+                        </div>
+                        <div id="lesson-schedule-data" class="bg-slate-900 rounded-2xl shadow-xl border border-slate-700/50 p-6 flex-1 min-h-[100px]">
+                            <p class="text-slate-500 italic">Loading schedule...</p>
+                        </div>
+                        
+                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-500 mb-4 mt-8">Database Backup & Sync</h3>
+                        <div class="flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                            <div class="flex-1 min-w-[250px]">
+                                <label for="csvLessonsInput" class="w-full inline-block bg-slate-700 hover:bg-emerald-600 text-emerald-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-widest border border-emerald-500/30">Upload CSV Import</label>
+                                <input type="file" id="csvLessonsInput" accept=".csv" class="hidden">
+                            </div>
+                            <div class="flex-1 min-w-[250px]">
+                                <button id="exportLessonsCsvBtn" class="w-full bg-slate-700 hover:bg-blue-600 text-blue-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-widest border border-blue-500/30">Download CSV Backup</button>
+                            </div>
+                            <div class="flex-1 min-w-[250px]">
+                                <button class="sync-firebase-btn w-full bg-emerald-600 hover:bg-emerald-500 text-white text-[12px] font-black py-3 rounded-xl transition shadow-lg uppercase tracking-widest flex items-center justify-center gap-2">Save Changes to Database</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="birthdays-section" class="tab-pane hidden space-y-8">
+                    <div class="bg-slate-900 border border-pink-500/30 w-full rounded-2xl shadow-xl p-6">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                            <div>
+                                <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Birthdays Manager</h2>
+                            </div>
+                            <button id="addBirthdayBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Birthday</button>
+                        </div>
+                        <div id="admin-birthdays-list" class="space-y-0">
+                            <!-- Birthday rows go here -->
+                        </div>
+                        
+                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-500 mb-4 mt-8">Database Backup & Sync</h3>
+                        <div class="flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                            <div class="flex-1 min-w-[250px]">
+                                <label for="csvBirthdaysInput" class="w-full inline-block bg-slate-700 hover:bg-emerald-600 text-emerald-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-widest border border-emerald-500/30">Upload CSV Import</label>
+                                <input type="file" id="csvBirthdaysInput" accept=".csv" class="hidden">
+                            </div>
+                            <div class="flex-1 min-w-[250px]">
+                                <button id="exportBirthdaysCsvBtn" class="w-full bg-slate-700 hover:bg-blue-600 text-blue-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-widest border border-blue-500/30">Download CSV Backup</button>
+                            </div>
+                            <div class="flex-1 min-w-[250px]">
+                                <button class="sync-firebase-btn w-full bg-emerald-600 hover:bg-emerald-500 text-white text-[12px] font-black py-3 rounded-xl transition shadow-lg uppercase tracking-widest flex items-center justify-center gap-2">Save Changes to Database</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="system-settings-container" class="space-y-8 hidden w-full">
+                <div class="flex gap-4 overflow-x-auto mb-4 border-b border-slate-800 pb-2">
+                    <button class="settings-tab active px-4 py-2 text-sm font-bold border-b-2 border-blue-500 text-blue-400 transition" id="nav-announcements" data-target="announcements-section">Announcements</button>
+                    <button class="settings-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition" id="nav-spotlights" data-target="spotlights-section">Spotlights</button>
+                    <button class="settings-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition" id="nav-teachers" data-target="teachers-section">Teachers</button>
+                    <button class="settings-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition" id="nav-leaders" data-target="leaders-section">Leaders</button>
+                </div>
+                
+                <!-- Announcements Module -->
+                <div id="announcements-section" class="settings-module active space-y-8">
+                    <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl p-6">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                            <div>
+                                <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Announcements Manager</h2>
+                            </div>
+                            <button id="addAnnouncementBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Announcement</button>
+                        </div>
+                        <div id="announcements-data" class="flex flex-col gap-2">
+                            <p class="italic opacity-50 text-slate-500 text-center p-8">Loading announcements...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spotlights Module -->
+                <div id="spotlights-section" class="settings-module hidden space-y-8">
+                    <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl p-6">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                            <div>
+                                <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Spotlights Manager</h2>
+                            </div>
+                            <button id="addSpotlightBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Spotlight</button>
+                        </div>
+                        <div id="spotlights-data" class="flex flex-col gap-2">
+                            <p class="italic opacity-50 text-slate-500 text-center p-8">Loading spotlights...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teachers Module -->
+                <div id="teachers-section" class="settings-module hidden space-y-8">
+                    <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl p-6">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                            <div>
+                                <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Teacher Roster</h2>
+                            </div>
+                            <button id="addTeacherBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Teacher</button>
+                        </div>
+                        <div class="overflow-x-auto bg-slate-900 rounded-lg border border-slate-700 p-4">
+                            <div class="flex flex-col md:flex-row gap-4 text-xs uppercase bg-slate-800 text-slate-400 p-3 rounded-lg mb-2">
+                                <div class="flex-1 font-bold">Teacher Name</div>
+                                <div class="w-[140px] font-bold">Organization</div>
+                                <div class="w-[100px] font-bold text-right">Actions</div>
+                            </div>
+                            <div id="teacher-roster-data" class="space-y-2">
+                                <p class="text-slate-500 italic text-center p-4">Loading teachers...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaders Module -->
+                <div id="leaders-section" class="settings-module hidden space-y-8">
+                    <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl p-6">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                            <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Leaders Management</h2>
+                            <button id="addLeaderBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow transition-colors">+ Add Leader</button>
+                        </div>
+                        <div class="overflow-x-auto bg-slate-900 rounded-lg border border-slate-700 p-4">
+                            <div class="grid grid-cols-4 gap-4 text-xs uppercase bg-slate-800 text-slate-400 p-3 rounded-lg mb-2">
+                                <div class="font-bold">Leader First Name</div>
+                                <div class="font-bold">Leader Last Name</div>
+                                <div class="font-bold">Organization</div>
+                                <div class="font-bold">Calling & Actions</div>
+                            </div>
+                            <div id="leaders-roster-data" class="space-y-2">
+                                <p class="text-center italic text-slate-500 p-4">Loading leaders...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="customModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-8 shadow-2xl text-center">
+            <h3 class="text-xl font-black text-white mb-2">Sync Options</h3>
+            <p id="modalMsg" class="text-slate-400 text-sm mb-8 leading-relaxed">Wipe existing calendar before sync? (Recommended for full updates)</p>
+            <div class="flex flex-col gap-3">
+                <button id="modalYes" class="bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl uppercase tracking-widest text-xs">Yes, Wipe & Sync</button>
+                <button id="modalNo" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-black py-3 rounded-xl uppercase tracking-widest text-xs">No, Just Add New Items</button>
+                <button id="modalCancel" class="text-slate-600 hover:text-white font-bold text-[10px] mt-2 uppercase tracking-widest">Cancel Entire Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Teacher Modal Removed -->
+
+
+    <script type="module" src="/admin/admin-app.js"></script>
+</body>
+</html>
