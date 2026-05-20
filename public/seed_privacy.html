@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seed Privacy Config</title>
+</head>
+<body>
+    <h1>Seeding...</h1>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { GOOGLE_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_APP_ID } from "/js/config.js";
+        import { SECURE_AUTH_HASHES, SPOTLIGHT_APPROVED_HASHES } from "/security-config.js";
+
+        const firebaseConfig = {
+            apiKey: GOOGLE_API_KEY,
+            authDomain: "blackstoneward-b861c.firebaseapp.com",
+            projectId: "blackstoneward-b861c",
+            storageBucket: "blackstoneward-b861c.appspot.com",
+            messagingSenderId: "956450429708",
+            appId: GOOGLE_APP_ID
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function seed() {
+            try {
+                await setDoc(doc(db, "site_settings", "privacy_config"), {
+                    SECURE_AUTH_HASHES: SECURE_AUTH_HASHES,
+                    SPOTLIGHT_APPROVED_HASHES: SPOTLIGHT_APPROVED_HASHES
+                }, { merge: true });
+                document.body.innerHTML += "<p id='status'>Privacy config successfully seeded to Firestore.</p>";
+            } catch (e) {
+                document.body.innerHTML += "<p id='status'>Error seeding privacy config: " + e + "</p>";
+            }
+        }
+        seed();
+    </script>
+</body>
+</html>

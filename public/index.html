@@ -62,43 +62,22 @@
                 <p class="italic opacity-50">Loading announcements...</p>
             </div>
             
-            <div id="admin-controls" class="hidden space-y-4 border-t border-slate-800 pt-6">
-                <div class="space-y-2">
-                    <input type="hidden" id="edit-ann-id">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">New Announcement</label>
-                    <textarea id="new-ann-text" class="admin-input h-20 mb-3" placeholder="Type here..."></textarea>
-                    
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2 mb-1 block">Quick Link (Optional)</label>
-                    <input type="text" id="new-ann-link-text" class="admin-input mb-2" placeholder="Button Text (e.g. FSY Reg)">
-                    <input type="text" id="new-ann-link-url" class="admin-input mb-3" placeholder="URL (e.g. https://...)">
-                    
-                    <div class="flex gap-2 mt-2">
-                        <button id="saveAnnBtn" class="btn-primary flex-1 py-3 rounded-lg text-xs">Post Announcement</button>
-                        <button id="cancelAnnBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg text-xs hidden" onclick="window.resetAnnForm()">Cancel</button>
-                    </div>
-                </div>
-            </div>
+            
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl flex flex-col shadow-xl">
             <h2 class="text-xs font-black mb-6 uppercase tracking-[0.2em] text-emerald-500">Next Combined Events</h2>
-            <div id="info-content" class="flex-1 space-y-4">
+            <div id="combined-activities-list" class="flex-1 space-y-4">
                 <p class="italic text-slate-500 text-sm">Syncing...</p>
             </div>
 
-            <div id="info-admin-controls" class="hidden mt-8 space-y-4 border-t border-slate-800 pt-6">
-                <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase">Update Youth Theme</label>
-                    <input type="text" id="edit-theme" class="admin-input" placeholder="Enter theme text...">
-                    <button id="saveThemeBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-lg w-full text-xs uppercase tracking-widest">Update Theme</button>
-                </div>
-            </div>
+            
         </div>
     </section>
 
     <section class="max-w-7xl mx-auto px-6 mb-20">
         <h2 class="text-3xl font-black text-white mb-6 uppercase tracking-widest pl-2">Youth Spotlights</h2>
-        <div id="spotlights-list" class="space-y-6">
+        <div id="youth-spotlight-container" class="space-y-6">
             <p class="italic opacity-50 text-slate-300 text-sm pl-2">Loading spotlights...</p>
         </div>
 
@@ -118,85 +97,22 @@
             </div>
         </div>
         
-        <div id="spotlights-admin-controls" class="hidden mt-8 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
-            <h3 class="text-xs font-black mb-4 uppercase tracking-[0.2em] text-amber-500">Manage Spotlight</h3>
-            <div class="space-y-4">
-                <input type="hidden" id="edit-spot-id" value="">
-                <select id="new-spot-org" class="admin-input">
-                    <option value="" disabled selected>Select Organization</option>
-                    <option value="Combined">Combined</option>
-                    <option value="Priests">Priests</option>
-                    <option value="Teachers">Teachers</option>
-                    <option value="Deacons">Deacons</option>
-                    <option value="Young Women">Young Women</option>
-                    <option value="Primary">Primary</option>
-                </select>
-                <input type="date" id="new-spot-date" class="admin-input cursor-pointer">
-                <div>
-                    <input type="file" id="new-spot-upload" accept="image/*" class="admin-input w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-500 file:text-white hover:file:bg-emerald-400 cursor-pointer">
-                    <img id="spot-preview-img" class="hidden w-full h-auto mt-3 rounded-lg border border-slate-700 max-h-[150px] object-cover" />
-                </div>
-                <input type="text" id="new-spot-video" class="admin-input" placeholder="Video URL (YouTube/Vimeo/Church - Optional)">
-                <textarea id="new-spot-desc" class="admin-input h-24" placeholder="Spotlight Description..."></textarea>
-                <div class="flex gap-2">
-                    <button id="cancelSpotBtn" class="hidden bg-slate-700 hover:bg-slate-600 text-white font-bold w-1/3 py-3 rounded-lg text-xs transition uppercase tracking-widest">Cancel</button>
-                    <button id="saveSpotBtn" class="btn-primary flex-1 py-3 rounded-lg text-xs">Publish Spotlight</button>
-                </div>
-            </div>
-        </div>
         
-        <div id="teachers-admin-controls" class="hidden mt-8 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
-            <h3 class="text-xs font-black mb-4 uppercase tracking-[0.2em] text-violet-500">Manage Teachers</h3>
-            <div class="space-y-4">
-                <input type="hidden" id="edit-teacher-id" value="">
-                <input type="text" id="new-teacher-name" class="admin-input" placeholder="Teacher Name">
-                <select id="new-teacher-org" class="admin-input">
-                    <option value="" disabled selected>Select Organization</option>
-                    <option value="General">General</option>
-                    <option value="Priests">Priests</option>
-                    <option value="Teachers">Teachers</option>
-                    <option value="Deacons">Deacons</option>
-                    <option value="Young Women">Young Women</option>
-                    <option value="Primary">Primary</option>
-                </select>
-                <div class="flex gap-2">
-                    <button id="cancelTeacherBtn" class="hidden bg-slate-700 hover:bg-slate-600 text-white font-bold w-1/3 py-3 rounded-lg text-xs transition uppercase tracking-widest">Cancel</button>
-                    <button id="saveTeacherBtn" class="btn-primary flex-1 py-3 rounded-lg text-xs">Save Teacher</button>
-                </div>
-            </div>
-            
-            <div class="mt-6 border-t border-slate-800 pt-6">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr>
-                            <th class="p-3 font-black text-xs text-slate-400 uppercase tracking-widest border-b border-slate-800">Name</th>
-                            <th class="p-3 font-black text-xs text-slate-400 uppercase tracking-widest border-b border-slate-800">Organization</th>
-                            <th class="p-3 font-black text-xs text-slate-400 uppercase tracking-widest border-b border-slate-800 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="teacher-table-body" class="divide-y divide-slate-800/50">
-                        <!-- Loaded dynamically -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        
+        
     </section>
 
     <footer class="text-center pb-20">
         <p id="display-theme" class="text-lg text-emerald-400 font-medium italic mb-6 px-4">Loading theme...</p>
-        <button id="hubUnlockBtn" class="text-[10px] font-bold text-slate-700 hover:text-blue-400 uppercase tracking-widest transition">
-            Manage Hub Content
-        </button>
-        <button id="hubLockBtn" class="hidden text-[10px] font-bold text-red-900 hover:text-red-500 uppercase tracking-widest transition">
-            Lock Hub Tools
-        </button>
+        
+        
         <button id="globalFeedbackBtn" class="text-[10px] ml-4 font-bold text-blue-400 hover:text-white tracking-widest transition uppercase">
             Suggestions & Help
         </button>
+        <a href="/admin/index.html" class="text-[10px] ml-4 font-bold text-amber-500 hover:text-white tracking-widest transition uppercase">Admin Portal</a>
         <p class="app-version-display text-[9px] text-slate-400 mt-4 font-bold uppercase tracking-widest">Blackstone Ward Youth Hub V7.11.0</p>
     </footer>
 
-    <script src="/cfm-config.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, updateDoc, setDoc, doc, deleteDoc, getDoc, query, orderBy, limit, where, Timestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -220,40 +136,7 @@
         // --- Spotlight Image Processing ---
         let currentSpotlightImageData = null;
         
-        document.getElementById('new-spot-upload').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) {
-                document.getElementById('spot-preview-img').classList.add('hidden');
-                currentSpotlightImageData = null;
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    let width = img.width;
-                    let height = img.height;
-                    const MAX_WIDTH = 800;
-                    if (width > MAX_WIDTH) {
-                        height = Math.round((height * MAX_WIDTH) / width);
-                        width = MAX_WIDTH;
-                    }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                    currentSpotlightImageData = dataUrl;
-                    const preview = document.getElementById('spot-preview-img');
-                    preview.src = dataUrl;
-                    preview.classList.remove('hidden');
-                }
-                img.src = event.target.result;
-            }
-            reader.readAsDataURL(file);
-        });
-        
+                
         window.resetSpotlightForm = () => {
             document.getElementById('edit-spot-id').value = '';
             document.getElementById('new-spot-org').value = '';
@@ -393,7 +276,19 @@
                 const themeDoc = await getDoc(doc(db, "home_content", "general_info"));
                 if (themeDoc.exists()) {
                     document.getElementById('display-theme').innerText = themeDoc.data().theme || "No theme set.";
-                    document.getElementById('edit-theme').value = themeDoc.data().theme || "";
+                    const editThemeEl = document.getElementById('edit-theme');
+                    if (editThemeEl) editThemeEl.value = themeDoc.data().theme || "";
+                }
+
+                
+                // 2.5 Privacy Config
+                try {
+                    const privSnap = await getDoc(doc(db, "site_settings", "privacy_config"));
+                    if (privSnap.exists()) {
+                        console.log("Privacy Config Loaded (Init):", privSnap.data().authorizedNames);
+                    }
+                } catch (e) {
+                    console.error("Security rules blocking data access.", e);
                 }
 
                 // 3. Next Combined (Dynamic Height Balancing)
@@ -405,7 +300,7 @@
                 }
                 const qCombined = query(collection(db, "Combined_events"), where("date", ">=", todayStr), orderBy("date", "asc"), limit(dynamicLimit));
                 const combinedSnap = await getDocs(qCombined);
-                const infoContainer = document.getElementById('info-content');
+                const infoContainer = document.getElementById('combined-activities-list');
                 let infoHTML = '';
                 if (!combinedSnap.empty) {
                     combinedSnap.docs.forEach(s => {
@@ -430,8 +325,10 @@
                 }
 
                 // 4. Youth Spotlights
-                const spotContainer = document.getElementById('spotlights-list');
+                const spotContainer = document.getElementById('youth-spotlight-container');
                 const isUnlocked = sessionStorage.getItem('spotlightsUnlocked') === 'true' || isAdminMode;
+
+                
 
                 if (!isUnlocked) {
                     spotContainer.innerHTML = `
@@ -535,181 +432,11 @@
         }
 
         // ADMIN LOGIC
-        const unlockBtn = document.getElementById('hubUnlockBtn');
-        const lockBtn = document.getElementById('hubLockBtn');
-        const adminToolsAnn = document.getElementById('admin-controls');
-        const adminToolsInfo = document.getElementById('info-admin-controls');
-
-        const adminToolsSpot = document.getElementById('spotlights-admin-controls');
-
-        unlockBtn.onclick = () => {
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('passwordModal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('passwordInput').focus(), 50);
-        };
         
-        document.getElementById('passwordCancelBtn').onclick = () => {
-            document.getElementById('passwordModal').classList.add('hidden');
-            document.getElementById('passwordInput').value = '';
-        };
+
         
-        document.getElementById('passwordInput').addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') document.getElementById('passwordSubmitBtn').click();
-            if(e.key === 'Escape') document.getElementById('passwordCancelBtn').click();
-        });
-
-        document.getElementById('passwordSubmitBtn').onclick = async () => {
-            const p = document.getElementById('passwordInput').value;
-            if (!p) return;
-            
-            const btn = document.getElementById('passwordSubmitBtn');
-            const originalText = btn.innerText;
-            btn.innerText = 'VERIFYING...';
-            btn.disabled = true;
-            
-            document.getElementById('passwordModal').classList.add('hidden');
-            btn.innerText = originalText;
-            btn.disabled = false;
-            
-            const suppliedPass = await hashInput(p);
-            if (suppliedPass === SECURE_AUTH_HASHES.MASTER) {
-                isAdminMode = true;
-                document.body.classList.add('admin-active');
-                unlockBtn.classList.add('hidden');
-                lockBtn.classList.remove('hidden');
-                adminToolsAnn.classList.remove('hidden');
-                adminToolsInfo.classList.remove('hidden');
-                adminToolsSpot.classList.remove('hidden');
-                document.getElementById('teachers-admin-controls').classList.remove('hidden');
-                initHub();
-            }
-        };
-
-        lockBtn.onclick = () => location.reload();
-
-        document.getElementById('saveAnnBtn').onclick = async () => {
-            const editId = document.getElementById('edit-ann-id')?.value;
-            const text = document.getElementById('new-ann-text').value;
-            const linkText = document.getElementById('new-ann-link-text')?.value || '';
-            const linkUrl = document.getElementById('new-ann-link-url')?.value || '';
-            
-            if (text) {
-                try {
-                    if (editId) {
-                        await updateDoc(doc(db, "home_announcements", editId), { 
-                            text, 
-                            linkText: linkText || null, 
-                            linkUrl: linkUrl || null 
-                        });
-                        alert("Announcement Updated!");
-                    } else {
-                        await addDoc(collection(db, "home_announcements"), { 
-                            text, 
-                            linkText: linkText || null, 
-                            linkUrl: linkUrl || null, 
-                            timestamp: Timestamp.now() 
-                        });
-                    }
-                    initHub(); 
-                    if (window.resetAnnForm) window.resetAnnForm();
-                } catch (err) {
-                    alert('Firebase Error: ' + err.message);
-                }
-            } else {
-                alert("Please provide text for the announcement.");
-            }
-        };
-
-        document.getElementById('saveThemeBtn').onclick = async () => {
-            const theme = document.getElementById('edit-theme').value;
-            try {
-                await setDoc(doc(db, "home_content", "general_info"), { theme }, { merge: true });
-                initHub();
-                alert("Theme Updated!");
-            } catch (err) { alert('Firebase Error: ' + err.message); }
-        };
-
-        document.getElementById('saveSpotBtn').onclick = async () => {
-            const org = document.getElementById('new-spot-org').value;
-            const desc = document.getElementById('new-spot-desc').value;
-            const editId = document.getElementById('edit-spot-id').value;
-            const spotDate = document.getElementById('new-spot-date').value;
-            const rawVid = document.getElementById('new-spot-video').value.trim();
-            
-            let finalVidUrl = rawVid;
-            if (rawVid) {
-                const allowed = ['youtube.com', 'youtu.be', 'vimeo.com', 'churchofjesuschrist.org'];
-                try {
-                    const u = new URL(rawVid);
-                    if (!allowed.some(domain => u.hostname.includes(domain))) {
-                        alert("Invalid Video URL. Must be from YouTube, Vimeo, or ChurchOfJesusChrist.org.");
-                        return;
-                    }
-                    if (u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be')) {
-                        let vidId = u.hostname.includes('youtu.be') ? u.pathname.slice(1) : u.searchParams.get('v');
-                        if (vidId) finalVidUrl = `https://www.youtube.com/embed/${vidId}?rel=0&modestbranding=1&autoplay=1`;
-                    } else if (u.hostname.includes('vimeo.com')) {
-                        let vidId = u.pathname.split('/').pop();
-                        if (vidId) finalVidUrl = `https://player.vimeo.com/video/${vidId}?autoplay=1`;
-                    }
-                } catch(e) { alert("Invalid Video URL format."); return; }
-            }
-            
-            if (org && desc && spotDate) {
-                try {
-                    let finalImageUrl = "";
-                    
-                    if (currentSpotlightImageData) {
-                        document.getElementById('saveSpotBtn').innerText = "Processing Image...";
-                        finalImageUrl = currentSpotlightImageData;
-                    } else if (editId) {
-                        const spotDoc = await getDoc(doc(db, "home_spotlights", editId));
-                        if(spotDoc.exists()) {
-                            finalImageUrl = spotDoc.data().image_url || "";
-                        }
-                    }
-
-                    if (editId) {
-                        await updateDoc(doc(db, "home_spotlights", editId), { org, image_url: finalImageUrl, desc, spotDate: spotDate, video_url: finalVidUrl });
-                    } else {
-                        // Hybrid Sandwich Algorithm
-                        let finalSortOrder = 1000000;
-                        const dbSpots = await getDocs(query(collection(db, "home_spotlights"), orderBy("sortOrder", "asc")));
-                        let topNeighbor = null;
-                        let bottomNeighbor = null;
-                        for (let i = 0; i < dbSpots.docs.length; i++) {
-                            let sd = dbSpots.docs[i].data().spotDate;
-                            if(sd && sd <= spotDate) {
-                                bottomNeighbor = dbSpots.docs[i].data();
-                                topNeighbor = i > 0 ? dbSpots.docs[i-1].data() : null;
-                                break;
-                            }
-                        }
-                        if (bottomNeighbor && topNeighbor) {
-                            finalSortOrder = (topNeighbor.sortOrder + bottomNeighbor.sortOrder) / 2;
-                        } else if (bottomNeighbor && !topNeighbor) {
-                            finalSortOrder = bottomNeighbor.sortOrder - 1000;
-                        } else {
-                            if (dbSpots.docs.length > 0) {
-                                finalSortOrder = dbSpots.docs[dbSpots.docs.length - 1].data().sortOrder + 1000;
-                            }
-                        }
-                        await addDoc(collection(db, "home_spotlights"), { org, image_url: finalImageUrl, desc, timestamp: Timestamp.now(), spotDate: spotDate, sortOrder: finalSortOrder, video_url: finalVidUrl });
-                    }
-
-                    initHub();
-                    resetSpotlightForm();
-                    alert(editId ? "Spotlight updated!" : "Spotlight published!");
-                } catch (err) {
-                    console.error("Publishing Exception:", err);
-                    alert('Error: ' + err.message + '\\n(Ensure your Firebase Storage & Database Rules allow writes!)');
-                    document.getElementById('saveSpotBtn').innerText = editId ? "Update Spotlight" : "Publish Spotlight";
-                }
-            } else {
-                alert("Please select organization and enter a description.");
-            }
-        };
-
+        
+        
         window.editSpot = (id, org, desc, img, spotDate, vidUrl) => {
             document.getElementById('saveSpotBtn').innerText = 'Update Spotlight';
             document.getElementById('cancelSpotBtn').classList.remove('hidden');
@@ -762,15 +489,25 @@
             const inputVal = document.getElementById('gate-input-name').value;
             if (!inputVal) return;
 
-            const hashHex = await hashInput(inputVal);
-
-            if (SPOTLIGHT_APPROVED_HASHES.includes(hashHex)) {
-                sessionStorage.setItem('spotlightsUnlocked', 'true');
-                window.closeSpotlightGate();
-                initHub();
-            } else {
-                document.getElementById('gate-error-text').classList.remove('hidden');
+            const inputLower = inputVal.trim().toLowerCase();
+            try {
+                const snap = await getDoc(doc(db, "site_settings", "privacy_config"));
+                if (snap.exists()) {
+                    console.log("Privacy Config Loaded:", snap.data().authorizedNames);
+                    if (snap.data().authorizedNames.includes(inputLower)) {
+                        sessionStorage.setItem('spotlightsUnlocked', 'true');
+                        window.closeSpotlightGate();
+                        
+                        
+                        initHub();
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error("Security rules blocking data access.", e);
             }
+
+            document.getElementById('gate-error-text').classList.remove('hidden');
         };
 
         window.swapSpot = async (id1, id2) => {
@@ -838,116 +575,15 @@
             document.getElementById('cancelAnnBtn').classList.add('hidden');
         };
 
-        // --- Teacher Admin Logic ---
-        window.resetTeacherForm = () => {
-            document.getElementById('edit-teacher-id').value = '';
-            document.getElementById('new-teacher-name').value = '';
-            document.getElementById('new-teacher-org').value = '';
-            document.getElementById('saveTeacherBtn').innerText = 'Save Teacher';
-            document.getElementById('cancelTeacherBtn').classList.add('hidden');
-        };
-
-        document.getElementById('cancelTeacherBtn').addEventListener('click', window.resetTeacherForm);
-
-        document.getElementById('saveTeacherBtn').addEventListener('click', async () => {
-            const id = document.getElementById('edit-teacher-id').value;
-            const name = document.getElementById('new-teacher-name').value.trim();
-            const org = document.getElementById('new-teacher-org').value;
-            if (!name || !org) return alert('Name and Organization required.');
-
-            try {
-                if (id) {
-                    await updateDoc(doc(db, "home_teachers", id), { name, org });
-                } else {
-                    await addDoc(collection(db, "home_teachers"), { name, org });
-                }
-                window.resetTeacherForm();
-                renderTeachers();
-            } catch (e) { console.error('Teacher Save Err:', e); }
-        });
-
-        window.editTeacher = (id, name, org) => {
-            document.getElementById('edit-teacher-id').value = id;
-            document.getElementById('new-teacher-name').value = name;
-            document.getElementById('new-teacher-org').value = org;
-            document.getElementById('saveTeacherBtn').innerText = 'Update Teacher';
-            document.getElementById('cancelTeacherBtn').classList.remove('hidden');
-            document.getElementById('teachers-admin-controls').scrollIntoView({ behavior: 'smooth' });
-        };
-
-        window.delTeacher = async (id) => {
-            if (!confirm('Delete this teacher?')) return;
-            try {
-                await deleteDoc(doc(db, "home_teachers", id));
-                renderTeachers();
-            } catch (e) { console.error('Teacher Delete Err:', e); }
-        };
-
-        async function renderTeachers() {
-            try {
-                const snap = await getDocs(query(collection(db, "home_teachers"), orderBy("name")));
-                let html = '';
-                const orgMap = {};
-                snap.forEach(d => {
-                    const t = d.data();
-                    const org = t.org || 'General';
-                    if (!orgMap[org]) orgMap[org] = [];
-                    orgMap[org].push({ id: d.id, ...t });
-                });
-
-                const sortedOrgs = Object.keys(orgMap).sort();
-                for (const org of sortedOrgs) {
-                    html += `
-                        <tr>
-                            <td colspan="3" class="p-3 bg-slate-800 text-amber-500 font-black text-xs uppercase tracking-widest border-t border-slate-700">
-                                ${org}
-                            </td>
-                        </tr>
-                    `;
-                    orgMap[org].forEach(t => {
-                        html += `
-                            <tr class="hover:bg-slate-800/30 transition">
-                                <td class="p-3 text-white text-xs font-medium pl-6">${t.name}</td>
-                                <td class="p-3 text-violet-400 text-[10px] font-bold uppercase tracking-widest">${t.org || 'General'}</td>
-                                <td class="p-3 text-right">
-                                    <button onclick="window.editTeacher('${t.id}', \`${t.name.replace(/`/g, '\\`')}\`, '${t.org}')" class="text-blue-400 hover:text-blue-300 font-bold text-[10px] uppercase tracking-widest mr-3">Edit</button>
-                                    <button onclick="window.delTeacher('${t.id}')" class="text-red-400 hover:text-red-300 font-bold text-[10px] uppercase tracking-widest">Delete</button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }
-                
-                document.getElementById('teacher-table-body').innerHTML = html || '<tr><td colspan="3" class="text-center p-4 text-slate-500 text-xs italic">No teachers found.</td></tr>';
-            } catch (e) { console.error('Render Teachers Err:', e); }
-        }
-
-        const originalInitHub = initHub;
-        initHub = async () => {
-            originalInitHub();
-            if (isAdminMode) renderTeachers();
-        };
-
         initHub();
     </script>
     
 
     <!-- Password Modal -->
-    <div id="passwordModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm pointer-events-auto">
-        <div class="bg-slate-900 border border-slate-700/50 w-full max-w-sm rounded-2xl p-8 shadow-2xl text-center relative overflow-hidden">
-            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
-            <h3 class="text-xl font-black text-white mb-2 uppercase tracking-widest">Admin Access</h3>
-            <p class="text-slate-400 text-[10px] mb-6 font-bold uppercase tracking-widest">Authentication Required</p>
-            <input type="password" id="passwordInput" class="w-full bg-slate-950 text-white rounded-xl px-4 py-4 border border-slate-800 focus:border-blue-500 outline-none text-sm mb-4 text-center font-mono" placeholder="••••••••">
-            <div class="flex gap-3">
-                <button id="passwordSubmitBtn" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl uppercase tracking-widest text-[10px] transition active:scale-95">Unlock</button>
-                <button id="passwordCancelBtn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-4 rounded-xl uppercase tracking-widest text-[10px] transition active:scale-95">Cancel</button>
-            </div>
-        </div>
-    </div>
+    
 
     <!-- Global Feedback Modal -->
-    <div id="feedbackModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
+    <div id="feedbackModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700/50 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden text-left">
             <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
                 <h2 class="font-black text-lg text-white uppercase tracking-widest">Feedback</h2>
@@ -994,6 +630,7 @@
 
         const openFeedback = () => {
             fModal.classList.remove('hidden');
+            fModal.classList.add('flex');
             document.getElementById('feedbackSuccess').classList.add('hidden');
             document.getElementById('feedbackForm').reset();
         };
@@ -1001,7 +638,10 @@
         if(fBtnFooter) fBtnFooter.addEventListener('click', openFeedback);
         if(fBtnSide) fBtnSide.addEventListener('click', openFeedback);
         
-        const closeM = () => fModal.classList.add('hidden');
+        const closeM = () => {
+            fModal.classList.add('hidden');
+            fModal.classList.remove('flex');
+        };
         if(fClose) fClose.addEventListener('click', closeM);
         if(fClose2) fClose2.addEventListener('click', closeM);
         

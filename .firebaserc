@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "blackstoneward-b861c"
-  }
+  },
+  "targets": {
+    "blackstoneward-b861c": {
+      "hosting": {
+        "staging": [
+          "test-blackstoneward"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
