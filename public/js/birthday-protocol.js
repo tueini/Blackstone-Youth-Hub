@@ -66,8 +66,28 @@ async function fetchAndCheckBirthdays() {
             if (storedOrg === 'YW') storedOrg = 'Young Women';
 
             // Check for modal trigger if not combined
-            if (!isCombined && storedOrg === properOrgMatch && b.date && b.date.substring(5) === todayMMDD) {
-                modalNames.push(formatPrivacyName(b.name));
+            if (!isCombined && storedOrg === properOrgMatch && b.date) {
+                let match = false;
+                let mMonth = "", mDay = "";
+                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const mMap = { "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun", "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec", "1": "Jan", "2": "Feb", "3": "Mar", "4": "Apr", "5": "May", "6": "Jun", "7": "Jul", "8": "Aug", "9": "Sep" };
+                if (b.date.includes('-')) {
+                    const p = b.date.split('-');
+                    if (p.length === 3) { mMonth = mMap[p[1]]||"Jan"; mDay = parseInt(p[2]).toString(); }
+                    else if (p.length === 2) { mMonth = mMap[p[0]]||"Jan"; mDay = parseInt(p[1]).toString(); }
+                } else if (b.date.includes('/')) {
+                    const p = b.date.split('/');
+                    mMonth = mMap[p[0]]||"Jan"; mDay = parseInt(p[1]).toString();
+                } else {
+                    const p = b.date.split(' ');
+                    mMonth = p[0]; mDay = parseInt(p[1]||1).toString();
+                }
+                const today = new Date();
+                if (mMonth === monthNames[today.getMonth()] && mDay === today.getDate().toString()) match = true;
+                
+                if (match) {
+                    modalNames.push(formatPrivacyName(b.name));
+                }
             }
         });
         
@@ -134,20 +154,45 @@ if (document.getElementById('import-controls')) {
         if (!list) return;
         list.innerHTML = '';
         
+        const parseBdayProtocol = (dStr) => {
+            if (!dStr) return { m: "Jan", d: "1", val: 9999 };
+            const mMap = { "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun", "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec", "1": "Jan", "2": "Feb", "3": "Mar", "4": "Apr", "5": "May", "6": "Jun", "7": "Jul", "8": "Aug", "9": "Sep" };
+            const mOrd = {"Jan":1, "Feb":2, "Mar":3, "Apr":4, "May":5, "Jun":6, "Jul":7, "Aug":8, "Sep":9, "Oct":10, "Nov":11, "Dec":12};
+            let pm = "Jan", pd = "1";
+            if (dStr.includes('-')) {
+                let p = dStr.split('-');
+                if(p.length===3) { pm = mMap[p[1]]||"Jan"; pd = parseInt(p[2])||1; }
+                else if(p.length===2) { pm = mMap[p[0]]||"Jan"; pd = parseInt(p[1])||1; }
+            } else if (dStr.includes('/')) {
+                let p = dStr.split('/');
+                pm = mMap[p[0]]||"Jan"; pd = parseInt(p[1])||1;
+            } else if (dStr.includes(' ')) {
+                let p = dStr.split(' ');
+                pm = p[0]; pd = parseInt(p[1])||1;
+            }
+            return { m: pm, d: pd.toString(), val: (mOrd[pm]||12)*100 + parseInt(pd) };
+        };
+
         allBdays.sort((a,b) => {
-            const ma = (a.date ? a.date.substring(5) : '12-31');
-            const mb = (b.date ? b.date.substring(5) : '12-31');
-            return ma.localeCompare(mb);
+            return parseBdayProtocol(a.date).val - parseBdayProtocol(b.date).val;
         }).forEach(item => {
             const tr = document.createElement('tr');
             tr.className = "hover:bg-rose-900/10 transition group";
             
+            const parsedDateInfo = parseBdayProtocol(item.date);
+            
             if (activeBdayEdit === item.id) {
+                const mNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const mOptions = mNames.map(m => `<option value="${m}" ${parsedDateInfo.m===m?'selected':''}>${m}</option>`).join('');
+
                 tr.classList.add('bg-slate-800/80');
                 tr.innerHTML = `
                     <td colspan="4" class="p-4 border-b border-rose-900/50">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
-                            <input type="date" class="bg-slate-900 text-slate-300 rounded-lg px-2 py-2 border border-rose-500/50 focus:ring-rose-500 outline-none text-xs font-mono b-date-inp" value="${item.date||''}">
+                            <div class="flex gap-1">
+                                <select class="b-month-select bg-slate-900 text-slate-300 rounded-lg px-2 py-2 border border-rose-500/50 focus:ring-rose-500 outline-none text-xs font-mono w-full">${mOptions}</select>
+                                <select class="b-day-select bg-slate-900 text-slate-300 rounded-lg px-2 py-2 border border-rose-500/50 focus:ring-rose-500 outline-none text-xs font-mono w-[60px]"></select>
+                            </div>
                             <input type="text" class="bg-slate-900 text-white rounded-lg px-3 py-2 border border-rose-500/50 focus:ring-rose-500 outline-none text-xs font-bold b-name-inp" placeholder="Full Name" value="${item.name||''}">
                             <select class="bg-slate-900 text-slate-300 rounded-lg px-2 py-2 border border-rose-500/50 focus:ring-rose-500 outline-none text-xs b-org-inp">
                                 <option value="Deacons" ${item.org==='Deacons'?'selected':''}>Deacons</option>
@@ -163,8 +208,21 @@ if (document.getElementById('import-controls')) {
                         </div>
                     </td>
                 `;
+                
+                const mSel = tr.querySelector('.b-month-select');
+                const dSel = tr.querySelector('.b-day-select');
+                const updateDays = () => {
+                    const m = mSel.value;
+                    const maxDays = { "Jan": 31, "Feb": 29, "Mar": 31, "Apr": 30, "May": 31, "Jun": 30, "Jul": 31, "Aug": 31, "Sep": 30, "Oct": 31, "Nov": 30, "Dec": 31 }[m] || 31;
+                    let dHtml = '';
+                    for(let i=1; i<=maxDays; i++) dHtml += `<option value="${i}" ${parsedDateInfo.d==i?'selected':''}>${i}</option>`;
+                    dSel.innerHTML = dHtml;
+                };
+                updateDays();
+                mSel.addEventListener('change', updateDays);
+
                 tr.querySelector('.b-save').addEventListener('click', async () => {
-                    const nd = tr.querySelector('.b-date-inp').value;
+                    const nd = mSel.value + " " + dSel.value;
                     const nn = tr.querySelector('.b-name-inp').value.trim();
                     const no = tr.querySelector('.b-org-inp').value;
                     if (!nn) return alert("Warning: Name cannot be empty.");
@@ -186,7 +244,7 @@ if (document.getElementById('import-controls')) {
                 });
             } else {
                 tr.innerHTML = `
-                    <td class="p-4 border-b border-rose-900/30 text-rose-300 text-xs font-mono">${item.date || 'N/A'}</td>
+                    <td class="p-4 border-b border-rose-900/30 text-rose-300 text-xs font-mono">${item.date ? `${parsedDateInfo.m} ${parsedDateInfo.d}` : 'N/A'}</td>
                     <td class="p-4 border-b border-rose-900/30 text-sm font-bold text-white">${item.name}</td>
                     <td class="p-4 border-b border-rose-900/30"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-black bg-rose-900/40 text-rose-300 border border-rose-700/50">${item.org || 'Unset'}</span></td>
                     <td class="p-4 border-b border-rose-900/30 text-center action-col-bday hidden">

@@ -1,0 +1,1194 @@
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc, writeBatch, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { GOOGLE_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_APP_ID } from "/js/config.js";
+
+        let ORGANIZATION_NAME = 'Combined';
+        let isCombinedPage = ORGANIZATION_NAME.toLowerCase() === 'combined';
+        let displayOrg = 'Combined';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrWB07WNqObtjiZb_NntJQZ0dhHyLRBas",
+            authDomain: "blackstoneward-b861c.firebaseapp.com",
+            projectId: "blackstoneward-b861c",
+            storageBucket: "blackstoneward-b861c.firebasestorage.app",
+            messagingSenderId: "609425206588",
+            appId: "1:609425206588:web:99ae3cb602c82e212dc239",
+            measurementId: "G-0T68YN4Y2P"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window._firebaseDb = db;
+        window.db = db;
+        
+        let events = [], unscheduled = [], lessons = [], orgTeachers = [];
+        const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        const today = new Date();
+
+        async function initApp() {
+            try {
+                let currentOrg = ORGANIZATION_NAME;
+                if (currentOrg === 'YW') currentOrg = 'Young Women';
+                
+                let q = ORGANIZATION_NAME === 'Combined' 
+                    ? query(collection(db, "home_teachers"))
+                    : query(collection(db, "home_teachers"), where("org", "in", [currentOrg, "General"]));
+                    
+                onSnapshot(q, (snapshot) => {
+                    orgTeachers.length = 0;
+                    snapshot.forEach(d => {
+                        orgTeachers.push(d.data().name);
+                    });
+                    orgTeachers.sort();
+                    try { if (typeof window.renderLessonManager === 'function') window.renderLessonManager(); } catch(e) {}
+                });
+            } catch (e) { console.error("Teacher fetch err:", e); }
+
+            try {
+                const allData = [];
+                const orgSnap = await getDocs(collection(db, `${ORGANIZATION_NAME}_events`));
+                orgSnap.forEach(d => allData.push({...d.data(), id: d.id, sourceOrg: ORGANIZATION_NAME}));
+                if (!isCombinedPage) {
+                    const combinedSnap = await getDocs(collection(db, "Combined_events"));
+                    combinedSnap.forEach(d => allData.push({...d.data(), id: d.id, cat: 'combined', sourceOrg: 'Combined'}));
+                }
+                events = allData.filter(d => d.type === 'scheduled');
+                unscheduled = allData.filter(d => d.type === 'unscheduled');
+                
+                const lessonSnap = await getDocs(collection(db, `${ORGANIZATION_NAME}_lessons`));
+                lessonSnap.forEach(d => lessons.push({...d.data(), id: d.id, sourceOrg: ORGANIZATION_NAME}));
+                if (!isCombinedPage) {
+                    const combinedL = await getDocs(collection(db, "Combined_lessons"));
+                    combinedL.forEach(d => lessons.push({...d.data(), id: d.id, sourceOrg: 'Combined'}));
+                }
+                
+                refreshUI();
+            } catch (e) { console.error("Initial load failed:", e); }
+        }
+
+        function refreshUI() {    renderDataManager(); renderLessonManager(); }
+
+        function renderCalendar() {
+            const active = document.getElementById('active-months'), past = document.getElementById('past-months');
+            active.innerHTML = ''; past.innerHTML = '';
+            for (let m = 0; m < 12; m++) {
+                const card = document.createElement('div');
+                card.className = `month-card ${m === today.getMonth() ? 'border-blue-500/50 ring-1 ring-blue-500/20' : ''}`;
+                card.innerHTML = `<h3 class="month-header font-bold text-slate-300 text-sm">${months[m]} 2026</h3>`;
+                const grid = document.createElement('div');
+                grid.className = 'days-grid';
+                ['S','M','T','W','T','F','S'].forEach(d => { grid.innerHTML += `<div class="opacity-30 font-bold text-[10px]">${d}</div>`; });
+                const firstDay = new Date(2026, m, 1).getDay(), daysInMonth = new Date(2026, m + 1, 0).getDate();
+                for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div></div>`;
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = `2026-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const evData = events.filter(e => e.date === dateStr);
+                    const dL = lessons.filter(l => l.date === dateStr);
+                    const dayEl = document.createElement('div');
+                    
+                    if (evData.length > 0 || dL.length > 0) {
+                        dayEl.className = `day flex-col justify-end items-stretch p-1 ${today.getDate() === d && today.getMonth() === m ? 'today' : ''} border border-slate-700/30 overflow-visible cursor-pointer relative has-event`;
+                        let html = `<span class="absolute top-[2px] right-[4px] z-10 text-[10px] font-black text-slate-400">${d}</span>`;
+                        if (dL.length > 0) html += `<span class="absolute top-[2px] left-[2px] z-20 text-[12px] bg-violet-500/40 w-5 h-5 rounded flex items-center justify-center shadow-sm cursor-pointer transition-transform hover:scale-110 active:scale-95" title="Lesson: ${dL[0].topic || 'Scheduled'}">📖</span>`;
+                        
+                        html += `<div class="flex flex-col gap-[2px] w-full h-full justify-end mt-4">`;
+                        
+                        const displayCount = evData.length >= 4 ? 3 : evData.length;
+                        for(let k=0; k<displayCount; k++) {
+                            const e = evData[k];
+                            html += `<div class="event-pill event-${e.cat} rounded-sm w-full h-[8px] sm:h-[12px] opacity-80 backdrop-blur-sm"></div>`;
+                        }
+                        
+                        if (evData.length >= 4) {
+                            html += `<div class="text-[8px] text-blue-400 font-black text-center w-full bg-blue-900/20 rounded-sm leading-tight inline-block">+${evData.length - 3}</div>`;
+                        }
+                        if (evData.some(e => e.isService)) html += `<span class="absolute top-[2px] right-[18px] z-20 text-[10px] text-yellow-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" title="Service Project">★</span>`;
+                        html += `</div>`;
+                        dayEl.innerHTML = html;
+                        
+                        // Bind unified Day Detail Popover 
+                        dayEl.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            openDayDetailPopover(dateStr, evData, dL);
+                        });
+                    } else {
+                        dayEl.className = `day ${today.getDate() === d && today.getMonth() === m ? 'today' : ''}`;
+                        dayEl.innerHTML = `<span>${d}</span>`;
+                    }
+                    grid.appendChild(dayEl);
+                }
+                card.appendChild(grid);
+                (m < today.getMonth()) ? past.appendChild(card) : active.appendChild(card);
+            }
+            if (document.getElementById('pastMonthsBtn')) {
+                const togglerText = document.querySelector('#pastMonthsBtn span');
+                document.getElementById('pastMonthsBtn').onclick = () => {
+                    const isHidden = past.classList.toggle('hidden');
+                    if (togglerText) togglerText.innerText = isHidden ? "See Previous Months" : "Hide Previous Months";
+                };
+            }
+        }
+
+        function showEvent(ev) {
+            document.getElementById('pane-title').innerHTML = ev.name + (ev.isService ? '<span class="text-yellow-400 ml-2 drop-shadow" title="Service Project">★</span>' : '');
+            const d = new Date(ev.date + "T00:00:00");
+            document.getElementById('pane-date').innerText = `${months[d.getMonth()]} ${d.getDate()} • ${d.toLocaleDateString('en-US', { weekday: 'short' })}`;
+            document.getElementById('pane-details').innerHTML = `<div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl"><div class="flex items-center gap-2 mb-4"><span class="w-3 h-3 rounded-full dot-${ev.cat}"></span><span class="text-[10px] font-black uppercase tracking-widest text-slate-400">${ev.cat}</span></div><p class="text-slate-300 leading-relaxed text-sm">${ev.details || 'No details.'}</p><button id="backBtn" class="mt-8 text-xs text-blue-400 font-bold hover:underline">← Back</button></div>`;
+            document.getElementById('backBtn').onclick = renderDefaultPane;
+        }
+
+        function renderDefaultPane() {
+            document.getElementById('pane-title').innerText = "Upcoming";
+            document.getElementById('pane-date').innerText = "Next Activities";
+            const upcoming = events.filter(e => new Date(e.date + "T23:59:59") >= today).sort((a,b) => new Date(a.date) - new Date(b.date)).slice(0,3);
+            document.getElementById('pane-details').innerHTML = upcoming.map(e => {
+                const d = new Date(e.date + "T00:00:00");
+                return `<div id="up-${e.id}" class="group cursor-pointer bg-slate-800/40 hover:bg-slate-800 p-4 rounded-lg border border-slate-700/50 mb-2 transition"><div class="flex items-center justify-between mb-1"><p class="text-[10px] font-bold text-slate-500 uppercase">${months[d.getMonth()]} ${d.getDate()}</p><span class="w-2 h-2 rounded-full dot-${e.cat}"></span></div><p class="font-bold text-white group-hover:text-blue-400 transition text-sm">${e.name}${e.isService ? '<span class="text-yellow-400 ml-2 drop-shadow" title="Service Project">★</span>' : ''}</p></div>`;
+            }).join('');
+            upcoming.forEach(e => {
+                const el = document.getElementById(`up-${e.id}`);
+                if(el) el.onclick = () => showEvent(e);
+            });
+            const dashboard = document.getElementById('admin-dashboard');
+            if (dashboard) { dashboard.classList.remove('hidden'); }
+            if (typeof isListView !== 'undefined' && isListView && window.innerWidth < 1024) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function renderUnscheduled() {
+            document.getElementById('idea-count').innerText = unscheduled.length;
+            document.getElementById('unscheduled-ideas').innerHTML = unscheduled.map(i => `<div class="text-[11px] p-3 bg-slate-800/30 rounded border-l-2 border-slate-700 mb-2 flex items-center gap-3"><span class="w-2 h-2 shrink-0 rounded-full dot-${i.cat}"></span><div class="flex flex-col"><span class="font-bold text-slate-300 leading-tight">${i.name}</span>${i.isService ? '<span class="text-yellow-400 ml-1 text-[10px] drop-shadow-sm inline-block" title="Service Project">★</span>' : ''}${i.details ? `<span class="text-slate-500 italic text-[9px] mt-1">${i.details}</span>` : ''}</div></div>`).join('');
+        }
+
+        // --- v4.9 UPGRADES: LIST VIEW & PRINT ---
+        let isListView = false;
+        
+        function formatListDate(dateStr) {
+            const d = new Date(dateStr + "T00:00:00");
+            return `${months[d.getMonth()]} ${d.getDate()}`;
+        }
+
+        function openDayDetailPopover(dateStr, dayEvents, dayLessons = []) {
+            const modal = document.getElementById('dayDetailModal');
+            if(!modal) return;
+            const list = document.getElementById('dayDetailList');
+            list.innerHTML = '';
+            
+            const dateObj = new Date(dateStr + "T12:00:00");
+            const dayName = dateObj.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase();
+            document.getElementById('dayDetailDate').innerText = `${formatListDate(dateStr)} • ${dayName}`;
+            
+            dayLessons.forEach(l => {
+                const el = document.createElement('div');
+                el.className = `p-3 rounded-lg border border-violet-500/40 bg-slate-800 mb-2 text-left shadow-lg cursor-pointer transition-transform active:scale-95 group`;
+                el.innerHTML = `<div class="flex items-center mb-1"><span class="flex items-center justify-center w-6 h-6 rounded bg-violet-500/40 text-sm mr-2 leading-none shadow-sm transition-transform group-hover:scale-110">📖</span><span class="font-bold text-sm text-violet-400 truncate">Sunday Lesson</span></div><p class="text-xs text-white font-bold leading-tight pl-8">${l.topic || 'No Topic Set'}</p><p class="text-[10px] text-slate-400 pl-8 mt-1 uppercase tracking-widest">Teacher: ${l.teacher || 'TBD'}</p>${l.notes ? `<p class="text-[10px] text-slate-500 pl-8 mt-2 italic leading-tight">Note: ${l.notes}</p>` : ''}`;
+                el.onclick = () => { modal.classList.add('hidden'); if(window.innerWidth < 1024) document.getElementById('info-pane').scrollIntoView({ behavior: 'smooth' }); };
+                list.appendChild(el);
+            });
+
+            dayEvents.forEach(ev => {
+                const colors = { 'social': 'pink', 'physical': 'emerald', 'spiritual': 'violet', 'intellectual': 'amber', 'combined': 'blue' };
+                const c = colors[ev.cat] || 'slate';
+                const el = document.createElement('div');
+                el.className = `p-3 rounded-lg border border-${c}-500/30 bg-slate-800/80 mb-2 cursor-pointer transition active:scale-95 text-left`;
+                el.innerHTML = `<div class="flex items-center mb-1"><span class="w-2 h-2 rounded-full bg-${c}-500 mr-2 shrink-0"></span><span class="font-bold text-sm text-white">${ev.name}</span>${ev.isService ? '<span class="text-yellow-400 ml-2 text-[10px] drop-shadow-sm" title="Service Project">★</span>' : ''}</div>${ev.details ? `<p class="text-[10px] text-slate-400 pl-4 leading-tight">${ev.details}</p>` : ''}`;
+                el.onclick = () => { 
+                    modal.classList.add('hidden'); 
+                    showEvent(ev); 
+                    if (window.innerWidth < 1024) document.getElementById('info-pane').scrollIntoView({ behavior: 'smooth' }); 
+                };
+                list.appendChild(el);
+            });
+            modal.classList.remove('hidden');
+        }
+
+        // Close Popover Bindings 
+        const dayDetailModal = document.getElementById('dayDetailModal');
+        if (dayDetailModal) {
+            dayDetailModal.addEventListener('click', (e) => {
+                if(e.target.id === 'dayDetailModal') { e.target.classList.add('hidden'); }
+            });
+        }
+        const closeDayDetailBtn = document.getElementById('closeDayDetailBtn');
+        if (closeDayDetailBtn && dayDetailModal) {
+            closeDayDetailBtn.addEventListener('click', () => {
+                dayDetailModal.classList.add('hidden');
+            });
+        }
+
+        const handlePrint = async (filter = 'all', selectNode = null) => {
+            let html = "";
+            const colors = { social: '#3b82f6', physical: '#f97316', spiritual: '#8b5cf6', intellectual: '#eab308', combined: '#10b981' };
+
+            if (filter === 'all' || filter === 'activities') {
+                html += `<h1 style="font-size:24px; font-weight:bold; margin-bottom:20px;">2026 ${displayOrg} Activities</h1>`;
+                html += `<h2 style="font-size:18px; font-weight:bold; margin-top:20px; border-bottom:1px solid #ccc; padding-bottom:5px;">Scheduled Events</h2>`;
+                const sortedEvents = events.sort((a,b) => new Date(a.date) - new Date(b.date));
+                sortedEvents.forEach(e => {
+                    const d = new Date(e.date + "T00:00:00");
+                    html += `<div style="margin-bottom:8px;"><strong style="color: ${colors[e.cat] || '#000'}">${e.isService ? '⭐' : '•'}</strong> <strong>${months[d.getMonth()]} ${d.getDate()}:</strong> ${e.name} ${e.details ? '— <i>'+e.details+'</i>' : ''}</div>`;
+                });
+                if (unscheduled.length > 0) {
+                    html += `<h2 style="font-size:18px; font-weight:bold; margin-top:20px; border-bottom:1px solid #ccc; padding-bottom:5px;">Ideas (Unscheduled)</h2>`;
+                    unscheduled.forEach(i => {
+                        html += `<div style="margin-bottom:8px;"><strong style="color: ${colors[i.cat] || '#000'}">${i.isService ? '⭐' : '•'}</strong> ${i.name} ${i.details ? '— <i>'+i.details+'</i>' : ''}</div>`;
+                    });
+                }
+            }
+
+            if (filter === 'all' || filter === 'lessons') {
+                html += `<h1 style="font-size:24px; font-weight:bold; margin-bottom:20px; ${filter==='all' ? 'margin-top:40px;' : ''}">2026 ${displayOrg} Sunday Lessons</h1>`;
+                const sortedLessons = lessons.sort((a,b) => new Date(a.date) - new Date(b.date));
+                sortedLessons.forEach(l => {
+                    if(!l.date) return;
+                    const d = new Date(l.date + "T00:00:00");
+                    html += `<div style="margin-bottom:8px;"><strong style="color: #8b5cf6;">•</strong> <strong>${months[d.getMonth()]} ${d.getDate()}:</strong> ${l.topic} <strong>[${l.teacher || 'Unassigned'}]</strong> ${l.notes ? '<br><i style="font-size: 11px; margin-left: 20px;">Notes: '+l.notes+'</i>' : ''}</div>`;
+                });
+            }
+
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const printContent = `<div style="padding: 20px; font-family: sans-serif; background: #ffffff; color: #000000; width: 800px; display: block;">${html}</div>`;
+
+            let exportName = 'YHub_All_Sched.pdf';
+            if (filter === 'activities') exportName = 'YHub_Activities_Sched.pdf';
+            if (filter === 'lessons') exportName = 'YHub_Lessons_Sched.pdf';
+
+            const opt = {
+                margin: 10,
+                filename: exportName,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            if (isMobile) {
+                let popWindow = window.open('', '_blank');
+                if (popWindow) popWindow.document.write('<body style="background:#0f172a;color:white;font-family:sans-serif;text-align:center;padding-top:20vh;"><h2>Generating PDF... Please wait...</h2></body>');
+                
+                html2pdf().from(printContent).set(opt).outputPdf('bloburl').then((res) => {
+                    if (popWindow) popWindow.location.href = res;
+                    else window.location.href = res;
+                    if (selectNode) {
+                        selectNode.options[0].text = "Download Schedule (PDF) ▾";
+                        selectNode.disabled = false;
+                        selectNode.value = "";
+                    }
+                });
+            } else {
+                html2pdf().from(printContent).set(opt).save().then(() => {
+                    if (selectNode) {
+                        selectNode.options[0].text = "Download Schedule (PDF) ▾";
+                        selectNode.disabled = false;
+                        selectNode.value = "";
+                    }
+                });
+            }
+        };
+
+        const onChangePrint = (e) => { 
+            if(e.target.value) { 
+                e.target.options[0].text = "Generating PDF...";
+                e.target.disabled = true;
+                handlePrint(e.target.value, e.target); 
+            } 
+        };
+        if(document.getElementById('printBtnList')) document.getElementById('printBtnList').addEventListener('change', onChangePrint);
+        if(document.getElementById('printBtnGrid')) document.getElementById('printBtnGrid').addEventListener('change', onChangePrint);
+
+        function parseCSVRow(t) { const re = /(?!\s*$)\s*(?:'([^']*)'|"([^"]*)"|([^,]*))\s*(?:,|$)/g; const res = []; t.replace(re, (m, p1, p2, p3) => { res.push(p1 || p2 || p3 || ""); return ""; }); return res; }
+        function parseCSVDate(s) { if (!s || !s.trim()) return null; const p = s.split('/'); if (p.length !== 3) return null; let y = p[2]; if(y.length===2) y="20"+y; return `${y}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`; }
+        function sanitizeId(t) { return t.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').toLowerCase(); }
+
+        // --- CUSTOM MODAL & SYNC LOGIC ---
+        const modal = document.getElementById('customModal');
+        const modalYes = document.getElementById('modalYes');
+        const modalNo = document.getElementById('modalNo');
+        const modalCancel = document.getElementById('modalCancel');
+        const fileInput = document.getElementById('csvFileInput');
+
+        let currentFile = null;
+        let currentCSVText = null;
+
+        const processCSV = (csvText, shouldWipe) => {
+            if (shouldWipe) {
+                events = events.filter(e => e.sourceOrg !== ORGANIZATION_NAME);
+                unscheduled = unscheduled.filter(e => e.sourceOrg !== ORGANIZATION_NAME);
+            }
+            const rows = csvText.split(/\r?\n/).slice(1);
+            let count = 0;
+            for (const row of rows) {
+                if (!row.trim()) continue;
+                try {
+                    const cols = parseCSVRow(row);
+                    const dD = parseCSVDate(cols[0]);
+                    const newId = (dD ? dD + '_' : 'idea_') + sanitizeId(cols[1]) + "_" + Math.floor(Math.random()*1000);
+                    
+                    const newItem = {
+                        id: newId,
+                        date: dD || '',
+                        name: cols[1] || 'Unnamed',
+                        cat: (cols[2] || 'social').toLowerCase(),
+                        details: cols[3] || '',
+                        type: dD ? 'scheduled' : 'unscheduled',
+                        sourceOrg: ORGANIZATION_NAME
+                    };
+                    
+                    if (dD) events.push(newItem);
+                    else unscheduled.push(newItem);
+                    count++;
+                } catch (err) { console.error(err); }
+            }
+            alert(`Loaded ${count} items into the Editor. Review and click 'Save Changes' to permanently save!`);
+            currentFile = null;
+            fileInput.value = '';
+            markPending();
+            refreshUI();
+            
+            const adminView = document.getElementById('admin-main-view');
+            if (adminView && !adminView.classList.contains('hidden')) {
+                adminView.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+
+        const performSync = (shouldWipe) => {
+            if (currentCSVText) {
+                processCSV(currentCSVText, shouldWipe);
+            } else if (currentFile) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    processCSV(ev.target.result, shouldWipe);
+                };
+                reader.readAsText(currentFile);
+            }
+        };
+
+        fileInput.addEventListener('change', (e) => {
+            currentFile = e.target.files[0];
+            currentCSVText = null;
+            if (currentFile) modal.classList.remove('hidden');
+        });
+
+        // --- GOOGLE DRIVE PICKER INTEGRATION ---
+        let tokenClient;
+        let accessToken = null;
+        let apisEnabled = false;
+
+        const googleDriveBtn = document.getElementById('googleDriveBtn');
+        const driveLoading = document.getElementById('driveLoading');
+
+        if (googleDriveBtn) {
+            googleDriveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            googleDriveBtn.innerText = "LOADING APIS...";
+        }
+
+        function checkApisReady() {
+            googleDriveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            googleDriveBtn.innerText = "SELECT FROM GOOGLE DRIVE";
+            apisEnabled = true;
+        }
+
+        function initGoogleApis() {
+            if (!GOOGLE_API_KEY || GOOGLE_API_KEY === "YOUR_API_KEY") {
+                googleDriveBtn.innerText = "MISSING JS/CONFIG.JS KEYS";
+                return;
+            }
+            gapi.load('client:picker', () => {
+                gapi.client.init({ apiKey: GOOGLE_API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] })
+                .then(checkApisReady)
+                .catch(e => { console.error("GAPI Error", e); googleDriveBtn.innerText = "API ERROR"; });
+            });
+
+            try {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: GOOGLE_CLIENT_ID,
+                    scope: 'https://www.googleapis.com/auth/drive.readonly',
+                    callback: (response) => {
+                        if (response.error !== undefined) {
+                            googleDriveBtn.innerText = "SELECT FROM GOOGLE DRIVE";
+                            driveLoading.classList.add('hidden');
+                            throw (response);
+                        }
+                        accessToken = response.access_token;
+                        buildPicker();
+                    },
+                });
+            } catch(e) { console.error("GIS Error", e); }
+        }
+
+        const apiCheckTimer = setInterval(() => {
+            if (window.gapi && window.google) {
+                clearInterval(apiCheckTimer);
+                initGoogleApis();
+            }
+        }, 100);
+
+        googleDriveBtn.addEventListener('click', () => {
+            if (!apisEnabled) return;
+            
+            driveLoading.classList.remove('hidden');
+            driveLoading.innerText = "Connecting to Google...";
+            googleDriveBtn.innerText = "AUTHENTICATING...";
+
+            if (!accessToken) {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                buildPicker();
+            }
+        });
+
+        function buildPicker() {
+            driveLoading.classList.add('hidden');
+            googleDriveBtn.innerText = "SELECT FROM GOOGLE DRIVE";
+
+            const view = new google.picker.DocsView(google.picker.ViewId.DOCS);
+            view.setMimeTypes('text/csv');
+            view.setQuery(ORGANIZATION_NAME);
+
+            const picker = new google.picker.PickerBuilder()
+                .enableFeature(google.picker.Feature.NAV_HIDDEN)
+                .setDeveloperKey(GOOGLE_API_KEY)
+                .setAppId(GOOGLE_APP_ID)
+                .setOAuthToken(accessToken)
+                .addView(view)
+                .setCallback(pickerCallback)
+                .build();
+            picker.setVisible(true);
+        }
+
+        async function pickerCallback(data) {
+            if (data.action === google.picker.Action.PICKED) {
+                const docId = data.docs[0].id;
+                try {
+                    driveLoading.classList.remove('hidden');
+                    driveLoading.innerText = "Downloading CSV...";
+                    const response = await gapi.client.drive.files.get({
+                        fileId: docId,
+                        alt: 'media'
+                    });
+                    currentCSVText = response.body;
+                    currentFile = null;
+                    driveLoading.classList.add('hidden');
+                    driveLoading.innerText = "Connecting to Google Drive...";
+                    modal.classList.remove('hidden');
+                } catch(e) {
+                    console.error('Error fetching file', e);
+                    alert("Failed to download CSV from Google Drive.");
+                    driveLoading.classList.add('hidden');
+                    driveLoading.innerText = "Connecting to Google Drive...";
+                }
+            } else if (data.action === google.picker.Action.CANCEL) {
+                driveLoading.classList.add('hidden');
+            }
+        }
+
+        modalYes.onclick = () => { modal.classList.add('hidden'); performSync(true); };
+        modalNo.onclick = () => { modal.classList.add('hidden'); performSync(false); };
+        modalCancel.onclick = () => { modal.classList.add('hidden'); fileInput.value = ''; };
+
+        // --- ADMIN DATA EDITOR & EXPORT ---
+        let pendingEdits = false;
+        let isEditMode = true;
+        let currentlyEditingId = null;
+        let currentlyEditingLessonId = null;
+
+        document.getElementById('adminToggleViewBtn').addEventListener('click', () => {
+            isEditMode = !isEditMode;
+            document.getElementById('adminToggleViewBtn').innerText = isEditMode ? "Preview Mode" : "Edit Mode";
+            const actionCols = document.querySelectorAll('.action-col');
+            actionCols.forEach(col => col.classList.toggle('hidden', !isEditMode));
+            renderDataManager();
+        });
+
+        function renderDataManager() {
+            const list = document.getElementById('data-editor-list');
+            if (!list) return;
+            list.innerHTML = '';
+            
+            const orgData = [...events, ...unscheduled].filter(e => e.sourceOrg === ORGANIZATION_NAME).sort((a,b) => {
+                if(a.type==='scheduled'&&b.type==='scheduled') return new Date(a.date)-new Date(b.date);
+                if(a.type==='scheduled') return -1;
+                return b.type==='scheduled' ? 1 : 0;
+            });
+            if (orgData.length === 0) { list.innerHTML = `<tr><td colspan="5" class="p-8 text-[11px] text-slate-500 italic text-center">No data natively tracked on ${ORGANIZATION_NAME} yet. Add a row or import CSV to begin.</td></tr>`; return; }
+            
+            orgData.forEach((item) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/30 transition group";
+                
+                let displayDate = '';
+                let formInputDate = '';
+                if (item.type === 'scheduled' && item.date) {
+                    const [y, m, d] = item.date.split('-');
+                    displayDate = `${m}/${d}/${y.substring(2)}`;
+                    formInputDate = item.date;
+                }
+                
+                const isWriting = currentlyEditingId === item.id;
+                
+                if (isWriting) {
+                    tr.classList.add('bg-slate-800/80');
+                    tr.classList.remove('hover:bg-slate-800/30');
+                    tr.innerHTML = `
+                        <td class="p-4 border-b border-slate-800"><input type="date" class="bg-slate-900 text-slate-300 rounded-lg px-2 py-2 w-full max-w-[120px] border border-slate-600 focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 outline-none h-[45px] max-h-[45px] date-input text-xs font-mono" value="${formInputDate}"></td>
+                        <td class="p-4 border-b border-slate-800">
+                            <input type="text" class="bg-slate-900 text-white rounded-lg px-3 py-2 w-full border border-blue-500 focus:ring-2 focus:ring-blue-500/50 outline-none h-[45px] max-h-[45px] name-input text-xs font-bold mb-2" placeholder="Activity" value="${item.name.replace(/"/g, '&quot;')}">
+                            <label class="flex items-center gap-2 cursor-pointer text-[10px] uppercase font-bold text-slate-400"><input type="checkbox" class="service-input w-3 h-3 rounded border-slate-600 bg-slate-900 text-amber-500 focus:ring-amber-500" ${item.isService ? 'checked' : ''}> Is Service Project?</label>
+                        </td>
+                        <td class="p-4 border-b border-slate-800"><select class="bg-slate-900 text-slate-300 rounded-lg px-2 py-2 w-full border border-blue-500 outline-none h-[45px] max-h-[45px] cat-input text-[10px] uppercase font-bold tracking-wider cursor-pointer">
+                            <option value="social" ${item.cat==='social'?'selected':''}>Social</option>
+                            <option value="physical" ${item.cat==='physical'?'selected':''}>Physical</option>
+                            <option value="spiritual" ${item.cat==='spiritual'?'selected':''}>Spiritual</option>
+                            <option value="intellectual" ${item.cat==='intellectual'?'selected':''}>Intellectual</option>
+                            <option value="combined" ${item.cat==='combined'?'selected':''}>Combined</option>
+                        </select></td>
+                        <td class="p-4 border-b border-slate-800"><input type="text" class="bg-slate-900 text-slate-400 rounded-lg px-3 py-2 w-full border border-blue-500 focus:ring-2 focus:ring-blue-500/50 outline-none h-[45px] max-h-[45px] details-input text-[11px]" placeholder="Details" value="${(item.details||'').replace(/"/g, '&quot;')}"></td>
+                        <td class="p-4 border-b border-slate-800 text-center action-col ${!isEditMode?'hidden':''}">
+                            <div class="flex justify-center gap-2">
+                                <button class="text-emerald-400 hover:text-white bg-emerald-900/40 hover:bg-emerald-600 rounded-lg w-8 h-8 flex items-center justify-center transition-all save-btn shadow-lg" title="Save Row">✓</button>
+                                <button class="text-slate-400 hover:text-white bg-slate-700/50 hover:bg-slate-600 rounded-lg w-8 h-8 flex items-center justify-center transition-all cancel-btn" title="Cancel">✕</button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    const performSave = () => {
+                        const newDate = tr.querySelector('.date-input').value.trim();
+                        item.name = tr.querySelector('.name-input').value.trim() || 'Unnamed';
+                        item.isService = tr.querySelector('.service-input').checked;
+                        item.cat = tr.querySelector('.cat-input').value.toLowerCase();
+                        item.details = tr.querySelector('.details-input').value.trim();
+                        
+                        events = events.filter(e => e.id !== item.id);
+                        unscheduled = unscheduled.filter(e => e.id !== item.id);
+                        
+                        if (newDate) {
+                            item.date = newDate; item.type = 'scheduled'; events.push(item);
+                        } else {
+                            item.date = ''; item.type = 'unscheduled'; unscheduled.push(item);
+                        }
+                        
+                        currentlyEditingId = null;
+                           renderDataManager(); 
+                        markPending(); 
+                    };
+
+                    tr.querySelector('.save-btn').addEventListener('click', performSave);
+                    tr.querySelectorAll('input, select').forEach(inp => inp.addEventListener('keydown', (ek) => {
+                        if(ek.key === 'Enter') performSave();
+                        if(ek.key === 'Escape') { currentlyEditingId = null; renderDataManager(); }
+                    }));
+                    tr.querySelector('.cancel-btn').addEventListener('click', () => { currentlyEditingId = null; renderDataManager(); });
+                } else {
+                    tr.innerHTML = `
+                        <td class="p-4 border-b border-slate-800/50 text-[11px] font-mono text-slate-500 group-hover:text-slate-300 transition">${displayDate||'<span class="opacity-30">N/A</span>'}</td>
+                        <td class="p-4 border-b border-slate-800/50 text-sm font-bold text-white group-hover:text-blue-400 transition truncate"><span class="truncate max-w-[200px] lg:max-w-none inline-block align-middle" title="${item.name.replace(/"/g,'&quot;')}">${item.name}</span>${item.isService ? '<span class="text-yellow-400 ml-2 text-[10px] inline-block align-middle drop-shadow-sm" title="Service Project">★</span>' : ''}</td>
+                        <td class="p-4 border-b border-slate-800/50">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-widest bg-slate-800 text-slate-300 border border-slate-700">
+                                <span class="w-1.5 h-1.5 rounded-full dot-${item.cat}"></span>${item.cat}
+                            </span>
+                        </td>
+                        <td class="p-4 border-b border-slate-800/50 text-[11px] text-slate-400 group-hover:text-slate-200 transition truncate"><span class="truncate block max-w-[200px] lg:max-w-xs" title="${item.details.replace(/"/g,'&quot;')}">${item.details||'<span class="opacity-30">None</span>'}</span></td>
+                        <td class="p-4 border-b border-slate-800/50 text-center action-col ${!isEditMode?'hidden':''}">
+                            <div class="flex justify-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                                <button class="text-blue-400 hover:text-white bg-blue-900/30 hover:bg-blue-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors edit-btn text-sm" title="Edit Row">✎</button>
+                                <button class="text-red-400 hover:text-white bg-red-900/20 hover:bg-red-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors del-btn text-sm" title="Delete Row">🗑</button>
+                            </div>
+                        </td>
+                    `;
+                    tr.querySelector('.edit-btn')?.addEventListener('click', () => {
+                        currentlyEditingId = item.id; renderDataManager();
+                        setTimeout(() => { const activeInp = document.querySelector('.name-input'); if(activeInp) activeInp.focus(); }, 50);
+                    });
+                    tr.querySelector('.del-btn')?.addEventListener('click', () => {
+                        events = events.filter(e => e.id !== item.id);
+                        unscheduled = unscheduled.filter(e => e.id !== item.id);
+                           renderDataManager(); markPending();
+                    });
+                    tr.addEventListener('dblclick', (e) => {
+                        if(isEditMode && !e.target.closest('button')) { currentlyEditingId = item.id; renderDataManager(); }
+                    });
+                }
+                list.appendChild(tr);
+            });
+        }
+
+        function renderLessonManager() {
+            const list = document.getElementById('data-lessons-list');
+            if (!list) return;
+            list.innerHTML = '';
+            
+            const orgLessons = lessons.filter(e => e.sourceOrg === ORGANIZATION_NAME).sort((a,b) => new Date(a.date) - new Date(b.date));
+            if (orgLessons.length === 0) { list.innerHTML = `<tr><td colspan="4" class="p-8 text-[11px] text-slate-500 italic text-center">No lessons configured. Add a lesson row to begin tracking curriculum.</td></tr>`; return; }
+            
+            orgLessons.forEach((item) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-amber-900/10 transition group";
+                
+                let displayDate = '';
+                let formInputDate = '';
+                if (item.date) {
+                    const [y, m, d] = item.date.split('-');
+                    displayDate = `${m}/${d}/${y.substring(2)}`;
+                    formInputDate = item.date;
+                }
+                
+                const isWriting = currentlyEditingLessonId === item.id;
+                
+                if (isWriting) {
+                    tr.classList.add('bg-slate-800/80');
+                    tr.classList.remove('hover:bg-amber-900/10');
+                    tr.innerHTML = `
+                        <td colspan="4" class="p-4 border-b border-amber-900/50">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+                                <input type="date" class="bg-slate-900 text-slate-300 rounded-lg px-2 py-2 border border-slate-600 focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 outline-none h-[45px] max-h-[45px] l-date-input text-xs font-mono" value="${formInputDate}">
+                                <input type="text" class="bg-slate-900 text-amber-400 rounded-lg px-3 py-2 border border-amber-500 focus:ring-2 focus:ring-amber-500/50 outline-none h-[45px] max-h-[45px] l-topic-input text-xs font-bold md:col-span-2" placeholder="Lesson Topic" value="${(item.topic||'').replace(/"/g, '&quot;')}">
+                                <select class="bg-slate-900 text-slate-400 rounded-lg px-3 py-2 border border-amber-500 focus:ring-2 focus:ring-amber-500/50 outline-none h-[45px] max-h-[45px] l-teacher-input text-xs">
+                                    <option value="">Teacher Name</option>
+                                    ${orgTeachers.map(t => `<option value="${t}" ${item.teacher === t ? 'selected' : ''}>${t}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="flex gap-3 items-start">
+                                <textarea class="bg-slate-900 text-slate-300 rounded-lg px-3 py-2 w-full border border-amber-500/50 focus:ring-2 focus:ring-amber-500/50 outline-none l-notes-input text-xs min-h-[60px]" placeholder="Notes (Links, Reminders)">${(item.notes||'').replace(/</g, '&lt;')}</textarea>
+                                <div class="flex flex-col gap-2 shrink-0 action-col ${!isEditMode?'hidden':''}">
+                                    <button class="text-emerald-400 hover:text-white bg-emerald-900/40 hover:bg-emerald-600 rounded-lg w-8 h-8 flex items-center justify-center transition-all l-save-btn shadow-lg" title="Save Row">✓</button>
+                                    <button class="text-slate-400 hover:text-white bg-slate-700/50 hover:bg-slate-600 rounded-lg w-8 h-8 flex items-center justify-center transition-all l-cancel-btn" title="Cancel">✕</button>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    
+                    setTimeout(() => {
+                        const dateInput = tr.querySelector('.l-date-input');
+                        const topicInput = tr.querySelector('.l-topic-input');
+                        if (dateInput && topicInput) {
+                            dateInput.addEventListener('change', (e) => {
+                                const matched = CFM_LOOKUP[e.target.value];
+                                if (matched) topicInput.value = matched;
+                            });
+                        }
+                    }, 0);
+                    
+                    const performSave = () => {
+                        const newDate = tr.querySelector('.l-date-input').value.trim();
+                        item.topic = tr.querySelector('.l-topic-input').value.trim() || 'Sunday Lesson';
+                        item.teacher = tr.querySelector('.l-teacher-input').value.trim() || '';
+                        item.notes = tr.querySelector('.l-notes-input').value.trim() || '';
+                        
+                        lessons = lessons.filter(e => e.id !== item.id);
+                        item.date = newDate; lessons.push(item);
+                        
+                        currentlyEditingLessonId = null;
+                          renderLessonManager(); 
+                        markPending(); 
+                    };
+
+                    tr.querySelector('.l-save-btn').addEventListener('click', performSave);
+                    tr.querySelectorAll('input').forEach(inp => inp.addEventListener('keydown', (ek) => {
+                        if(ek.key === 'Enter') performSave();
+                        if(ek.key === 'Escape') { currentlyEditingLessonId = null; renderLessonManager(); }
+                    }));
+                    tr.querySelector('.l-cancel-btn').addEventListener('click', () => { currentlyEditingLessonId = null; renderLessonManager(); });
+                } else {
+                    tr.innerHTML = `
+                        <td class="p-4 border-b border-amber-900/30 text-slate-300 text-xs font-mono">${displayDate}</td>
+                        <td class="p-4 border-b border-amber-900/30">
+                            <div class="text-amber-400 text-sm font-bold truncate max-w-[200px]">${item.topic || 'Sunday Lesson'}</div>
+                            ${item.notes ? `<div class="text-[10px] text-slate-500 mt-1 truncate max-w-[200px] md:max-w-[300px] whitespace-normal">${item.notes}</div>` : ''}
+                        </td>
+                        <td class="p-4 border-b border-amber-900/30 text-slate-400 text-xs">${item.teacher || 'TBD'}</td>
+                        <td class="p-4 border-b border-amber-900/30 text-center action-col ${!isEditMode?'hidden':''}">
+                            <div class="flex justify-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                                <button class="text-amber-400 hover:text-white bg-amber-900/30 hover:bg-amber-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors l-edit-btn text-sm" title="Edit Row">✎</button>
+                                <button class="text-red-400 hover:text-white bg-red-900/20 hover:bg-red-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors l-del-btn text-sm" title="Delete Row">🗑</button>
+                            </div>
+                        </td>
+                    `;
+                    tr.querySelector('.l-edit-btn')?.addEventListener('click', () => {
+                        currentlyEditingLessonId = item.id; renderLessonManager();
+                        setTimeout(() => { const activeInp = document.querySelector('.l-topic-input'); if(activeInp) activeInp.focus(); }, 50);
+                    });
+                    tr.querySelector('.l-del-btn')?.addEventListener('click', () => {
+                        lessons = lessons.filter(e => e.id !== item.id);
+                          renderLessonManager(); markPending();
+                    });
+                    tr.addEventListener('dblclick', (e) => {
+                        if(isEditMode && !e.target.closest('button')) { currentlyEditingLessonId = item.id; renderLessonManager(); }
+                    });
+                }
+                list.appendChild(tr);
+            });
+        }
+
+        function markPending() {
+            pendingEdits = true;
+            const btn = document.getElementById('syncFirebaseBtn');
+            btn.classList.add('ring-2', 'ring-blue-400', 'ring-offset-2', 'ring-offset-slate-900');
+            btn.innerHTML = `<svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> <span>Save Changes*</span>`;
+        }
+
+        document.getElementById('addNewRowBtn').addEventListener('click', () => {
+            const newId = 'idealoc_' + Math.random().toString(36).substr(2, 9);
+            unscheduled.push({ id: newId, date: '', name: '', cat: 'social', details: '', type: 'unscheduled', sourceOrg: ORGANIZATION_NAME, isService: false });
+            currentlyEditingId = newId;
+            markPending(); refreshUI();
+            setTimeout(() => {
+                const newRowInp = document.querySelector('input.name-input');
+                if(newRowInp) { newRowInp.scrollIntoView({behavior:'smooth', block: 'center'}); newRowInp.focus(); }
+            }, 50);
+        });
+
+        const spawnNewLesson = () => {
+            const newId = 'lessonloc_' + Math.random().toString(36).substr(2, 9);
+            lessons.push({ id: newId, date: '', topic: '', teacher: '', sourceOrg: ORGANIZATION_NAME });
+            currentlyEditingLessonId = newId;
+            markPending(); refreshUI();
+            setTimeout(() => {
+                const newRowInp = document.querySelector('input.l-date-input');
+                if(newRowInp) { newRowInp.scrollIntoView({behavior:'smooth', block: 'center'}); newRowInp.focus(); }
+            }, 50);
+        };
+        const btn1 = document.getElementById('addNewLessonBtn');
+        if(btn1) btn1.addEventListener('click', spawnNewLesson);
+        const btn2 = document.getElementById('addNewLessonHeaderBtn');
+        if(btn2) btn2.addEventListener('click', spawnNewLesson);
+
+        document.getElementById('syncFirebaseBtn').addEventListener('click', async () => {
+            if (!isAdminMode) return;
+            if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !window.DEBUG_MODE) {
+                alert('Production Data Integrity Guard: Firestore Sync is disabled on localhost.\n\nPlease use the Firebase Emulator for local data testing, or explicitly set window.DEBUG_MODE = true in the developer console to override.');
+                return;
+            }
+            const btn = document.getElementById('syncFirebaseBtn');
+            btn.innerHTML = `<span class="animate-pulse flex items-center gap-2"><svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...</span>`; 
+            btn.disabled = true;
+            try {
+                const batch = writeBatch(db);
+                const s = await getDocs(collection(db, `${ORGANIZATION_NAME}_events`));
+                s.forEach(x => batch.delete(doc(db, `${ORGANIZATION_NAME}_events`, x.id)));
+                
+                const orgData = [...events, ...unscheduled].filter(e => e.sourceOrg === ORGANIZATION_NAME);
+                orgData.forEach(item => {
+                    let safeId = item.id;
+                    if (!safeId || safeId.includes('idealoc_')) safeId = (item.date ? item.date + '_' : 'idea_') + sanitizeId(item.name || 'unknown') + "_" + Math.floor(Math.random()*1000);
+                    batch.set(doc(db, `${ORGANIZATION_NAME}_events`, safeId), { date: item.date || '', name: item.name || '', cat: item.cat || 'social', details: item.details || '', type: item.type || 'scheduled', isService: item.isService || false });
+                });
+                
+                const lSnap = await getDocs(collection(db, `${ORGANIZATION_NAME}_lessons`));
+                lSnap.forEach(x => batch.delete(doc(db, `${ORGANIZATION_NAME}_lessons`, x.id)));
+                
+                const orgLessons = lessons.filter(l => l.sourceOrg === ORGANIZATION_NAME);
+                orgLessons.forEach(item => {
+                    let safeId = item.id;
+                    if (!safeId || safeId.includes('lessonloc_')) safeId = 'lesson_' + sanitizeId(item.topic || 'unknown') + "_" + Math.floor(Math.random()*1000);
+                    batch.set(doc(db, `${ORGANIZATION_NAME}_lessons`, safeId), { date: item.date || '', topic: item.topic || '', teacher: item.teacher || '', notes: item.notes || '' });
+                });
+                
+                await batch.commit();
+                
+                btn.classList.remove('ring-2', 'ring-blue-400', 'ring-offset-2', 'ring-offset-slate-900', 'bg-blue-600', 'hover:bg-blue-500');
+                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+                btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> <span>Saved!</span>`;
+                
+                const toast = document.getElementById('toast');
+                toast.classList.remove('hidden');
+                
+                setTimeout(() => { 
+                    btn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+                    btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> <span>Save Changes</span>`; 
+                    btn.disabled = false; pendingEdits = false; toast.classList.add('hidden');
+                }, 3000);
+            } catch(e) { console.error("Batch error", e); btn.innerText = "ERROR"; btn.disabled = false; }
+        });
+
+        function generateSymmetricCSV() {
+            let csvContent = "Date,Activity,Category,Details\n";
+            const orgData = [...events, ...unscheduled].filter(e => e.sourceOrg === ORGANIZATION_NAME).sort((a,b) => {
+                if(a.type==='scheduled'&&b.type==='scheduled') return new Date(a.date)-new Date(b.date);
+                if(a.type==='scheduled') return -1;
+                return b.type==='scheduled' ? 1 : 0;
+            });
+            orgData.forEach(e => {
+                let formattedDate = '';
+                if (e.type === 'scheduled' && e.date) {
+                    const [y, m, d] = e.date.split('-');
+                    formattedDate = `${m}/${d}/${y.substring(2)}`;
+                }
+                const safeName = `"${(e.name||'').replace(/"/g, '""')}"`;
+                const safeCat = `"${(e.cat||'').replace(/"/g, '""')}"`;
+                const safeDetails = `"${(e.details||'').replace(/"/g, '""')}"`;
+                csvContent += `${formattedDate},${safeName},${safeCat},${safeDetails}\n`;
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.setAttribute("href", URL.createObjectURL(blob));
+            link.setAttribute("download", `2026_${ORGANIZATION_NAME}_Backup.csv`);
+            link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+        if(document.getElementById('exportCsvBtn')) document.getElementById('exportCsvBtn').addEventListener('click', generateSymmetricCSV);
+
+        // ADMIN BUTTONS
+        let isAdminMode = false;
+        const unlockBtn = document.getElementById('unlockBtn');
+        if (unlockBtn) {
+            unlockBtn.onclick = () => {
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordModal').classList.remove('hidden');
+                setTimeout(() => document.getElementById('passwordInput').focus(), 50);
+            };
+        }
+        
+        const passwordCancelBtn = document.getElementById('passwordCancelBtn');
+        if (passwordCancelBtn) {
+            passwordCancelBtn.onclick = () => {
+                document.getElementById('passwordModal').classList.add('hidden');
+                document.getElementById('passwordInput').value = '';
+            };
+        }
+        
+        const passwordInput = document.getElementById('passwordInput');
+        if (passwordInput) {
+            passwordInput.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter') document.getElementById('passwordSubmitBtn').click();
+                if(e.key === 'Escape') document.getElementById('passwordCancelBtn').click();
+            });
+        }
+
+        const passwordSubmitBtn = document.getElementById('passwordSubmitBtn');
+        if (passwordSubmitBtn) {
+            passwordSubmitBtn.onclick = async () => {
+                const p = document.getElementById('passwordInput').value;
+                if (!p) return;
+                
+                const btn = document.getElementById('passwordSubmitBtn');
+                const originalText = btn.innerText;
+                btn.innerText = 'VERIFYING...';
+                btn.disabled = true;
+                
+                const passwordModal = document.getElementById('passwordModal');
+                if (passwordModal) passwordModal.classList.add('hidden');
+                btn.innerText = originalText;
+                btn.disabled = false;
+                
+                const suppliedPass = await hashInput(p);
+                const pageKey = ORGANIZATION_NAME.toUpperCase();
+                if (suppliedPass === SECURE_AUTH_HASHES.MASTER || suppliedPass === SECURE_AUTH_HASHES[pageKey]) {
+                    isAdminMode = true;
+                    const importGate = document.getElementById('import-gate');
+                    if (importGate) importGate.classList.add('hidden');
+                    const importControls = document.getElementById('import-controls');
+                    if (importControls) importControls.classList.remove('hidden');
+                    
+                    const gridControls = document.getElementById('grid-controls-wrapper');
+                    if (gridControls) gridControls.classList.add('hidden');
+                    const activeMonths = document.getElementById('active-months');
+                    if (activeMonths) activeMonths.classList.add('hidden');
+                    const listView = document.getElementById('list-view');
+                    if (listView) listView.classList.add('hidden');
+                    if(document.getElementById('viewToggleBtn')) document.getElementById('viewToggleBtn').parentElement.classList.add('hidden');
+                    
+                    const adminMainView = document.getElementById('admin-main-view');
+                    if (adminMainView) {
+                        adminMainView.classList.remove('hidden');
+                        adminMainView.classList.add('flex');
+                    }
+                    
+                    renderDataManager();
+                    renderLessonManager();
+                } else if (p) {
+                    renderDataManager();
+                }
+            };
+        }
+        const lockBtn = document.getElementById('lockBtn');
+        if (lockBtn) {
+            lockBtn.onclick = () => {
+                isAdminMode = false;
+                const importGate = document.getElementById('import-gate');
+                if (importGate) importGate.classList.remove('hidden');
+                const importControls = document.getElementById('import-controls');
+                if (importControls) importControls.classList.add('hidden');
+                
+                const adminMainView = document.getElementById('admin-main-view');
+                if (adminMainView) {
+                    adminMainView.classList.add('hidden');
+                    adminMainView.classList.remove('flex');
+                }
+                
+                if(document.getElementById('viewToggleBtn')) document.getElementById('viewToggleBtn').parentElement.classList.remove('hidden');
+                const gridControls = document.getElementById('grid-controls-wrapper');
+                if (gridControls) gridControls.classList.toggle('hidden', isListView);
+                const activeMonths = document.getElementById('active-months');
+                if (activeMonths) activeMonths.classList.toggle('hidden', isListView);
+                const listView = document.getElementById('list-view');
+                if (listView) listView.classList.toggle('hidden', !isListView);
+            };
+        }
+        const wipeBtn = document.getElementById('wipeBtn');
+        if (wipeBtn) {
+            wipeBtn.onclick = async () => {
+                if (!isAdminMode) return;
+                if (confirm(`Clear all ${ORGANIZATION_NAME} events?`)) {
+                    const s = await getDocs(collection(db, `${ORGANIZATION_NAME}_events`));
+                    const d = [];
+                    s.forEach(x => d.push(deleteDoc(doc(db, `${ORGANIZATION_NAME}_events`, x.id))));
+                    
+                    const lS = await getDocs(collection(db, `${ORGANIZATION_NAME}_lessons`));
+                    lS.forEach(x => d.push(deleteDoc(doc(db, `${ORGANIZATION_NAME}_lessons`, x.id))));
+                    
+                    await Promise.all(d);
+                    location.reload();
+                }
+            };
+        }
+
+        initApp();
+    
+
+window.setupRBAC = function() {
+    const tabs = document.querySelectorAll('.nav-tab');
+    const userRole = window.currentUserRole || 'Admin';
+    if (userRole !== 'Admin') {
+        // Hide all tabs except the user's role
+        tabs.forEach(t => {
+            if (t.dataset.org !== userRole && !(userRole === 'Combined' && t.dataset.org === 'Combined')) {
+                t.classList.add('hidden');
+            }
+        });
+        const st = document.getElementById('settings-tab');
+        if (st) st.classList.add('hidden');
+        
+        // Enforce Teachers RBAC Filter
+        if (userRole === 'Teachers') {
+            const activitiesTab = document.querySelector('[data-target="activities-section"]');
+            if (activitiesTab) activitiesTab.classList.add('hidden');
+            const birthdaysTab = document.querySelector('[data-target="birthdays-section"]');
+            if (birthdaysTab) birthdaysTab.classList.add('hidden');
+            const lessonsTab = document.querySelector('[data-target="lessons-section"]');
+            if (lessonsTab) lessonsTab.click();
+        }
+        
+        switchOrg(userRole);
+    } else {
+        const st = document.getElementById('settings-tab');
+        if (st) st.classList.remove('hidden');
+        switchOrg('Combined');
+    }
+};
+
+if (window.currentUserRole) {
+    window.setupRBAC();
+}
+
+document.querySelectorAll('.nav-tab').forEach(t => {
+    t.addEventListener('click', () => {
+        switchOrg(t.dataset.org);
+    });
+});
+
+const settingsTab = document.getElementById('settings-tab');
+if (settingsTab) {
+    settingsTab.addEventListener('click', () => {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        settingsTab.classList.add('active');
+        
+        const titleEl = document.getElementById('active-org-title');
+        if (titleEl) titleEl.innerText = 'System Settings';
+        
+        const dashboard = document.getElementById('admin-dashboard');
+        if (dashboard) dashboard.classList.add('hidden');
+        
+        const sysSettings = document.getElementById('system-settings-container');
+        if (sysSettings) sysSettings.classList.remove('hidden');
+        
+        const dashTabs = document.getElementById('dashboard-tabs');
+        if (dashTabs) dashTabs.classList.add('hidden');
+        
+        loadSystemSettings();
+    });
+}
+
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        location.reload();
+    });
+}
+
+function switchOrg(org) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    const st = document.getElementById('settings-tab');
+    if (st) st.classList.remove('active');
+    
+    const activeTab = Array.from(document.querySelectorAll('.nav-tab')).find(t => t.dataset.org === org);
+    if (activeTab) activeTab.classList.add('active');
+    
+    ORGANIZATION_NAME = org;
+    isCombinedPage = org.toLowerCase() === 'combined';
+    displayOrg = org;
+    
+    const titleEl = document.getElementById('active-org-title');
+    if (titleEl) titleEl.innerText = org + ' Management';
+    
+    const dashboard = document.getElementById('admin-dashboard');
+    if (dashboard) dashboard.classList.remove('hidden');
+    
+    const sysSettings = document.getElementById('system-settings-container');
+    if (sysSettings) sysSettings.classList.add('hidden');
+    
+    const dashTabs = document.getElementById('dashboard-tabs');
+    if (dashTabs) dashTabs.classList.remove('hidden');
+    
+    events = []; unscheduled = []; lessons = []; orgTeachers = [];
+    
+    const editorList = document.getElementById('data-editor-list');
+    if (editorList) editorList.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500 italic">Loading Data...</td></tr>';
+    
+    const lessonsList = document.getElementById('data-lessons-list');
+    if (lessonsList) lessonsList.innerHTML = '';
+    
+    initApp();
+}
+
+// System Settings Logic
+async function loadSystemSettings() {
+    const list = document.getElementById('auth-names-list');
+    try {
+        const snap = await getDoc(doc(db, "site_settings", "privacy_config"));
+        if (snap.exists() && snap.data().authorizedNames) {
+            const names = snap.data().authorizedNames;
+            list.innerHTML = names.map(n => `
+                <div class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg flex items-center gap-3">
+                    <span class="text-white font-bold capitalize">${n}</span>
+                    <button class="text-red-400 hover:text-red-300 font-black" onclick="removeAuthName('${n}')">✕</button>
+                </div>
+            `).join('');
+        } else {
+            list.innerHTML = '<p class="text-slate-500 text-xs italic">No names configured.</p>';
+        }
+    } catch(e) {
+        list.innerHTML = '<p class="text-red-500 text-xs italic">Error loading settings.</p>';
+    }
+}
+
+window.removeAuthName = async (nameToRemove) => {
+    try {
+        const snap = await getDoc(doc(db, "site_settings", "privacy_config"));
+        if (snap.exists()) {
+            const names = snap.data().authorizedNames.filter(n => n !== nameToRemove);
+            await setDoc(doc(db, "site_settings", "privacy_config"), { authorizedNames: names });
+            loadSystemSettings();
+        }
+    } catch(e) { alert("Error removing name"); }
+};
+
+document.getElementById('add-auth-name-btn').addEventListener('click', async () => {
+    const input = document.getElementById('new-auth-name');
+    const val = input.value.trim().toLowerCase();
+    if (!val) return;
+    try {
+        const snap = await getDoc(doc(db, "site_settings", "privacy_config"));
+        let names = [];
+        if (snap.exists() && snap.data().authorizedNames) names = snap.data().authorizedNames;
+        if (!names.includes(val)) {
+            names.push(val);
+            names.sort();
+            await setDoc(doc(db, "site_settings", "privacy_config"), { authorizedNames: names });
+        }
+        input.value = '';
+        loadSystemSettings();
+    } catch(e) { alert("Error adding name"); }
+});
+
+
+
+// Announcements Logic
+async function loadAnnouncements() {
+    const list = document.getElementById('admin-announcement-list');
+    try {
+        let q = query(collection(db, "home_announcements"), where("org", "==", ORGANIZATION_NAME));
+        const snap = await getDocs(q);
+        
+        let docs = [];
+        snap.forEach(d => docs.push({...d.data(), id: d.id}));
+        docs.sort((a,b) => {
+            if (a.timestamp && b.timestamp) return b.timestamp.seconds - a.timestamp.seconds;
+            return 0;
+        });
+
+        if (docs.length === 0) {
+            list.innerHTML = '<p class="text-slate-500 text-sm italic">No announcements for this organization.</p>';
+            return;
+        }
+
+        list.innerHTML = docs.map(data => `
+            <div class="relative border-l-2 border-blue-600 pl-4 py-2 my-2 bg-slate-800/40 rounded-r p-4">
+                <p class="text-white font-medium whitespace-pre-wrap">${data.text}</p>
+                ${data.linkUrl ? `<a href="${data.linkUrl}" target="_blank" class="inline-block mt-3 px-4 py-2 bg-blue-500/10 text-blue-400 font-black tracking-widest text-[10px] rounded-lg uppercase">${data.linkText || 'View More'}</a>` : ''}
+                <div class="absolute top-2 right-2 flex gap-1">
+                    <button onclick="window.editAnn('${data.id}', \`${data.text.replace(/`/g, '\\`').replace(/'/g, "\\'")}\`, \`${data.linkText || ''}\`, \`${data.linkUrl || ''}\`)" class="p-1.5 bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white rounded transition text-xs">Edit</button>
+                    <button onclick="window.delAnn('${data.id}')" class="p-1.5 bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white rounded transition text-xs">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    } catch(e) { console.error("Load ann err", e); }
+}
+
+window.editAnn = (id, text, linkText, linkUrl) => {
+    document.getElementById('edit-ann-id').value = id;
+    document.getElementById('new-ann-text').value = text;
+    document.getElementById('new-ann-link-text').value = linkText;
+    document.getElementById('new-ann-link-url').value = linkUrl;
+    document.getElementById('saveAnnBtn').innerText = 'Update Announcement';
+    document.getElementById('cancelAnnBtn').classList.remove('hidden');
+    document.getElementById('admin-controls-ann').scrollIntoView({behavior: 'smooth'});
+};
+
+window.delAnn = async (id) => {
+    if (confirm("Delete this announcement?")) {
+        await deleteDoc(doc(db, "home_announcements", id));
+        loadAnnouncements();
+    }
+};
+
+const saveAnnBtn = document.getElementById('saveAnnBtn');
+if (saveAnnBtn) {
+    saveAnnBtn.addEventListener('click', async () => {
+        const id = document.getElementById('edit-ann-id').value;
+        const text = document.getElementById('new-ann-text').value;
+        const linkText = document.getElementById('new-ann-link-text').value;
+        const linkUrl = document.getElementById('new-ann-link-url').value;
+        
+        if (!text) return alert("Text required.");
+        
+        if (id) {
+            await setDoc(doc(db, "home_announcements", id), {text, linkText, linkUrl, org: ORGANIZATION_NAME}, {merge: true});
+        } else {
+            await addDoc(collection(db, "home_announcements"), {text, linkText, linkUrl, org: ORGANIZATION_NAME, timestamp: new Date()});
+        }
+        
+        document.getElementById('edit-ann-id').value = '';
+        document.getElementById('new-ann-text').value = '';
+        document.getElementById('new-ann-link-text').value = '';
+        document.getElementById('new-ann-link-url').value = '';
+        document.getElementById('saveAnnBtn').innerText = 'Post Announcement';
+        document.getElementById('cancelAnnBtn').classList.add('hidden');
+        loadAnnouncements();
+    });
+}
+const cancelAnnBtn = document.getElementById('cancelAnnBtn');
+if(cancelAnnBtn) {
+    cancelAnnBtn.addEventListener('click', () => {
+        document.getElementById('edit-ann-id').value = '';
+        document.getElementById('new-ann-text').value = '';
+        document.getElementById('new-ann-link-text').value = '';
+        document.getElementById('new-ann-link-url').value = '';
+        document.getElementById('saveAnnBtn').innerText = 'Post Announcement';
+        document.getElementById('cancelAnnBtn').classList.add('hidden');
+    });
+}
+
+// Re-implemented loadSettings per request to prevent ReferenceError at authAdmin

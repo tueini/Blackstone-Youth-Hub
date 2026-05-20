@@ -27,7 +27,7 @@ exports.sendFeedbackEmail = onDocumentCreated(
 
         const msg = {
             to: "duanepharris@gmail.com",
-            from: "hub@blackstoneward.org",
+            from: { email: "hub@blackstoneward.org", name: "Blackstone Ward Hub" },
             replyTo: "duanepharris@gmail.com",
             subject: `[Hub Feedback] ${Category || 'Suggestion'} from ${Name}`,
             text: `Name: ${Name}\nCategory: ${Category || 'Suggestion'}\n\nMessage:\n${Message}`,
