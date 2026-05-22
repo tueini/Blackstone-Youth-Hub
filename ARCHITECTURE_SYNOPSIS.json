@@ -1,0 +1,26 @@
+{
+  "project": "Blackstone Ward Youth Auction",
+  "environment": {
+    "tier": "Production",
+    "target_url": "auction.blackstoneward.org",
+    "firebase_hosting_site": "youth-auction",
+    "current_version": "v1.0.0"
+  },
+  "tech_stack": {
+    "frontend": ["Vanilla JS (ES Modules)", "Tailwind CSS", "HTML5"],
+    "backend": ["Firebase Firestore", "Firebase Hosting"]
+  },
+  "architecture": {
+    "ui_model": "Single Page Application (SPA)",
+    "core_modules": ["Rules & Venue", "Remote Bidder Registration"],
+    "data_pipelines": {
+      "registration": "HTML Form -> Vanilla JS -> Firestore Document Creation -> Auto-increment Bid Number Return"
+    }
+  },
+  "ag_agent_guardrails": {
+    "editing_protocol": "Native IDE file-editing tools ONLY. Terminal editors (sed, awk, echo) are STRICTLY FORBIDDEN.",
+    "terminal_autonomy": "Pre-authorized for safe, read-only terminal commands ONLY (cat, grep, ls).",
+    "execution_checkpoint": "Code First, Deploy Second. Stop and report 'Code Complete' locally. DO NOT use browser subagents unless explicitly prompted. Wait for human 'Approved' command to run `firebase deploy`.",
+    "scope_lock": "No unprompted refactoring. Only alter exact lines necessary for the stated mission."
+  }
+}
