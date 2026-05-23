@@ -43,6 +43,7 @@
                 <button class="tab-btn px-6 py-3 text-blue-600 font-semibold border-b-2 border-blue-600 hover:bg-gray-100 transition whitespace-nowrap" data-target="biddersTab">Registered Bidders</button>
                 <button class="tab-btn px-6 py-3 text-gray-500 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:bg-gray-100 transition whitespace-nowrap" data-target="itemsTab">Auction Items</button>
                 <button class="tab-btn px-6 py-3 text-gray-500 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:bg-gray-100 transition whitespace-nowrap" data-target="bidsTab">Active Bids</button>
+                <button class="tab-btn px-6 py-3 text-gray-500 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:bg-gray-100 transition whitespace-nowrap" data-target="tab-closeout">Closeout</button>
             </div>
 
             <!-- Tab 1: Bidders -->
@@ -117,7 +118,10 @@
                 </div>
                 <div class="p-6 border-b flex justify-between items-center bg-white">
                     <h2 class="text-2xl font-semibold text-gray-800">Uploaded Auction Items</h2>
-                    <button id="refreshItemsBtn" class="bg-green-600 hover:bg-green-700 text-white py-1 px-4 rounded transition duration-200">Refresh Items</button>
+                    <div class="space-x-2">
+                        <a href="print.html" target="_blank" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 px-4 rounded transition duration-200 inline-block shadow">🖨️ Print Bid Sheets</a>
+                        <button id="refreshItemsBtn" class="bg-green-600 hover:bg-green-700 text-white py-1.5 px-4 rounded transition duration-200">Refresh Items</button>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -197,6 +201,52 @@
                 <div id="loadingBidsIndicator" class="p-6 text-center text-gray-500 hidden">Loading active bids...</div>
             </div>
 
+            <!-- Tab 4: Closeout -->
+            <div id="tab-closeout" class="tab-content hidden">
+                <div class="p-6 border-b border-gray-200 bg-white">
+                    <h2 class="text-2xl font-semibold mb-4 text-blue-800">Closeout & Settlement</h2>
+                </div>
+                
+                <div class="p-6 border-b bg-gray-50">
+                    <h3 class="text-xl font-semibold mb-4">Table A: Itemized Settlement Grid</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse bg-white shadow rounded">
+                            <thead>
+                                <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6 border-b">Item #</th>
+                                    <th class="py-3 px-6 border-b">Item Name</th>
+                                    <th class="py-3 px-6 border-b">Winning Bidder</th>
+                                    <th class="py-3 px-6 border-b">Amount</th>
+                                    <th class="py-3 px-6 border-b text-center">Payment Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="settlementTableBody" class="text-gray-600 text-sm font-light">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold mb-4">Table B: Aggregated Invoices Grid</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse bg-white shadow rounded">
+                            <thead>
+                                <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6 border-b">Bid #</th>
+                                    <th class="py-3 px-6 border-b">Bidder Name</th>
+                                    <th class="py-3 px-6 border-b">Items Won</th>
+                                    <th class="py-3 px-6 border-b">Total Balance Owed</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoicesTableBody" class="text-gray-600 text-sm font-light">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -227,9 +277,9 @@
 
     <footer class="mt-12 mb-6 text-center">
         <a href="/" class="text-sm text-gray-400 hover:text-blue-600 transition duration-200">Main Site</a>
-        <span class="text-xs text-gray-900 font-semibold ml-2">| v1.11.0</span>
+        <span class="text-xs text-gray-900 font-semibold ml-2">| v1.15.8</span>
     </footer>
 
-    <script type="module" src="./js/admin.js"></script>
+    <script type="module" src="/js/admin.js"></script>
 </body>
 </html>

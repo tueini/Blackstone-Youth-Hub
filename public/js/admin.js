@@ -44,13 +44,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const highestBidsTableBody = document.getElementById('highestBidsTableBody');
     const loadingBidsIndicator = document.getElementById('loadingBidsIndicator');
     
+    // Closeout Elements
+    const settlementTableBody = document.getElementById('settlementTableBody');
+    const invoicesTableBody = document.getElementById('invoicesTableBody');
+    
     // Modal Elements
     const historyModal = document.getElementById('historyModal');
     const historyModalTitle = document.getElementById('historyModalTitle');
     const closeHistoryModal = document.getElementById('closeHistoryModal');
     const historyTableBody = document.getElementById('historyTableBody');
     let allBidsData = []; // Store raw bids for drill-down
-    window.itemsMap = {}; // Keyed by itemNum, stores {itemName, itemImage}
+    window.itemsMap = {}; // Keyed by itemNum, stores {itemName, itemImage, paid, docId}
+    window.biddersMap = {}; // Keyed by bidNumber, stores bidder data
 
     // Tab Logic
     const tabBtns = document.querySelectorAll('.tab-btn');
@@ -183,10 +188,29 @@ document.addEventListener('DOMContentLoaded', () => {
             addBidBtn.innerText = 'Submitting...';
             addBidSuccess.classList.add('hidden');
 
-            const itemNum = parseInt(bidItemNumSelect.value.trim(), 10);
+            const itemNumStr = bidItemNumSelect.value ? bidItemNumSelect.value.trim() : '';
             const bidderNumSelect = document.getElementById('bidderNum');
-            const bidNum = parseInt(bidderNumSelect.value.trim(), 10);
-            const bidAmount = parseFloat(document.getElementById('bidAmount').value.trim());
+            const bidNumStr = bidderNumSelect.value ? bidderNumSelect.value.trim() : '';
+            const bidAmountInput = document.getElementById('bidAmount');
+            const bidAmountStr = bidAmountInput.value ? bidAmountInput.value.trim() : '';
+
+            if (!itemNumStr || !bidNumStr || !bidAmountStr) {
+                alert("Please ensure all fields are selected and filled out.");
+                addBidBtn.disabled = false;
+                addBidBtn.innerText = 'Submit Bid';
+                return;
+            }
+
+            const itemNum = parseInt(itemNumStr, 10);
+            const bidNum = parseInt(bidNumStr, 10);
+            const bidAmount = parseFloat(bidAmountStr);
+
+            if (isNaN(itemNum) || isNaN(bidNum) || isNaN(bidAmount)) {
+                alert("Invalid numerical input.");
+                addBidBtn.disabled = false;
+                addBidBtn.innerText = 'Submit Bid';
+                return;
+            }
 
             try {
                 const bidsRef = collection(db, "auction_bids");
@@ -285,6 +309,93 @@ document.addEventListener('DOMContentLoaded', () => {
                 const itemNum = parseInt(e.target.getAttribute('data-item'), 10);
                 showHistoryModal(itemNum);
             });
+        });
+
+        renderCloseoutTables(highestBids, sortedItemNums);
+    }
+
+    function renderCloseoutTables(highestBids, sortedItemNums) {
+        if (!settlementTableBody || !invoicesTableBody) return;
+        
+        settlementTableBody.innerHTML = '';
+        invoicesTableBody.innerHTML = '';
+        
+        if (sortedItemNums.length === 0) {
+            settlementTableBody.innerHTML = '<tr><td colspan="5" class="py-4 px-6 text-center">No settlements yet.</td></tr>';
+            invoicesTableBody.innerHTML = '<tr><td colspan="4" class="py-4 px-6 text-center">No invoices yet.</td></tr>';
+            return;
+        }
+
+        const invoicesMap = {}; // Key: bidNum, Value: { bidNum, bidderName, itemsWon: [], totalOwed: 0 }
+
+        // Render Table A (Settlement)
+        sortedItemNums.forEach(itemNum => {
+            const topBid = highestBids[itemNum];
+            const itemData = window.itemsMap[itemNum] || { itemName: 'Unknown', paid: false, docId: null };
+            const bidderData = window.biddersMap[topBid.bidNum] || { fullName: 'Unknown Bidder' };
+
+            const tr = document.createElement('tr');
+            tr.className = "border-b border-gray-200 hover:bg-gray-100";
+            
+            const isChecked = itemData.paid ? 'checked' : '';
+            
+            tr.innerHTML = `
+                <td class="py-3 px-6 whitespace-nowrap font-bold">#${itemNum}</td>
+                <td class="py-3 px-6">${itemData.itemName}</td>
+                <td class="py-3 px-6">${bidderData.fullName} (#${topBid.bidNum})</td>
+                <td class="py-3 px-6 font-semibold text-green-700">$${topBid.bidAmount}</td>
+                <td class="py-3 px-6 text-center">
+                    <input type="checkbox" class="w-5 h-5 cursor-pointer payment-box" data-item-id="${itemData.docId}" ${isChecked}>
+                </td>
+            `;
+            settlementTableBody.appendChild(tr);
+
+            // Aggregate for Invoices
+            if (!invoicesMap[topBid.bidNum]) {
+                invoicesMap[topBid.bidNum] = {
+                    bidNum: topBid.bidNum,
+                    bidderName: bidderData.fullName,
+                    itemsWon: [],
+                    totalOwed: 0
+                };
+            }
+            invoicesMap[topBid.bidNum].itemsWon.push(`#${itemNum}`);
+            invoicesMap[topBid.bidNum].totalOwed += topBid.bidAmount;
+        });
+
+        // Add payment status listeners for Table A
+        document.querySelectorAll('.payment-box').forEach(box => {
+            box.addEventListener('change', async (e) => {
+                const docId = e.target.getAttribute('data-item-id');
+                if (!docId || docId === 'null') {
+                    alert("Error: Item document ID missing. Make sure Auction Items are loaded.");
+                    e.target.checked = !e.target.checked;
+                    return;
+                }
+                const paidState = e.target.checked;
+                try {
+                    await updateDoc(doc(db, "auction_items", docId), { paid: paidState });
+                } catch (err) {
+                    console.error("Error updating payment status:", err);
+                    alert("Failed to update payment status.");
+                    e.target.checked = !paidState;
+                }
+            });
+        });
+
+        // Render Table B (Invoices)
+        const sortedBidNums = Object.keys(invoicesMap).map(Number).sort((a, b) => a - b);
+        sortedBidNums.forEach(bidNum => {
+            const invoice = invoicesMap[bidNum];
+            const tr = document.createElement('tr');
+            tr.className = "border-b border-gray-200 hover:bg-gray-100";
+            tr.innerHTML = `
+                <td class="py-3 px-6 whitespace-nowrap font-bold">#${invoice.bidNum}</td>
+                <td class="py-3 px-6">${invoice.bidderName}</td>
+                <td class="py-3 px-6 text-sm text-gray-600">${invoice.itemsWon.join(', ')}</td>
+                <td class="py-3 px-6 font-semibold text-green-700">$${invoice.totalOwed}</td>
+            `;
+            invoicesTableBody.appendChild(tr);
         });
     }
 
@@ -507,7 +618,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.itemNum) {
                     window.itemsMap[data.itemNum] = { 
                         itemName: data.itemName || 'Unknown Item', 
-                        itemImage: data.itemImage || 'https://placehold.co/100x100?text=No+Image' 
+                        itemImage: data.itemImage || 'https://placehold.co/100x100?text=No+Image',
+                        paid: data.paid || false,
+                        docId: docSnap.id
                     };
                     if (bidItemNumSelect) {
                         const opt = document.createElement('option');
@@ -553,7 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td class="py-3 px-6 text-center space-x-1">
                         <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded text-xs edit-item-btn" data-id="${docSnap.id}">Edit</button>
-                        <button class="bg-green-500 hover:bg-green-600 text-white py-1 px-2 rounded text-xs save-item-btn hidden" data-id="${docSnap.id}">Save</button>
+                        <button class="bg-green-500 hover:bg-green-600 text-white py-1 px-2 rounded text-xs save-item-btn hidden" data-id="${docSnap.id}" data-paid="${data.paid !== undefined ? data.paid : false}">Save</button>
                         <button class="bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded text-xs del-item-btn" data-id="${docSnap.id}">Delete</button>
                     </td>
                 `;
@@ -589,11 +702,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         itemImage = 'images/items/' + imageInput.files[0].name;
                     }
                     
+                    const paidAttr = e.target.getAttribute('data-paid');
+                    const paid = paidAttr === 'true';
+
                     e.target.disabled = true;
                     e.target.innerText = '...';
 
                     try {
-                        await updateDoc(doc(db, "auction_items", docId), { itemNum, itemName, description, startingBid, submitter, submitterEmail, itemImage });
+                        await updateDoc(doc(db, "auction_items", docId), { itemNum, itemName, description, startingBid, submitter, submitterEmail, itemImage, paid });
                         loadItems(); // refresh table
                     } catch (err) {
                         console.error(err);
@@ -643,6 +759,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 bidderNumSelect.innerHTML = '<option value="" disabled selected>Select a Bidder</option>';
             }
 
+            window.biddersMap = {};
+
             if (snapshot.empty) {
                 biddersTableBody.innerHTML = '<tr><td colspan="6" class="py-4 px-6 text-center">No bidders registered yet.</td></tr>';
                 return;
@@ -656,6 +774,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     opt.value = data.bidNumber;
                     opt.innerText = `Bid #${data.bidNumber} - ${data.fullName || 'Unknown'}`;
                     bidderNumSelect.appendChild(opt);
+                }
+                if (data.bidNumber) {
+                    window.biddersMap[data.bidNumber] = data;
                 }
 
                 const tr = document.createElement('tr');

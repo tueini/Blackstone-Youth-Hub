@@ -1,9 +1,21 @@
 # Project State: Blackstone Ward Youth Auction
 
-**Current Version:** v1.14.0
+**Current Version:** v1.15.8
 **Status:** In Development
 
+## Risk Mitigation & Architecture Baselines
+- **v1.8 Stable Baseline**: Core auction engine code isolated to `.backups/stable_baseline_v1.8/` and synced to the `auction` GitHub branch for total recovery capability prior to the live event.
+
 ## Recent Updates
+- Synchronized HTML footer version strings across all public and administrative views to match the v1.15.8 baseline.
+- Fixed CSS print layout in print.html by adding .print-item rules to prevent auction item tables from overflowing and overlapping onto subsequent PDF pages.
+- Built a hidden print-generation page (print.html) that dynamically generates perfectly formatted 8.5x11 bid sheets for all auction items, accessible via a new "Print Bid Sheets" button in the Admin Portal's Auction Items tab.
+- Completed the Closeout Tab financial rendering system in the Admin Portal, featuring real-time synchronization with active bids to calculate Itemized Settlements (Table A) and Aggregated Family Invoices (Table B).
+- Synchronized the hardcoded HTML footer version tracking strings to `v1.15.4` across all public deployment views and enforced high-visibility text rendering (`text-gray-900 font-semibold`).
+- Corrected the `admin.js` script path in `admin.html` to an absolute path (`/js/admin.js`) to resolve 404 routing errors on clean URLs.
+- Fortified the Rapid Entry "Enter New Bid" form in `admin.js` with NaN validation to prevent runtime errors and invalid data types from entering the `auction_bids` Firestore collection.
+- Initialized the Closeout Tab framework in the Admin Portal, featuring Table A (Itemized Settlement) and Table B (Aggregated Invoices).
+- Upgraded the 'Save' logic in the Auction Items update routine to support an optional secondary boolean parameter payload for payment status ('paid').
 - Expanded the Auction Items database schema to securely track Submitter Emails in the Admin Portal, enabling complete inline CRUD operations for donor contact details.
 - Integrated an automated Trigger Email confirmation sequence to immediately send donors a personalized "Thank You" receipt and catalog link upon successful public item submission.
 - Upgraded the UX in the Admin Portal Auction Items table by replacing the manual image path text input with a standard file picker during inline editing, automatically retaining the original image if no new file is selected.

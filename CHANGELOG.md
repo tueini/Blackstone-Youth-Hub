@@ -1,5 +1,47 @@
 # Changelog
 
+## [v1.15.8] - 2026-05-23
+### Changed
+- Synchronized HTML footer version strings across all public and administrative views to match the `v1.15.8` version baseline.
+
+## [v1.15.7] - 2026-05-23
+### Fixed
+- Fixed CSS print layout in `print.html` by adding `.print-item` rules to prevent auction item tables from overflowing and overlapping onto subsequent PDF pages during generation.
+
+## [v1.15.6] - 2026-05-23
+### Added
+- Built a hidden print-generation page (`print.html` and `js/print.js`) that queries the `auction_items` collection and renders perfectly formatted 8.5x11 bid sheets.
+- Injected a "Print Bid Sheets" action button into the Admin Portal (Tab 2: Auction Items) for easy generation of physical bid sheets prior to the live event.
+
+## [v1.15.5] - 2026-05-22
+### Added
+- Authored the Closeout Tab JavaScript rendering pipeline (`admin.js`), enabling real-time calculation and display of Itemized Settlements (Table A) and Aggregated Family Invoices (Table B).
+- Bound the Closeout tables to the active `onSnapshot` bid stream, cross-referencing global maps for item names and bidder details natively in-memory without secondary database queries.
+- Wired a functional inline payment status checkbox to Table A rows, immediately pushing `paid` state updates to the `auction_items` collection via `updateDoc`.
+
+## [v1.15.4] - 2026-05-22
+### Changed
+- Enforced high-visibility text rendering (`text-gray-900 font-semibold`) on all HTML footer version strings.
+- Synchronized static HTML version footers globally to track `v1.15.4`.
+
+## [v1.15.3] - 2026-05-22
+### Changed
+- Synchronized all static HTML footers across the public directory (`admin.html`, `index.html`, `items.html`, `submit-item.html`) to display the unified current project version.
+
+## [v1.15.2] - 2026-05-22
+### Fixed
+- Corrected a relative script path routing error in `admin.html` that caused 404 resource asset failures when trailing slashes or clean URLs were present.
+- Hardened the Active Bids Rapid Entry form input handler to safely validate and normalize Item/Bidder string values, preventing undefined `NaN` properties from being pushed to the `auction_bids` Firestore collection.
+
+## [v1.15.1] - 2026-05-22
+### Added
+- Initialized the Closeout Tab framework in the Admin Portal, featuring Table A (Itemized Settlement Grid) and Table B (Aggregated Invoices Grid).
+- Upgraded the 'Save' logic in the Auction Items update routine to support an optional boolean parameter payload for payment status ('paid').
+
+## [v1.15.0] - 2026-05-21
+### Maintenance
+- Established a total recovery checkpoint. Staged a localized structural backup in `.backups/stable_baseline_v1.8/` and pushed all production-ready source code to the isolated GitHub branch `auction`.
+
 ## [v1.14.0] - 2026-05-21
 ### Added
 - Expanded Auction Item management in the Admin Portal to support full CRUD operations and UI display for Submitter Emails.
