@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackstone Ward Youth Auction - Items</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <header class="relative bg-fixed bg-center bg-cover bg-no-repeat h-64 md:h-96 flex items-center justify-center shadow-xl" style="background-image: url('images/hero-banner.jpeg');">
+        <div class="absolute inset-0 bg-black/60"></div>
+        <div class="relative z-10 text-center px-4">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg">Blackstone Ward Youth Camp Auction</h1>
+            <p class="mt-4 text-xl md:text-2xl text-gray-200 font-medium drop-shadow-md">Support our youth!</p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-4 md:p-6 mt-8">
+        
+        <div class="mb-6 flex flex-wrap gap-4 justify-between items-center border-b-2 border-blue-500 pb-2">
+            <h2 class="text-2xl font-semibold">Auction Items Catalog</h2>
+            <div class="space-x-4 text-sm md:text-base">
+                <a href="/submit-item.html" class="text-blue-600 font-semibold hover:underline">Donate an Item</a>
+                <span class="text-gray-400">|</span>
+                <a href="/index.html" class="text-blue-600 font-semibold hover:underline">&larr; Main Page</a>
+            </div>
+        </div>
+        
+        <div id="items-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <p class="text-center col-span-full text-gray-500 text-lg">Loading auction items...</p>
+        </div>
+
+    </main>
+
+    <footer class="mt-12 mb-6 text-center">
+        <a href="/admin.html" class="text-sm text-gray-400 hover:text-blue-600 transition duration-200">Admin Portal</a>
+        <span class="text-xs text-gray-900 font-semibold ml-2">| v1.15.8</span>
+    </footer>
+
+    <script type="module" src="./js/items.js"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Bid Sheets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            @page {
+                size: letter;
+                margin: 0.5in;
+            }
+            .print-item {
+                page-break-after: always;
+                page-break-inside: avoid;
+                display: block;
+                position: relative;
+                height: 100%;
+                overflow: hidden;
+            }
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body class="bg-white text-black font-sans">
+    <div id="print-container">
+        <p id="loading-msg" class="p-8 text-xl">Loading auction items for print...</p>
+    </div>
+    <script type="module" src="/js/print.js"></script>
+</body>
+</html>

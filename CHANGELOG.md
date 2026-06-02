@@ -1,8 +1,22 @@
 # Changelog
 
+## [v1.15.11] - 2026-05-23
+### Added
+- Upgraded the print generator (`public/print.html` and `public/js/print.js`) with a non-printable control panel allowing volunteers to print all items or a specific range of Item Numbers.
+
+## [v1.15.10] - 2026-05-23
+### Fixed
+- Increased item description truncation limit in `public/js/print.js` to 600 characters to optimize writable space on printed 8.5x11 bid sheets.
+
+## [v1.15.9] - 2026-05-23
+### Fixed
+- Truncated item descriptions in `public/js/print.js` to 150 characters to prevent long text from pushing the empty bidding rows off the printed 8.5x11 pages.
+
 ## [v1.15.8] - 2026-05-23
 ### Changed
 - Synchronized HTML footer version strings across all public and administrative views to match the `v1.15.8` version baseline.
+### Maintenance
+- Established a final pre-launch recovery checkpoint by pushing all production-ready source code to GitHub (`auction` branch) and staging a localized architectural backup in `.backups/stable_baseline_v1.15.8/`.
 
 ## [v1.15.7] - 2026-05-23
 ### Fixed

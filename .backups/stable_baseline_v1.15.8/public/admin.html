@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+    <header class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Auction Admin Portal</h1>
+        <button id="logoutBtn" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-4 rounded text-sm transition duration-200">Logout</button>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-6 mt-6">
+        <!-- Login Container -->
+        <div id="loginContainer" class="max-w-sm mx-auto bg-white p-8 shadow-lg rounded-lg">
+            <h2 class="text-2xl font-semibold mb-6 text-center border-b pb-2">Admin Login</h2>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block font-semibold">Email</label>
+                    <input type="email" id="adminEmail" required class="w-full border p-2 rounded mt-1">
+                </div>
+                <div>
+                    <label class="block font-semibold">Password</label>
+                    <input type="password" id="adminPassword" required class="w-full border p-2 rounded mt-1">
+                </div>
+                <p id="loginError" class="text-red-500 text-sm hidden"></p>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full transition duration-200">
+                    Login
+                </button>
+            </form>
+            <div class="mt-6 text-center">
+                <a href="/" class="text-sm text-gray-500 hover:text-blue-600 transition duration-200">&larr; Return to Auction Main Page</a>
+            </div>
+        </div>
+
+        <!-- Dashboard Container -->
+        <div id="dashboardContainer" class="hidden bg-white shadow-lg rounded-lg overflow-hidden">
+            
+            <!-- Tab Navigation -->
+            <div class="flex border-b border-gray-200 bg-gray-50 overflow-x-auto">
+                <button class="tab-btn px-6 py-3 text-blue-600 font-semibold border-b-2 border-blue-600 hover:bg-gray-100 transition whitespace-nowrap" data-target="biddersTab">Registered Bidders</button>
+                <button class="tab-btn px-6 py-3 text-gray-500 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:bg-gray-100 transition whitespace-nowrap" data-target="itemsTab">Auction Items</button>
+                <button class="tab-btn px-6 py-3 text-gray-500 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:bg-gray-100 transition whitespace-nowrap" data-target="bidsTab">Active Bids</button>
+                <button class="tab-btn px-6 py-3 text-gray-500 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:bg-gray-100 transition whitespace-nowrap" data-target="tab-closeout">Closeout</button>
+            </div>
+
+            <!-- Tab 1: Bidders -->
+            <div id="biddersTab" class="tab-content">
+                <div class="p-6 border-b flex justify-between items-center bg-white">
+                    <h2 class="text-2xl font-semibold text-gray-800">Registered Bidders</h2>
+                    <div class="space-x-2">
+                        <button id="addBidderBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-1 px-4 rounded transition duration-200">Manually Add Bidder</button>
+                        <button id="refreshBtn" class="bg-green-600 hover:bg-green-700 text-white py-1 px-4 rounded transition duration-200">Refresh Data</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                <th class="py-3 px-6 border-b">Bid #</th>
+                                <th class="py-3 px-6 border-b">Name</th>
+                                <th class="py-3 px-6 border-b">Email</th>
+                                <th class="py-3 px-6 border-b">Phone</th>
+                                <th class="py-3 px-6 border-b text-center">Checked In</th>
+                                <th class="py-3 px-6 border-b text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="biddersTableBody" class="text-gray-600 text-sm font-light">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="loadingIndicator" class="p-6 text-center text-gray-500">Loading bidders...</div>
+            </div>
+
+            <!-- Tab 2: Auction Items -->
+            <div id="itemsTab" class="tab-content hidden">
+                <div class="p-6 border-b border-gray-200 bg-white">
+                    <h2 class="text-2xl font-semibold mb-4 text-blue-800">Manage Auction Items</h2>
+                    <form id="addItemForm" class="bg-gray-50 p-4 rounded border border-gray-200 shadow-inner grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-semibold text-sm text-gray-700">Item Num</label>
+                            <input type="text" id="newItemNum" readonly value="Auto-Assigned" class="w-full border border-gray-300 p-2 rounded mt-1 bg-gray-100 text-gray-500 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-sm text-gray-700">Starting Bid ($)</label>
+                            <input type="number" id="newStartingBid" required class="w-full border border-gray-300 p-2 rounded mt-1">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block font-semibold text-sm text-gray-700">Item Name</label>
+                            <input type="text" id="newItemName" required class="w-full border border-gray-300 p-2 rounded mt-1">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block font-semibold text-sm text-gray-700">Description</label>
+                            <textarea id="newDescription" required class="w-full border border-gray-300 p-2 rounded mt-1" rows="2"></textarea>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-sm text-gray-700">Submitter Name</label>
+                            <input type="text" id="newSubmitter" required class="w-full border border-gray-300 p-2 rounded mt-1">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-sm text-gray-700">Submitter Email</label>
+                            <input type="email" id="newSubmitterEmail" class="w-full border border-gray-300 p-2 rounded mt-1">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-sm text-gray-700">Image File</label>
+                            <input type="file" id="itemImageFile" accept="image/*" class="w-full border border-gray-300 p-1.5 rounded mt-1 bg-white">
+                        </div>
+                        <div class="md:col-span-2 flex items-center justify-between mt-2">
+                            <p id="addItemSuccess" class="text-green-600 font-bold hidden">Item added successfully!</p>
+                            <button type="submit" id="addItemBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded transition duration-200 ml-auto shadow">
+                                Add Item
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="p-6 border-b flex justify-between items-center bg-white">
+                    <h2 class="text-2xl font-semibold text-gray-800">Uploaded Auction Items</h2>
+                    <div class="space-x-2">
+                        <a href="print.html" target="_blank" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 px-4 rounded transition duration-200 inline-block shadow">🖨️ Print Bid Sheets</a>
+                        <button id="refreshItemsBtn" class="bg-green-600 hover:bg-green-700 text-white py-1.5 px-4 rounded transition duration-200">Refresh Items</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                <th class="py-3 px-6 border-b">Item #</th>
+                                <th class="py-3 px-6 border-b w-32">Image Preview</th>
+                                <th class="py-3 px-6 border-b">Name</th>
+                                <th class="py-3 px-6 border-b">Description</th>
+                                <th class="py-3 px-6 border-b">Starting Bid</th>
+                                <th class="py-3 px-6 border-b">Submitter</th>
+                                <th class="py-3 px-6 border-b">Email</th>
+                                <th class="py-3 px-6 border-b text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody" class="text-gray-600 text-sm font-light">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="loadingItemsIndicator" class="p-6 text-center text-gray-500">Loading items...</div>
+            </div>
+
+            <!-- Tab 3: Active Bids -->
+            <div id="bidsTab" class="tab-content hidden">
+                <div class="p-6 border-b border-gray-200 bg-white">
+                    <h2 class="text-2xl font-semibold mb-4 text-blue-800">Enter New Bid</h2>
+                    <form id="addBidForm" class="bg-blue-50 p-4 rounded border border-blue-200 shadow-inner flex flex-wrap gap-4 items-end">
+                        <div class="flex-[2] min-w-[150px]">
+                            <label class="block font-semibold text-sm text-gray-700">Item #</label>
+                            <div class="flex items-center gap-2 mt-1">
+                                <img id="bidItemPreviewImage" src="" alt="Preview" class="w-10 h-10 object-cover rounded shadow-sm hidden">
+                                <select id="bidItemNum" required class="w-full border border-gray-300 p-2 rounded bg-white">
+                                    <option value="" disabled selected>Select an Item</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex-[2] min-w-[150px]">
+                            <label class="block font-semibold text-sm text-gray-700">Bidder #</label>
+                            <select id="bidderNum" required class="w-full border border-gray-300 p-2 rounded mt-1 bg-white">
+                                <option value="" disabled selected>Select a Bidder</option>
+                            </select>
+                        </div>
+                        <div class="flex-1 min-w-[100px]">
+                            <label class="block font-semibold text-sm text-gray-700">Bid Amount ($)</label>
+                            <input type="number" id="bidAmount" required class="w-full border border-gray-300 p-2 rounded mt-1">
+                        </div>
+                        <div>
+                            <button type="submit" id="addBidBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded transition duration-200 shadow h-[42px]">
+                                Submit Bid
+                            </button>
+                        </div>
+                    </form>
+                    <p id="addBidSuccess" class="text-green-600 font-bold hidden mt-2">Bid submitted successfully!</p>
+                </div>
+                
+                <div class="p-6 border-b flex justify-between items-center bg-gray-50">
+                    <h2 class="text-2xl font-semibold">Highest Bids Dashboard</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                <th class="py-3 px-6 border-b w-20">Item #</th>
+                                <th class="py-3 px-6 border-b w-16">Image</th>
+                                <th class="py-3 px-6 border-b">Item Name</th>
+                                <th class="py-3 px-6 border-b w-24">Current Highest Bid</th>
+                                <th class="py-3 px-6 border-b w-24">Winning Bidder #</th>
+                                <th class="py-3 px-6 border-b text-center w-24">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="highestBidsTableBody" class="text-gray-600 text-sm font-light">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="loadingBidsIndicator" class="p-6 text-center text-gray-500 hidden">Loading active bids...</div>
+            </div>
+
+            <!-- Tab 4: Closeout -->
+            <div id="tab-closeout" class="tab-content hidden">
+                <div class="p-6 border-b border-gray-200 bg-white">
+                    <h2 class="text-2xl font-semibold mb-4 text-blue-800">Closeout & Settlement</h2>
+                </div>
+                
+                <div class="p-6 border-b bg-gray-50">
+                    <h3 class="text-xl font-semibold mb-4">Table A: Itemized Settlement Grid</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse bg-white shadow rounded">
+                            <thead>
+                                <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6 border-b">Item #</th>
+                                    <th class="py-3 px-6 border-b">Item Name</th>
+                                    <th class="py-3 px-6 border-b">Winning Bidder</th>
+                                    <th class="py-3 px-6 border-b">Amount</th>
+                                    <th class="py-3 px-6 border-b text-center">Payment Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="settlementTableBody" class="text-gray-600 text-sm font-light">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold mb-4">Table B: Aggregated Invoices Grid</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse bg-white shadow rounded">
+                            <thead>
+                                <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6 border-b">Bid #</th>
+                                    <th class="py-3 px-6 border-b">Bidder Name</th>
+                                    <th class="py-3 px-6 border-b">Items Won</th>
+                                    <th class="py-3 px-6 border-b">Total Balance Owed</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoicesTableBody" class="text-gray-600 text-sm font-light">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 flex flex-col max-h-[80vh]">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
+                <h3 class="text-xl font-bold" id="historyModalTitle">Bid History</h3>
+                <button id="closeHistoryModal" class="text-gray-500 hover:text-red-500 font-bold text-xl">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal">
+                            <th class="py-2 px-4 border-b">Time</th>
+                            <th class="py-2 px-4 border-b">Bidder #</th>
+                            <th class="py-2 px-4 border-b">Amount</th>
+                            <th class="py-2 px-4 border-b text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="text-gray-700 text-sm font-light">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-12 mb-6 text-center">
+        <a href="/" class="text-sm text-gray-400 hover:text-blue-600 transition duration-200">Main Site</a>
+        <span class="text-xs text-gray-900 font-semibold ml-2">| v1.15.8</span>
+    </footer>
+
+    <script type="module" src="/js/admin.js"></script>
+</body>
+</html>

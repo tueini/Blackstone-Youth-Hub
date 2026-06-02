@@ -16,20 +16,74 @@ const db = getFirestore(app);
 
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('print-container');
-    const itemsRef = collection(db, "auction_items");
-    const q = query(itemsRef, orderBy("itemNum", "asc"));
+    const printMode = document.getElementById('printMode');
+    const rangeInputs = document.getElementById('rangeInputs');
+    const generateBtn = document.getElementById('generateBtn');
+    const startItemInput = document.getElementById('startItem');
+    const endItemInput = document.getElementById('endItem');
     
+    // Toggle range inputs visibility
+    printMode.addEventListener('change', () => {
+        if (printMode.value === 'range') {
+            rangeInputs.classList.remove('hidden');
+        } else {
+            rangeInputs.classList.add('hidden');
+        }
+    });
+
+    let allItemsSnapshot = null;
+
     try {
-        const snapshot = await getDocs(q);
-        container.innerHTML = ''; // clear loading msg
-        
-        if (snapshot.empty) {
+        const itemsRef = collection(db, "auction_items");
+        const q = query(itemsRef, orderBy("itemNum", "asc"));
+        allItemsSnapshot = await getDocs(q);
+        container.innerHTML = '<p class="p-8 text-xl text-green-700">Data loaded. Ready to generate print sheets.</p>';
+    } catch (err) {
+        console.error("Error loading items", err);
+        container.innerHTML = '<p class="text-red-500 font-bold p-8">Error loading items from database.</p>';
+        generateBtn.disabled = true;
+        return;
+    }
+
+    generateBtn.addEventListener('click', () => {
+        if (!allItemsSnapshot || allItemsSnapshot.empty) {
             container.innerHTML = '<p class="p-8 text-xl">No items found.</p>';
             return;
         }
 
-        snapshot.forEach(docSnap => {
+        container.innerHTML = '<p class="p-8 text-xl text-blue-600">Generating print sheets...</p>';
+
+        const mode = printMode.value;
+        const startNum = parseInt(startItemInput.value, 10);
+        const endNum = parseInt(endItemInput.value, 10);
+
+        let itemsToPrint = [];
+
+        allItemsSnapshot.forEach(docSnap => {
             const data = docSnap.data();
+            let num = parseInt(data.itemNum, 10);
+            
+            if (mode === 'all') {
+                itemsToPrint.push(data);
+            } else if (mode === 'range') {
+                if (!isNaN(num) && !isNaN(startNum) && !isNaN(endNum) && num >= startNum && num <= endNum) {
+                    itemsToPrint.push(data);
+                }
+            }
+        });
+
+        if (itemsToPrint.length === 0) {
+            container.innerHTML = '<p class="p-8 text-xl text-red-600">No items matched the selected range.</p>';
+            return;
+        }
+
+        container.innerHTML = ''; // clear status msg
+        
+        itemsToPrint.forEach(data => {
+            let description = data.description || '';
+            if (description.length > 600) {
+                description = description.substring(0, 600) + '...';
+            }
             
             // Generate rows for the bid table
             let tableRows = '';
@@ -50,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <div class="flex-1 flex flex-col justify-center">
                             <h1 class="text-5xl font-bold mb-2">Item #${data.itemNum || '-'}</h1>
                             <h2 class="text-3xl font-semibold mb-4 text-gray-800">${data.itemName || 'Unknown Item'}</h2>
-                            <p class="text-lg text-gray-700 mb-4">${data.description || ''}</p>
+                            <p class="text-lg text-gray-700 mb-4">${description}</p>
                             <p class="text-xl font-medium mb-1"><strong>Donor:</strong> ${data.submitter || 'Anonymous'}</p>
                             <p class="text-3xl font-bold text-green-700 mt-4">Starting Bid: $${data.startingBid || '0'}</p>
                         </div>
@@ -78,13 +132,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             container.appendChild(itemDiv);
         });
         
-        // Let images load before popping up print dialog, though simple timeout usually suffices
+        // Let images load before popping up print dialog
         setTimeout(() => {
             window.print();
         }, 500);
-        
-    } catch (err) {
-        console.error("Error loading items for print", err);
-        container.innerHTML = '<p class="text-red-500 font-bold p-8">Error loading items from database.</p>';
-    }
+    });
 });
