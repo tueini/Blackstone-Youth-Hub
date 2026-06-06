@@ -1,6 +1,6 @@
 # Project State: Blackstone Ward Youth Auction
 
-**Current Version:** v1.15.11
+**Current Version:** v1.15.12
 **Status:** In Development
 
 ## Risk Mitigation & Architecture Baselines
@@ -8,6 +8,7 @@
 - **v1.8 Stable Baseline**: Core auction engine code isolated to `.backups/stable_baseline_v1.8/` and synced to the `auction` GitHub branch for total recovery capability prior to the live event.
 
 ## Recent Updates
+- Synchronized HTML footer version strings across all public and administrative views to strictly match the v1.15.12 baseline.
 - Upgraded the print generator with a non-printable control panel allowing volunteers to print all items or a specific range of Item Numbers.
 - Updated print description truncation limit to 600 characters to balance descriptive text and writable space on printed bid sheets.
 - Truncated item descriptions to 150 characters in public/js/print.js to prevent text from overflowing and pushing the bidding rows off the printed page.

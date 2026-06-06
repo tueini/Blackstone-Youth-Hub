@@ -1,5 +1,9 @@
 # Changelog
 
+## [v1.15.12] - 2026-06-06
+### Changed
+- Synchronized HTML footer version strings across all public and administrative views to strictly match the v1.15.12 version baseline.
+
 ## [v1.15.11] - 2026-05-23
 ### Added
 - Upgraded the print generator (`public/print.html` and `public/js/print.js`) with a non-printable control panel allowing volunteers to print all items or a specific range of Item Numbers.
