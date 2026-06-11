@@ -289,6 +289,15 @@
                             </div>
                             <button id="addTeacherBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Teacher</button>
                         </div>
+                        <div id="teachersCsvGroup" class="hidden flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-6">
+                            <div class="flex-1 min-w-[250px]">
+                                <label for="importTeachersCsvBtn" class="w-full inline-block bg-slate-700 hover:bg-emerald-600 text-emerald-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-widest border border-emerald-500/30">Upload CSV Import</label>
+                                <input type="file" id="importTeachersCsvBtn" accept=".csv" class="hidden">
+                            </div>
+                            <div class="flex-1 min-w-[250px]">
+                                <button id="exportTeachersCsvBtn" class="w-full bg-slate-700 hover:bg-blue-600 text-blue-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-widest border border-blue-500/30">Download CSV Backup</button>
+                            </div>
+                        </div>
                         <div class="overflow-x-auto bg-slate-900 rounded-lg border border-slate-700 p-4">
                             <div class="flex flex-col md:flex-row gap-4 text-xs uppercase bg-slate-800 text-slate-400 p-3 rounded-lg mb-2">
                                 <div class="flex-1 font-bold">Teacher Name</div>

@@ -1,6 +1,6 @@
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc, writeBatch, query, where, onSnapshot, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc, writeBatch, query, where, onSnapshot, orderBy, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { GOOGLE_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_APP_ID } from "/js/config.js";
 
         let ORGANIZATION_NAME = 'Combined';
@@ -52,7 +52,8 @@
 
             try {
                 const allData = [];
-                const orgSnap = await getDocs(collection(db, `${ORGANIZATION_NAME}_events`));
+                const dbOrg = ORGANIZATION_NAME === 'Young Women' ? 'YW' : ORGANIZATION_NAME;
+                const orgSnap = await getDocs(collection(db, `${dbOrg}_events`));
                 orgSnap.forEach(d => allData.push({...d.data(), id: d.id, sourceOrg: ORGANIZATION_NAME}));
                 if (!isCombinedPage) {
                     const combinedSnap = await getDocs(collection(db, "Combined_events"));
@@ -61,7 +62,7 @@
                 events = allData.filter(d => d.type === 'scheduled');
                 unscheduled = allData.filter(d => d.type === 'unscheduled');
                 
-                const lessonSnap = await getDocs(collection(db, `${ORGANIZATION_NAME}_lessons`));
+                const lessonSnap = await getDocs(collection(db, `${dbOrg}_lessons`));
                 lessonSnap.forEach(d => lessons.push({...d.data(), id: d.id, sourceOrg: ORGANIZATION_NAME}));
                 if (!isCombinedPage) {
                     const combinedL = await getDocs(collection(db, "Combined_lessons"));
@@ -323,7 +324,7 @@
         let currentCSVText = null;
         let currentUploadTarget = 'activities';
 
-        const processCSV = (csvText, shouldWipe) => {
+        const processCSV = async (csvText, shouldWipe) => {
             const rows = csvText.split(/\r?\n/).slice(1);
             let count = 0;
             
@@ -384,13 +385,41 @@
                         count++;
                     } catch (err) { console.error(err); }
                 }
+            } else if (currentUploadTarget === 'teachers') {
+                const tBatch = writeBatch(db);
+                if (shouldWipe) {
+                    let currentOrg = ORGANIZATION_NAME;
+                    if (currentOrg === 'YW') currentOrg = 'Young Women';
+                    const q = ORGANIZATION_NAME === 'Combined' 
+                        ? query(collection(db, "home_teachers"))
+                        : query(collection(db, "home_teachers"), where("org", "==", currentOrg));
+                    const snap = await getDocs(q);
+                    snap.forEach(x => tBatch.delete(doc(db, "home_teachers", x.id)));
+                }
+                for (const row of rows) {
+                    if (!row.trim()) continue;
+                    try {
+                        const cols = parseCSVRow(row);
+                        const tName = (cols[0] || 'Unnamed').trim();
+                        const tOrg = (cols[1] || ORGANIZATION_NAME).trim();
+                        const newId = 'teacher_' + sanitizeId(tName) + "_" + Math.floor(Math.random()*10000);
+                        tBatch.set(doc(db, "home_teachers", newId), { name: tName, org: tOrg });
+                        count++;
+                    } catch (err) { console.error(err); }
+                }
+                await tBatch.commit();
             }
 
-            alert(`Loaded ${count} items. Review and click 'Save Changes to Database' to permanently save!`);
+            if (currentUploadTarget === 'teachers') {
+                alert(`Loaded ${count} teachers directly into the database!`);
+            } else {
+                alert(`Loaded ${count} items. Review and click 'Save Changes to Database' to permanently save!`);
+            }
             currentFile = null;
             if (fileInput) fileInput.value = '';
             const fl = document.getElementById('csvLessonsInput'); if(fl) fl.value = '';
             const fb = document.getElementById('csvBirthdaysInput'); if(fb) fb.value = '';
+            const ft = document.getElementById('importTeachersCsvBtn'); if(ft) ft.value = '';
             
             markPending();
             refreshUI();
@@ -435,6 +464,15 @@
             fileInputBirthdays.addEventListener('change', (e) => {
                 currentFile = e.target.files[0];
                 currentUploadTarget = 'birthdays';
+                currentCSVText = null;
+                if (currentFile) modal.classList.remove('hidden');
+            });
+        }
+        const fileInputTeachers = document.getElementById('importTeachersCsvBtn');
+        if (fileInputTeachers) {
+            fileInputTeachers.addEventListener('change', (e) => {
+                currentFile = e.target.files[0];
+                currentUploadTarget = 'teachers';
                 currentCSVText = null;
                 if (currentFile) modal.classList.remove('hidden');
             });
@@ -1018,24 +1056,25 @@
                 });
                 try {
                     const batch = writeBatch(db);
-                    const s = await getDocs(collection(db, `${ORGANIZATION_NAME}_events`));
-                    s.forEach(x => batch.delete(doc(db, `${ORGANIZATION_NAME}_events`, x.id)));
+                    const dbOrg = ORGANIZATION_NAME === 'Young Women' ? 'YW' : ORGANIZATION_NAME;
+                    const s = await getDocs(collection(db, `${dbOrg}_events`));
+                    s.forEach(x => batch.delete(doc(db, `${dbOrg}_events`, x.id)));
                     
                     const orgData = [...events, ...unscheduled].filter(e => e.sourceOrg === ORGANIZATION_NAME);
                     orgData.forEach(item => {
                         let safeId = item.id;
                         if (!safeId || safeId.includes('idealoc_')) safeId = (item.date ? item.date + '_' : 'idea_') + sanitizeId(item.name || 'unknown') + "_" + Math.floor(Math.random()*1000);
-                        batch.set(doc(db, `${ORGANIZATION_NAME}_events`, safeId), { date: item.date || '', name: item.name || '', cat: item.cat || 'social', details: item.details || '', type: item.type || 'scheduled', isService: item.isService || false });
+                        batch.set(doc(db, `${dbOrg}_events`, safeId), { date: item.date || '', name: item.name || '', cat: item.cat || 'social', details: item.details || '', type: item.type || 'scheduled', isService: item.isService || false });
                     });
                     
-                    const lSnap = await getDocs(collection(db, `${ORGANIZATION_NAME}_lessons`));
-                    lSnap.forEach(x => batch.delete(doc(db, `${ORGANIZATION_NAME}_lessons`, x.id)));
+                    const lSnap = await getDocs(collection(db, `${dbOrg}_lessons`));
+                    lSnap.forEach(x => batch.delete(doc(db, `${dbOrg}_lessons`, x.id)));
                     
                     const orgLessons = lessons.filter(l => l.sourceOrg === ORGANIZATION_NAME);
                     orgLessons.forEach(item => {
                         let safeId = item.id;
                         if (!safeId || safeId.includes('lessonloc_')) safeId = 'lesson_' + sanitizeId(item.topic || 'unknown') + "_" + Math.floor(Math.random()*1000);
-                        batch.set(doc(db, `${ORGANIZATION_NAME}_lessons`, safeId), { date: item.date || '', topic: item.topic || '', teacher: item.teacher || '', notes: item.notes || '' });
+                        batch.set(doc(db, `${dbOrg}_lessons`, safeId), { date: item.date || '', topic: item.topic || '', teacher: item.teacher || '', notes: item.notes || '' });
                     });
 
                     const bSnap = await getDocs(query(collection(db, "birthdays"), where("org", "==", ORGANIZATION_NAME)));
@@ -1152,6 +1191,14 @@
                     const safeName = `"${(b.name||'').replace(/"/g, '""')}"`;
                     csvContent += `${bMonth},${bDay},${safeName}\n`;
                 });
+            } else if (type === 'teachers') {
+                csvContent = "Name,Organization\n";
+                filename = `2026_${ORGANIZATION_NAME}_Teachers.csv`;
+                fullOrgTeachers.forEach(t => {
+                    const safeName = `"${(t.name||'').replace(/"/g, '""')}"`;
+                    const safeOrg = `"${(t.org||'').replace(/"/g, '""')}"`;
+                    csvContent += `${safeName},${safeOrg}\n`;
+                });
             }
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1163,6 +1210,7 @@
         if(document.getElementById('exportCsvBtn')) document.getElementById('exportCsvBtn').addEventListener('click', () => generateSymmetricCSV('activities'));
         if(document.getElementById('exportLessonsCsvBtn')) document.getElementById('exportLessonsCsvBtn').addEventListener('click', () => generateSymmetricCSV('lessons'));
         if(document.getElementById('exportBirthdaysCsvBtn')) document.getElementById('exportBirthdaysCsvBtn').addEventListener('click', () => generateSymmetricCSV('birthdays'));
+        if(document.getElementById('exportTeachersCsvBtn')) document.getElementById('exportTeachersCsvBtn').addEventListener('click', () => generateSymmetricCSV('teachers'));
 
         // ADMIN BUTTONS
         let isAdminMode = false;
@@ -1272,17 +1320,21 @@ window.setupRBAC = function() {
     const navSpot = document.getElementById('nav-spotlights');
     const navTeach = document.getElementById('nav-teachers');
     const navLead = document.getElementById('nav-leaders');
+    const teachersCsvGroup = document.getElementById('teachersCsvGroup');
 
     if (userRole === 'Admin') {
         if (navAnn) navAnn.classList.remove('hidden');
         if (navSpot) navSpot.classList.remove('hidden');
         if (navTeach) navTeach.classList.remove('hidden');
         if (navLead) navLead.classList.remove('hidden');
+        if (teachersCsvGroup) teachersCsvGroup.classList.remove('hidden');
     } else {
         if (navAnn) navAnn.classList.add('hidden');
         if (navLead) navLead.classList.add('hidden');
         if (navSpot) navSpot.classList.remove('hidden');
         if (navTeach) navTeach.classList.remove('hidden');
+        if (teachersCsvGroup) teachersCsvGroup.classList.add('hidden');
+        if (navSpot) navSpot.click();
     }
 
     if (userRole !== 'Admin') {
@@ -1725,6 +1777,8 @@ function renderSpotlightsList(docs, list) {
                 </div>
                 <div class="w-full md:w-auto flex justify-end shrink-0 action-col ${!(typeof isEditMode !== 'undefined' ? isEditMode : true)?'hidden':''}">
                     <div class="flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                        <button onclick="window.moveSpotlightUp('${data.id}')" class="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors text-sm" title="Move Up">↑</button>
+                        <button onclick="window.moveSpotlightDown('${data.id}')" class="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors text-sm" title="Move Down">↓</button>
                         <button onclick="window.editSpotlight('${data.id}')" class="text-blue-400 hover:text-white bg-blue-900/30 hover:bg-blue-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors text-sm" title="Edit">✎</button>
                         <button onclick="window.delSpotlight('${data.id}')" class="text-red-400 hover:text-white bg-red-900/20 hover:bg-red-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors text-sm" title="Delete">🗑</button>
                     </div>
@@ -1800,7 +1854,9 @@ window.saveEditedSpotlight = async (id) => {
     
     try {
         if (id.startsWith('temp_')) {
-            await addDoc(collection(db, "home_spotlights"), { desc: newDesc, org: newOrg, image_url: newImg, video_url: newVideo, spotDate: newDate, sortOrder: 5000000 + Math.floor(Math.random() * 10000) });
+            const tempObj = (window.currentSpotlightsData || []).find(s => s.id === id);
+            const saveOrder = tempObj && typeof tempObj.sortOrder === 'number' ? tempObj.sortOrder : (0 - Date.now());
+            await addDoc(collection(db, "home_spotlights"), { desc: newDesc, org: newOrg, image_url: newImg, video_url: newVideo, spotDate: newDate, sortOrder: saveOrder });
         } else {
             await setDoc(doc(db, "home_spotlights", id), { 
                 desc: newDesc, org: newOrg, image_url: newImg, video_url: newVideo, spotDate: newDate 
@@ -1819,8 +1875,12 @@ if (addSpotlightBtn) {
         const newId = 'temp_' + Date.now();
         currentlyEditingSpotlightId = newId;
         if (!window.currentSpotlightsData) window.currentSpotlightsData = [];
+        let lowestOrder = 0;
+        if (window.currentSpotlightsData.length > 0) {
+            lowestOrder = Math.min(...window.currentSpotlightsData.map(s => s.sortOrder || 0));
+        }
         window.currentSpotlightsData.unshift({
-            id: newId, desc: '', org: 'Priests', image_url: '', video_url: '', spotDate: new Date().toISOString().split('T')[0]
+            id: newId, desc: '', org: 'Priests', image_url: '', video_url: '', spotDate: new Date().toISOString().split('T')[0], sortOrder: lowestOrder - 10
         });
         renderSpotlightsList(window.currentSpotlightsData, document.getElementById('spotlights-data'));
         setTimeout(() => { const inp = document.getElementById('edit-s-desc-' + newId); if(inp) inp.focus(); }, 50);
@@ -1834,6 +1894,60 @@ window.delSpotlight = async (id) => {
             loadSpotlights();
         } catch(e) { alert("Error: " + e.message); }
     }
+};
+
+window.moveSpotlightUp = async (id) => {
+    if (!window.currentSpotlightsData) return;
+    const idx = window.currentSpotlightsData.findIndex(s => s.id === id);
+    if (idx <= 0) return;
+    
+    const curr = window.currentSpotlightsData[idx];
+    const prev = window.currentSpotlightsData[idx - 1];
+    
+    const tempOrder = curr.sortOrder || 0;
+    curr.sortOrder = prev.sortOrder || 0;
+    prev.sortOrder = tempOrder;
+    
+    if (curr.sortOrder === prev.sortOrder) {
+        curr.sortOrder -= 10;
+    }
+    
+    window.currentSpotlightsData[idx] = prev;
+    window.currentSpotlightsData[idx - 1] = curr;
+    
+    renderSpotlightsList(window.currentSpotlightsData, document.getElementById('spotlights-data'));
+    
+    try {
+        await updateDoc(doc(db, "home_spotlights", curr.id), { sortOrder: curr.sortOrder });
+        await updateDoc(doc(db, "home_spotlights", prev.id), { sortOrder: prev.sortOrder });
+    } catch(e) { alert("Error updating order: " + e.message); }
+};
+
+window.moveSpotlightDown = async (id) => {
+    if (!window.currentSpotlightsData) return;
+    const idx = window.currentSpotlightsData.findIndex(s => s.id === id);
+    if (idx < 0 || idx >= window.currentSpotlightsData.length - 1) return;
+    
+    const curr = window.currentSpotlightsData[idx];
+    const next = window.currentSpotlightsData[idx + 1];
+    
+    const tempOrder = curr.sortOrder || 0;
+    curr.sortOrder = next.sortOrder || 0;
+    next.sortOrder = tempOrder;
+    
+    if (curr.sortOrder === next.sortOrder) {
+        curr.sortOrder += 10;
+    }
+    
+    window.currentSpotlightsData[idx] = next;
+    window.currentSpotlightsData[idx + 1] = curr;
+    
+    renderSpotlightsList(window.currentSpotlightsData, document.getElementById('spotlights-data'));
+    
+    try {
+        await updateDoc(doc(db, "home_spotlights", curr.id), { sortOrder: curr.sortOrder });
+        await updateDoc(doc(db, "home_spotlights", next.id), { sortOrder: next.sortOrder });
+    } catch(e) { alert("Error updating order: " + e.message); }
 };
 
 // Announcements Logic
@@ -2083,8 +2197,27 @@ window.saveEditedTeacher = async (id) => {
     const newOrg = orgInp.value;
     if (!newName) return;
     
+    const parentContainer = nameInp.parentElement.parentElement;
+    const saveBtn = parentContainer ? parentContainer.querySelector('button[title="Save Row"]') : null;
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.style.opacity = '0.5';
+        saveBtn.style.cursor = 'not-allowed';
+    }
+    
     try {
         if (id.startsWith('temp_')) {
+            const dupQuery = query(collection(db, "home_teachers"), where("name", "==", newName), where("org", "==", newOrg));
+            const dupSnap = await getDocs(dupQuery);
+            if (!dupSnap.empty) {
+                alert("A teacher with this name already exists in this organization.");
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.style.opacity = '1';
+                    saveBtn.style.cursor = 'pointer';
+                }
+                return;
+            }
             await addDoc(collection(db, "home_teachers"), { name: newName, org: newOrg });
         } else {
             await setDoc(doc(db, "home_teachers", id), { name: newName, org: newOrg }, { merge: true });
@@ -2093,6 +2226,11 @@ window.saveEditedTeacher = async (id) => {
         renderTeacherList();
     } catch(e) {
         alert("Error updating teacher: " + e.message);
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '1';
+            saveBtn.style.cursor = 'pointer';
+        }
     }
 };
 

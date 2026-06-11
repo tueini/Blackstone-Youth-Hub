@@ -1,10 +1,22 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.12.67
+**Version**: v7.12.75
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment)
 **DevOps**: The beta environment is now securely tracked and isolated on the beta-admin branch of the GitHub repository.
+
+- **Settings RBAC Content Leak & Default Routing**: Resolved a data visibility leak in the Settings module where Tier 2 users could see the Announcements container despite missing the navigation button. Injected a programmatic `navSpot.click()` in `setupRBAC` to explicitly route non-Admins to the Spotlights tab, simultaneously enforcing default routing and correctly hiding the Announcements container.
+
+- **Missing updateDoc Firebase Import**: Fixed a critical `ReferenceError: updateDoc is not defined` bug during Spotlight reordering by explicitly importing `updateDoc` from the Firebase Firestore SDK in `admin-app.js`.
+
+- **Spotlights Manual Reordering & Top-Default Restoration**: Restored missing functionality in the Spotlights module by calculating and applying a top-default `sortOrder` for newly added entries. Injected UI reordering arrows (↑/↓) that enable immediate local array swapping and dual-document Firestore updates (`updateDoc`) to permanently lock in the manually adjusted sorting.
+
+- **Master Admin Teacher CSV Pipeline**: Expanded the CSV Import/Export tools to the Teachers module in the Admin Portal. Added `generateSymmetricCSV` and `processCSV` logic to support `teachers`, mapped strictly to `Name` and `Organization`. Added strict Tier 3 RBAC (Master Admin only) enforcement via `setupRBAC` to completely hide the CSV tools from standard Organization Leaders.
+
+- **Teacher Debounce & Uniqueness Check**: Implemented UI debouncing and database uniqueness validation inside `window.saveEditedTeacher` to permanently prevent duplicate records. The save button is disabled immediately on click to prevent multi-click network blasting, and a `getDocs` uniqueness check ensures no duplicate `name` and `org` combinations are written for new entries.
+
+- **Young Women Data Mapping Fix**: Resolved a critical load/save failure for the Young Women organization in the Admin Portal. Injected a `dbOrg` mapping variable in `admin-app.js` that correctly translates the UI string ('Young Women') into the expected database collection prefix ('YW') during Firestore reads and batched writes.
 
 - **Teacher Dropdown UI Polish**: Removed the "Combined" option from the Teacher Organization dropdown in the inline editing UI. "Combined" is an event scope, and ensuring teachers are strictly mapped to proper organizations (or "General") prevents data pollution.
 
