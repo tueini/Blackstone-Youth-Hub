@@ -45,3 +45,31 @@ All missions should follow this structure to ensure compliance:
 * **Native Editing:** Do not use `sed` or terminal commands to edit files.
 
 **Execution Checkpoint:** Do not launch a local server or browser subagent. Once the code is written locally, STOP and wait for my review. I will reply "Approved" when I am ready for you to run `firebase deploy`.
+
+## 8. The "Air Gap" GitHub Push Protocol (DevOps SOP)
+
+Due to GitHub deprecating standard password authentication for terminal operations, and to protect Personal Access Tokens (PAT) from being permanently stored in cloud-synced AI chat histories, all code pushes to GitHub must follow the "Air Gap" protocol. 
+
+This protocol splits the labor: the AG Agent prepares the package, and the Human Operator pushes it using native terminal tools.
+
+### Phase 1: Agent Preparation (IDE)
+Feed the AG Agent a sanitized prompt to stage and commit the code locally. Do not include tokens in the prompt.
+**Prompt Template:**
+> `@Workspace` Stage and commit all recent changes to prepare for a GitHub push. 
+> Execute `git add .` and `git commit -m "[Insert descriptive message here]"`. 
+> STOP after committing. Do not attempt to push.
+
+### Phase 2: Human Execution (Native Mac Terminal)
+The Human Operator executes the push bypassing the headless IDE restrictions and the Mac Keychain entirely.
+1. Generate or retrieve your active GitHub PAT (Must have `repo` scope).
+2. Open the native Mac Terminal (`Cmd + Space` -> `Terminal`).
+3. Navigate to the active workspace:
+   `cd /Users/dharris/Documents/0Church/Blackstone_Ward/Youth/[Active-Workspace-Folder]/`
+4. Execute the "Direct Token Bypass" push command:
+   `git push https://tueini:[PASTE_PAT_HERE]@github.com/tueini/Blackstone-Youth-Hub.git [branch-name]`
+   *(Note: This method is highly secure as it holds the token in RAM for the transaction but does not write it to the local `.git/config` file).*
+
+### Phase 3: The Cloud Merge (GitHub.com)
+1. Log in to GitHub.com.
+2. Navigate to the repository and open a **Pull Request** to merge the newly pushed branch (e.g., `beta-admin`) into `main`.
+3. Review the code diff visually, then click **Merge pull request**.
