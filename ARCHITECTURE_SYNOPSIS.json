@@ -5,7 +5,7 @@
     "target_url": "test.blackstoneward.org",
     "firebase_project": "test-blackstoneward",
     "active_branch": "beta-admin",
-    "current_version": "v7.12.67"
+    "current_version": "v7.12.75"
   },
   "tech_stack": {
     "frontend": ["Vanilla JS (ES Modules)", "Tailwind CSS", "HTML5"],
@@ -16,11 +16,13 @@
   "architecture": {
     "ui_model": "Dual-UX Responsive (Desktop Static Sidebar / Mobile Slide-out Drawer)",
     "core_modules": ["Activities", "Lessons", "Birthdays"],
+    "global_components": "Centralized versioning via cfm-config.js injected dynamically into a shared Global Footer across all primary and secondary organizational pages.",
     "admin_portal": "Dedicated route (/admin) with horizontal tabbed interface. Features Stacked UI (e.g., Teachers roster above Lesson schedule) with local anchor jump links.",
     "settings_privacy_module": {
       "layout": "Horizontal tabs replacing legacy dual-pane.",
       "components": ["Announcements (Global)", "Spotlights (Global/Protected)", "Teachers (Org-Filtered)", "Leaders (Org-Filtered)"],
-      "crud_pattern": "Modern inline responsive Flexbox cards (`isWriting` state) natively handling string escapes and avoiding static HTML form dependencies."
+      "crud_pattern": "Modern inline responsive Flexbox cards (`isWriting` state) natively handling string escapes and avoiding static HTML form dependencies.",
+      "rbac_routing": "Programmatic tab routing (e.g., navSpot.click()) enforces Tier 2 default views and permanently prevents HTML phantom content leaks."
     },
     "data_pipelines": {
       "media_storage": "Client-side Canvas compression -> Base64 string -> Direct Firestore document array injection (Bypassing Firebase Storage buckets/CORS entirely).",
@@ -49,19 +51,20 @@
   "ag_agent_guardrails": {
     "editing_protocol": "Native IDE file-editing tools ONLY. Terminal editors (sed, awk, echo) are STRICTLY FORBIDDEN.",
     "terminal_autonomy": "Pre-authorized for safe, read-only terminal commands ONLY (cat, grep, ls).",
-    "methodology": "Diagnostic-First. Perform read-only audits to locate exact breakpoints (e.g., SyntaxErrors, ReferenceErrors, missing DOM elements) before drafting code fixes.",
-    "execution_checkpoint": "Code First, Deploy Second. Stop and report 'Code Complete' locally. DO NOT use browser subagents unless explicitly prompted. Wait for human 'Approved' command to run `firebase deploy`.",
+    "methodology": "Diagnostic-First. Perform read-only audits to locate exact breakpoints before drafting code fixes.",
+    "execution_checkpoint": "Code First, Deploy Second. Stop and report 'Code Complete' locally. Wait for human 'Approved' command to run `firebase deploy`.",
     "scope_lock": "No unprompted refactoring. Only alter exact lines necessary for the stated mission.",
     "state_management": "Autonomous versioning (patch/minor bumps) and mandatory updates to PROJECT_STATE.md upon task completion."
   },
   "recent_milestones": [
+    "Eliminated Settings module Phantom Content leaks via programmatic RBAC tab routing.",
     "Resolved Strict Mode ReferenceErrors globally by explicitly declaring window-scoped variables.",
-    "Fixed Event Propagation/Default Submission clashes on all CRUD initialization buttons (e.g., e.preventDefault()).",
-    "Transitioned all Setting modules (Announcements, Spotlights, Teachers, Leaders) to full inline Flex-Card CRUD parity.",
-    "Verified SendGrid SMTP automated feedback pipeline."
+    "Fixed Event Propagation/Default Submission clashes on all CRUD initialization buttons.",
+    "Transitioned all Setting modules to full inline Flex-Card CRUD parity.",
+    "Verified Base64 media arrays and SendGrid SMTP automated feedback pipelines."
   ],
   "strategic_roadmap": {
-    "current_status": "Admin Portal 3-Tab + Settings stabilized. Base64 media & SMTP pipelines verified. Strict RBAC enforced.",
-    "next_phase": "Scale to multi-tenant platform (nxhub.org) using Firebase Authentication and Custom Claims, and conceptualize native iOS Companion App (Flutter/SwiftUI)."
+    "current_status": "Admin Portal stabilized. Global routing and RBAC views secured. Base64 media & SMTP pipelines verified.",
+    "next_phase": "Scale to multi-tenant platform (nxhub.org) using Firebase Authentication and Custom Claims, or conceptualize native iOS Companion App (Flutter/SwiftUI)."
   }
 }
