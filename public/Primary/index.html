@@ -220,83 +220,115 @@
             } catch (e) { console.error("Teacher fetch err:", e); }
 
             try {
-                const allData = [];
-                
-                const bSnap = await getDocs(collection(db, "birthdays"));
-                const bAllData = [];
-                bSnap.forEach(d => bAllData.push({...d.data(), id: d.id}));
-                bdays = bAllData;
-        
-                const orgSnap = await getDocs(collection(db, `${ORGANIZATION_NAME}_events`));
-                orgSnap.forEach(d => allData.push({...d.data(), id: d.id, sourceOrg: ORGANIZATION_NAME}));
-                if (!isCombinedPage) {
-                    const combinedSnap = await getDocs(collection(db, "Combined_events"));
-                    combinedSnap.forEach(d => allData.push({...d.data(), id: d.id, cat: 'combined', sourceOrg: 'Combined'}));
+                let orgEventsCache = [];
+                let combinedEventsCache = [];
+
+                function updateEventsAndRefresh() {
+                    const allData = [...orgEventsCache, ...combinedEventsCache];
+                    events = allData.filter(d => d.type === 'scheduled');
+                    unscheduled = allData.filter(d => d.type === 'unscheduled');
+                    refreshUI();
                 }
-                events = allData.filter(d => d.type === 'scheduled');
-                unscheduled = allData.filter(d => d.type === 'unscheduled');
+
+                onSnapshot(collection(db, "birthdays"), (bSnap) => {
+                    const bAllData = [];
+                    bSnap.forEach(d => bAllData.push({...d.data(), id: d.id}));
+                    bdays = bAllData;
+                });
+        
+                onSnapshot(collection(db, `${ORGANIZATION_NAME}_events`), (orgSnap) => {
+                    orgEventsCache = [];
+                    orgSnap.forEach(d => orgEventsCache.push({...d.data(), id: d.id, sourceOrg: ORGANIZATION_NAME}));
+                    updateEventsAndRefresh();
+                });
+
+                if (!isCombinedPage) {
+                    onSnapshot(collection(db, "Combined_events"), (combinedSnap) => {
+                        combinedEventsCache = [];
+                        combinedSnap.forEach(d => combinedEventsCache.push({...d.data(), id: d.id, cat: 'combined', sourceOrg: 'Combined'}));
+                        updateEventsAndRefresh();
+                    });
+                }
                 
                 
             try {
                 if (ORGANIZATION_NAME !== 'Combined') {
-                    const bdaySnap = await getDocs(collection(db, "birthdays"));
-                    const bdayNames = [];
-                    
-                    bdaySnap.forEach(d => {
-                        const binfo = d.data();
-                        if (binfo.org === ORGANIZATION_NAME && binfo.date) {
-                            let match = false;
-                            let mMonth = "", mDay = "";
-                            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                            const mMap = { "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun", "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec", "1": "Jan", "2": "Feb", "3": "Mar", "4": "Apr", "5": "May", "6": "Jun", "7": "Jul", "8": "Aug", "9": "Sep" };
-                            if (binfo.date.includes('-')) {
-                                const p = binfo.date.split('-');
-                                if (p.length === 3) { mMonth = mMap[p[1]]||"Jan"; mDay = parseInt(p[2]).toString(); }
-                                else if (p.length === 2) { mMonth = mMap[p[0]]||"Jan"; mDay = parseInt(p[1]).toString(); }
-                            } else if (binfo.date.includes('/')) {
-                                const p = binfo.date.split('/');
-                                mMonth = mMap[p[0]]||"Jan"; mDay = parseInt(p[1]).toString();
-                            } else {
-                                const p = binfo.date.split(' ');
-                                mMonth = p[0]; mDay = parseInt(p[1]||1).toString();
+                    onSnapshot(collection(db, "birthdays"), (bdaySnap) => {
+                        const bdayNames = [];
+                        
+                        bdaySnap.forEach(d => {
+                            const binfo = d.data();
+                            if (binfo.org === ORGANIZATION_NAME && binfo.date) {
+                                let match = false;
+                                let mMonth = "", mDay = "";
+                                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                                const mMap = { "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun", "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec", "1": "Jan", "2": "Feb", "3": "Mar", "4": "Apr", "5": "May", "6": "Jun", "7": "Jul", "8": "Aug", "9": "Sep" };
+                                if (binfo.date.includes('-')) {
+                                    const p = binfo.date.split('-');
+                                    if (p.length === 3) { mMonth = mMap[p[1]]||"Jan"; mDay = parseInt(p[2]).toString(); }
+                                    else if (p.length === 2) { mMonth = mMap[p[0]]||"Jan"; mDay = parseInt(p[1]).toString(); }
+                                } else if (binfo.date.includes('/')) {
+                                    const p = binfo.date.split('/');
+                                    mMonth = mMap[p[0]]||"Jan"; mDay = parseInt(p[1]).toString();
+                                } else {
+                                    const p = binfo.date.split(' ');
+                                    mMonth = p[0]; mDay = parseInt(p[1]||1).toString();
+                                }
+                                const today = new Date();
+                                if (mMonth === monthNames[today.getMonth()] && mDay === today.getDate().toString()) match = true;
+                                
+                                if (match) {
+                                    bdayNames.push(formatPrivacyName(binfo.name));
+                                }
                             }
-                            const today = new Date();
-                            if (mMonth === monthNames[today.getMonth()] && mDay === today.getDate().toString()) match = true;
-                            
-                            if (match) {
-                                bdayNames.push(formatPrivacyName(binfo.name));
+                        });
+                        
+                        if (bdayNames.length > 0 && !sessionStorage.getItem('birthdayShown_' + ORGANIZATION_NAME)) {
+                            const m = document.getElementById('bdayModal');
+                            if (m) {
+                                document.getElementById('bdayNames').innerText = bdayNames.join(' & ');
+                                m.classList.remove('hidden');
+                                
+                                // Generate Confetti
+                                const cCont = document.getElementById('confetti-container');
+                                if (cCont && cCont.children.length === 0) {
+                                    const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+                                    for (let k = 0; k < 50; k++) {
+                                        const c = document.createElement('div');
+                                        c.className = 'confetti';
+                                        c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                                        c.style.left = Math.random() * 100 + '%';
+                                        c.style.animationDelay = Math.random() * 3 + 's';
+                                        c.style.animationDuration = Math.random() * 2 + 3 + 's';
+                                        cCont.appendChild(c);
+                                    }
+                                }
                             }
                         }
                     });
-                    
-                    if (bdayNames.length > 0 && !sessionStorage.getItem('birthdayShown_' + ORGANIZATION_NAME)) {
-                        const m = document.getElementById('bdayModal');
-                        if (m) {
-                            document.getElementById('bdayNames').innerText = bdayNames.join(' & ');
-                            m.classList.remove('hidden');
-                            
-                            // Generate Confetti
-                            const cCont = document.getElementById('confetti-container');
-                            const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
-                            for (let k = 0; k < 50; k++) {
-                                const c = document.createElement('div');
-                                c.className = 'confetti';
-                                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                                c.style.left = Math.random() * 100 + '%';
-                                c.style.animationDelay = Math.random() * 3 + 's';
-                                c.style.animationDuration = Math.random() * 2 + 3 + 's';
-                                cCont.appendChild(c);
-                            }
-                        }
-                    }
                 }
             } catch(e) { console.error("Bday fetch error:", e); }
 
-                const lessonSnap = await getDocs(collection(db, `${ORGANIZATION_NAME}_lessons`));
-                lessonSnap.forEach(d => lessons.push({...d.data(), id: d.id, sourceOrg: ORGANIZATION_NAME}));
+                let orgLessonsCache = [];
+                let combinedLessonsCache = [];
+
+                function updateLessonsAndRefresh() {
+                    lessons = [...orgLessonsCache, ...combinedLessonsCache];
+                    refreshUI();
+                }
+
+                onSnapshot(collection(db, `${ORGANIZATION_NAME}_lessons`), (lessonSnap) => {
+                    orgLessonsCache = [];
+                    lessonSnap.forEach(d => orgLessonsCache.push({...d.data(), id: d.id, sourceOrg: ORGANIZATION_NAME}));
+                    updateLessonsAndRefresh();
+                });
+
                 if (!isCombinedPage) {
-                    const combinedL = await getDocs(collection(db, "Combined_lessons"));
-                    combinedL.forEach(d => lessons.push({...d.data(), id: d.id, sourceOrg: 'Combined'}));
+                    onSnapshot(collection(db, "Combined_lessons"), (combinedL) => {
+                        combinedLessonsCache = [];
+                        combinedL.forEach(d => combinedLessonsCache.push({...d.data(), id: d.id, sourceOrg: 'Combined'}));
+                        updateLessonsAndRefresh();
+                    });
                 }
                 
                 refreshUI();

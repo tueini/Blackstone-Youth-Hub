@@ -1,10 +1,16 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.12.75
+**Version**: v7.12.77
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment)
 **DevOps**: The beta environment is now securely tracked and isolated on the beta-admin branch of the GitHub repository.
+
+- **Environment & Database Safety Protocols**: Updated `AG_Best_Practices.md` to explicitly define strict "Beta-First" operational rules and document the shared database bleed risk between the Beta and Production Firestore instances, forbidding destructive testing and careless security rule pushes.
+
+- **Full Site Real-Time Synchronization Refactor**: Upgraded the data fetching scripts powering all secondary organization pages (Priests, YW, Teachers, Deacons, Primary, Combined) by replacing static `getDocs` calls with real-time `onSnapshot` listeners. Grid views for events, lessons, and birthdays now synchronize instantly with the database, ensuring seamless live updates for end-users whenever content is modified in the Admin Portal.
+
+- **Real-Time Combined Events Synchronization**: Upgraded the homepage "Combined" activities fetching logic in `index.html` from a static `getDocs` call to a real-time `onSnapshot` listener. This resolves a critical data desync issue where edits made in the Admin Portal failed to reflect on the live public website without a manual hard refresh, while preserving the dynamic query limits for UI balancing.
 
 - **Settings RBAC Content Leak & Default Routing**: Resolved a data visibility leak in the Settings module where Tier 2 users could see the Announcements container despite missing the navigation button. Injected a programmatic `navSpot.click()` in `setupRBAC` to explicitly route non-Admins to the Spotlights tab, simultaneously enforcing default routing and correctly hiding the Announcements container.
 

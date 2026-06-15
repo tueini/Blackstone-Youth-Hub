@@ -115,7 +115,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, updateDoc, setDoc, doc, deleteDoc, getDoc, query, orderBy, limit, where, Timestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, updateDoc, setDoc, doc, deleteDoc, getDoc, query, orderBy, limit, where, Timestamp, writeBatch, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDrWB07WNqObtjiZb_NntJQZ0dhHyLRBas",
@@ -238,39 +238,40 @@
 
             try {
                 // 1. Announcements
-                const annSnap = await getDocs(query(collection(db, "home_announcements"), orderBy("timestamp", "desc")));
-                const annContainer = document.getElementById('announcement-list');
-                let annHTML = '';
-                const annDocs = annSnap.docs;
-                annDocs.forEach((s, idx) => {
-                    const data = s.data();
-                    let finalLinkText = data.linkText || 'View More';
-                    let linkHTML = data.linkUrl ? `<a href="${data.linkUrl}" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 px-4 py-2 bg-blue-500/10 text-blue-400 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/20 hover:bg-blue-500/20 transition cursor-pointer">${finalLinkText}</a>` : '';
-                    
-                    let moveUpHTML = idx > 0 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx - 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Up">↑</button>` : '';
-                    let moveDownHTML = idx < annDocs.length - 1 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx + 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Down">↓</button>` : '';
+                onSnapshot(query(collection(db, "home_announcements"), orderBy("timestamp", "desc")), (annSnap) => {
+                    const annContainer = document.getElementById('announcement-list');
+                    let annHTML = '';
+                    const annDocs = annSnap.docs;
+                    annDocs.forEach((s, idx) => {
+                        const data = s.data();
+                        let finalLinkText = data.linkText || 'View More';
+                        let linkHTML = data.linkUrl ? `<a href="${data.linkUrl}" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 px-4 py-2 bg-blue-500/10 text-blue-400 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/20 hover:bg-blue-500/20 transition cursor-pointer">${finalLinkText}</a>` : '';
+                        
+                        let moveUpHTML = idx > 0 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx - 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Up">↑</button>` : '';
+                        let moveDownHTML = idx < annDocs.length - 1 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx + 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Down">↓</button>` : '';
 
-                    annHTML += `
-                        <div class="relative flex justify-between items-start border-l-2 border-blue-600 pl-4 py-2 my-1 transition-all ${isAdminMode ? 'border border-amber-500/30 bg-amber-900/10 shadow-[0_0_10px_rgba(245,158,11,0.1)] rounded-r pr-24' : ''}">
-                            <div class="flex flex-col pr-2 w-full">
-                                <p class="text-white font-medium whitespace-pre-wrap">${data.text}</p>
-                                ${linkHTML}
-                            </div>
-                            ${isAdminMode ? `
-                                <div class="absolute top-2 right-2 flex gap-1 z-10 bg-slate-900/80 rounded p-1">
-                                    ${moveUpHTML}
-                                    ${moveDownHTML}
-                                    <button onclick="window.editAnn('${s.id}', \`${data.text.replace(/`/g, '\\`').replace(/'/g, "\\'")}\`, \`${data.linkText || ''}\`, \`${data.linkUrl || ''}\`)" class="p-1.5 bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white rounded transition shadow-sm flex items-center justify-center shrink-0 ml-1" title="Edit Announcement">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                    </button>
-                                    <button onclick="window.delAnn('${s.id}')" class="p-1.5 bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white rounded transition shadow-sm flex items-center justify-center shrink-0" title="Delete Announcement">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
+                        annHTML += `
+                            <div class="relative flex justify-between items-start border-l-2 border-blue-600 pl-4 py-2 my-1 transition-all ${isAdminMode ? 'border border-amber-500/30 bg-amber-900/10 shadow-[0_0_10px_rgba(245,158,11,0.1)] rounded-r pr-24' : ''}">
+                                <div class="flex flex-col pr-2 w-full">
+                                    <p class="text-white font-medium whitespace-pre-wrap">${data.text}</p>
+                                    ${linkHTML}
                                 </div>
-                            ` : ''}
-                        </div>`;
+                                ${isAdminMode ? `
+                                    <div class="absolute top-2 right-2 flex gap-1 z-10 bg-slate-900/80 rounded p-1">
+                                        ${moveUpHTML}
+                                        ${moveDownHTML}
+                                        <button onclick="window.editAnn('${s.id}', \`${data.text.replace(/`/g, '\\`').replace(/'/g, "\\'")}\`, \`${data.linkText || ''}\`, \`${data.linkUrl || ''}\`)" class="p-1.5 bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white rounded transition shadow-sm flex items-center justify-center shrink-0 ml-1" title="Edit Announcement">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        </button>
+                                        <button onclick="window.delAnn('${s.id}')" class="p-1.5 bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white rounded transition shadow-sm flex items-center justify-center shrink-0" title="Delete Announcement">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>`;
+                    });
+                    annContainer.innerHTML = annHTML || '<p class="italic opacity-30 text-xs">No active announcements.</p>';
                 });
-                annContainer.innerHTML = annHTML || '<p class="italic opacity-30 text-xs">No active announcements.</p>';
 
                 // 2. Theme
                 const themeDoc = await getDoc(doc(db, "home_content", "general_info"));
@@ -299,30 +300,31 @@
                     if (annHeight > 0) dynamicLimit = Math.max(2, Math.floor(annHeight / 110));
                 }
                 const qCombined = query(collection(db, "Combined_events"), where("date", ">=", todayStr), orderBy("date", "asc"), limit(dynamicLimit));
-                const combinedSnap = await getDocs(qCombined);
-                const infoContainer = document.getElementById('combined-activities-list');
-                let infoHTML = '';
-                if (!combinedSnap.empty) {
-                    combinedSnap.docs.forEach(s => {
-                        const ev = s.data();
-                        const d = new Date(ev.date + "T00:00:00");
-                        infoHTML += `
-                            <div class="mb-4 bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="flex h-2 w-2 relative">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                    </span>
-                                    <p class="text-emerald-400 font-bold text-xs leading-tight uppercase tracking-widest">${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' })}</p>
+                onSnapshot(qCombined, (combinedSnap) => {
+                    const infoContainer = document.getElementById('combined-activities-list');
+                    let infoHTML = '';
+                    if (!combinedSnap.empty) {
+                        combinedSnap.docs.forEach(s => {
+                            const ev = s.data();
+                            const d = new Date(ev.date + "T00:00:00");
+                            infoHTML += `
+                                <div class="mb-4 bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="flex h-2 w-2 relative">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                        </span>
+                                        <p class="text-emerald-400 font-bold text-xs leading-tight uppercase tracking-widest">${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' })}</p>
+                                    </div>
+                                    <p class="text-white font-black text-lg leading-tight uppercase">${ev.name}</p>
                                 </div>
-                                <p class="text-white font-black text-lg leading-tight uppercase">${ev.name}</p>
-                            </div>
-                        `;
-                    });
-                    infoContainer.innerHTML = infoHTML;
-                } else {
-                    infoContainer.innerHTML = '<p class="italic text-slate-500 text-sm">Check back soon for events!</p>';
-                }
+                            `;
+                        });
+                        infoContainer.innerHTML = infoHTML;
+                    } else {
+                        infoContainer.innerHTML = '<p class="italic text-slate-500 text-sm">Check back soon for events!</p>';
+                    }
+                });
 
                 // 4. Youth Spotlights
                 const spotContainer = document.getElementById('youth-spotlight-container');
@@ -344,87 +346,90 @@
                         </div>
                     `;
                 } else {
-                    const spotSnap = await getDocs(query(collection(db, "home_spotlights"), orderBy("sortOrder", "asc")));
-                    let spotHTML = '';
-                    const spotDocs = spotSnap.docs;
-                spotDocs.forEach((s, idx) => {
-                    try {
-                        const data = s.data() || {};
-                        let moveUpHTML = idx > 0 ? `<button onclick="window.swapSpot('${s.id}', '${spotDocs[idx - 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Up">↑</button>` : '';
-                        let moveDownHTML = idx < spotDocs.length - 1 ? `<button onclick="window.swapSpot('${s.id}', '${spotDocs[idx + 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Down">↓</button>` : '';
-                        
-                        const safeVideoUrl = (data.video_url || data.videoUrl || '');
-                        const safeImageUrl = data.image_url || '';
-                        let thumbHTML = '';
-                        if (safeVideoUrl) {
-                            if (safeImageUrl) {
-                                thumbHTML = `<img src="${safeImageUrl}" class="absolute inset-0 w-full h-full object-cover">`;
-                            } else if (safeVideoUrl.includes && safeVideoUrl.includes('youtube.com')) {
-                                const m = safeVideoUrl.match(/embed\/([^?]+)/);
-                                thumbHTML = `<img src="https://img.youtube.com/vi/${m ? m[1] : ''}/hqdefault.jpg" class="absolute inset-0 w-full h-full object-cover">`;
-                            } else {
-                                thumbHTML = `<div class="absolute inset-0 bg-slate-900 border border-slate-800"></div>`;
-                            }
-                        }
+                } else {
+                    onSnapshot(query(collection(db, "home_spotlights"), orderBy("sortOrder", "asc")), (spotSnap) => {
+                        let spotHTML = '';
+                        const spotDocs = spotSnap.docs;
+                        spotDocs.forEach((s, idx) => {
+                            try {
+                                const data = s.data() || {};
+                                let moveUpHTML = idx > 0 ? `<button onclick="window.swapSpot('${s.id}', '${spotDocs[idx - 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Up">↑</button>` : '';
+                                let moveDownHTML = idx < spotDocs.length - 1 ? `<button onclick="window.swapSpot('${s.id}', '${spotDocs[idx + 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Down">↓</button>` : '';
+                                
+                                const safeVideoUrl = (data.video_url || data.videoUrl || '');
+                                const safeImageUrl = data.image_url || '';
+                                let thumbHTML = '';
+                                if (safeVideoUrl) {
+                                    if (safeImageUrl) {
+                                        thumbHTML = `<img src="${safeImageUrl}" class="absolute inset-0 w-full h-full object-cover">`;
+                                    } else if (safeVideoUrl.includes && safeVideoUrl.includes('youtube.com')) {
+                                        const m = safeVideoUrl.match(/embed\/([^?]+)/);
+                                        thumbHTML = `<img src="https://img.youtube.com/vi/${m ? m[1] : ''}/hqdefault.jpg" class="absolute inset-0 w-full h-full object-cover">`;
+                                    } else {
+                                        thumbHTML = `<div class="absolute inset-0 bg-slate-900 border border-slate-800"></div>`;
+                                    }
+                                }
 
-                        spotHTML += `
-                            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col md:flex-row relative">
-                                ${isAdminMode ? `
-                                    <div class="absolute top-4 right-4 flex gap-1 z-10 items-center bg-slate-900/80 rounded p-1">
-                                        ${moveUpHTML}
-                                        ${moveDownHTML}
-                                        <button data-id="${s.id}" class="edit-spot-btn p-1.5 bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition shadow flex items-center justify-center shrink-0 ml-1" title="Edit">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                        </button>
-                                        <button data-id="${s.id}" class="del-spot-btn p-1.5 bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition shadow flex items-center justify-center shrink-0" title="Delete">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                        </button>
-                                    </div>
-                                ` : ''}
-                                <div class="w-full md:w-1/3 min-h-[250px] bg-slate-800 flex-shrink-0 relative overflow-hidden">
-                                    ${safeVideoUrl ? `
-                                        <div class="absolute inset-0 cursor-pointer group" onclick="this.parentElement.innerHTML='<iframe src=&quot;${safeVideoUrl}&quot; class=&quot;absolute inset-0 w-full h-full&quot; frameborder=&quot;0&quot; allow=&quot;autoplay; fullscreen&quot; allowfullscreen></iframe>'">
-                                            ${thumbHTML}
-                                            <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition flex items-center justify-center">
-                                                <div class="w-16 h-16 bg-blue-600/90 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition border border-white/20">
-                                                    <svg class="w-8 h-8 text-white ml-2 drop-shadow-md" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                                </div>
+                                spotHTML += `
+                                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col md:flex-row relative">
+                                        ${isAdminMode ? `
+                                            <div class="absolute top-4 right-4 flex gap-1 z-10 items-center bg-slate-900/80 rounded p-1">
+                                                ${moveUpHTML}
+                                                ${moveDownHTML}
+                                                <button data-id="${s.id}" class="edit-spot-btn p-1.5 bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition shadow flex items-center justify-center shrink-0 ml-1" title="Edit">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                </button>
+                                                <button data-id="${s.id}" class="del-spot-btn p-1.5 bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition shadow flex items-center justify-center shrink-0" title="Delete">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
                                             </div>
+                                        ` : ''}
+                                        <div class="w-full md:w-1/3 min-h-[250px] bg-slate-800 flex-shrink-0 relative overflow-hidden">
+                                            ${safeVideoUrl ? `
+                                                <div class="absolute inset-0 cursor-pointer group" onclick="this.parentElement.innerHTML='<iframe src=&quot;${safeVideoUrl}&quot; class=&quot;absolute inset-0 w-full h-full&quot; frameborder=&quot;0&quot; allow=&quot;autoplay; fullscreen&quot; allowfullscreen></iframe>'">
+                                                    ${thumbHTML}
+                                                    <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition flex items-center justify-center">
+                                                        <div class="w-16 h-16 bg-blue-600/90 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition border border-white/20">
+                                                            <svg class="w-8 h-8 text-white ml-2 drop-shadow-md" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ` : (safeImageUrl ? `<img src="${safeImageUrl}" class="absolute inset-0 w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center text-slate-600"><svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`)}
                                         </div>
-                                    ` : (safeImageUrl ? `<img src="${safeImageUrl}" class="absolute inset-0 w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center text-slate-600"><svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`)}
-                                </div>
-                                <div class="p-6 md:p-8 flex flex-col justify-center flex-1">
-                                    <span class="text-xs font-black uppercase tracking-widest text-amber-500 mb-4 block flex items-center gap-3">
-                                        ${data.org || ''} ${data.spotDate ? `<span class="px-2 py-0.5 bg-slate-800 text-[9px] text-slate-400 rounded-lg whitespace-nowrap">${data.spotDate}</span>` : ''}
-                                    </span>
-                                    <p class="text-slate-300 leading-relaxed text-sm md:text-base">${(data.desc || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
-                                </div>
-                            </div>`;
-                    } catch (err) {
-                        console.error('Error rendering spotlight:', s.id, err);
-                    }
-                });
-                spotContainer.innerHTML = spotHTML || '<p class="italic opacity-30 text-xs pl-2">No active spotlights.</p>';
+                                        <div class="p-6 md:p-8 flex flex-col justify-center flex-1">
+                                            <span class="text-xs font-black uppercase tracking-widest text-amber-500 mb-4 block flex items-center gap-3">
+                                                ${data.org || ''} ${data.spotDate ? `<span class="px-2 py-0.5 bg-slate-800 text-[9px] text-slate-400 rounded-lg whitespace-nowrap">${data.spotDate}</span>` : ''}
+                                            </span>
+                                            <p class="text-slate-300 leading-relaxed text-sm md:text-base">${(data.desc || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+                                        </div>
+                                    </div>`;
+                            } catch (err) {
+                                console.error('Error rendering spotlight:', s.id, err);
+                            }
+                        });
+                        spotContainer.innerHTML = spotHTML || '<p class="italic opacity-30 text-xs pl-2">No active spotlights.</p>';
 
-                if (isAdminMode) {
-                    document.querySelectorAll('.edit-spot-btn').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const tID = btn.getAttribute('data-id');
-                            const tDoc = spotDocs.find(d => d.id === tID);
-                            if (tDoc) {
-                                const d = tDoc.data();
-                                window.editSpot(tDoc.id, d.org, d.desc, d.image_url, d.spotDate || '', d.video_url || '');
-                            }
-                        });
-                    });
-                    document.querySelectorAll('.del-spot-btn').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const tID = btn.getAttribute('data-id');
-                            const tDoc = spotDocs.find(d => d.id === tID);
-                            if (tDoc) {
-                                window.delSpot(tDoc.id, tDoc.data().image_url);
-                            }
-                        });
+                        if (isAdminMode) {
+                            document.querySelectorAll('.edit-spot-btn').forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const tID = btn.getAttribute('data-id');
+                                    const tDoc = spotDocs.find(d => d.id === tID);
+                                    if (tDoc) {
+                                        const d = tDoc.data();
+                                        window.editSpot(tDoc.id, d.org, d.desc, d.image_url, d.spotDate || '', d.video_url || '');
+                                    }
+                                });
+                            });
+                            document.querySelectorAll('.del-spot-btn').forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const tID = btn.getAttribute('data-id');
+                                    const tDoc = spotDocs.find(d => d.id === tID);
+                                    if (tDoc) {
+                                        window.delSpot(tDoc.id, tDoc.data().image_url);
+                                    }
+                                });
+                            });
+                        }
                     });
                 }
                 } // End isUnlocked else

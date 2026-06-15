@@ -46,7 +46,14 @@ All missions should follow this structure to ensure compliance:
 
 **Execution Checkpoint:** Do not launch a local server or browser subagent. Once the code is written locally, STOP and wait for my review. I will reply "Approved" when I am ready for you to run `firebase deploy`.
 
-## 8. The "Air Gap" GitHub Push Protocol (DevOps SOP)
+## 8. Environment & Database Safety Protocols
+
+* **Beta-First Execution:** ALL new features, bug fixes, and architectural changes MUST be executed in the `Website-beta/` workspace and deployed to `test.blackstoneward.org` first. Direct production edits are strictly forbidden.
+* **Shared Database Warning (Bleed Risk):** The Beta and Production environments share the exact same Firestore instance (`blackstoneward-b861c`).
+* **No Destructive Testing:** Never run broad "Delete All" scripts in Beta, as they will wipe live production data.
+* **Security Rule Bleed:** Any `firestore.rules` deployed from Beta instantly apply to the live Production site. Proceed with extreme caution.
+
+## 9. The "Air Gap" GitHub Push Protocol (DevOps SOP)
 
 Due to GitHub deprecating standard password authentication for terminal operations, and to protect Personal Access Tokens (PAT) from being permanently stored in cloud-synced AI chat histories, all code pushes to GitHub must follow the "Air Gap" protocol. 
 
