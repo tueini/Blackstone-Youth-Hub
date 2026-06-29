@@ -5,8 +5,8 @@
   "targets": {
     "blackstoneward-b861c": {
       "hosting": {
-        "blackstoneward": [
-          "blackstoneward-b861c"
+        "staging": [
+          "test-blackstoneward"
         ]
       }
     }

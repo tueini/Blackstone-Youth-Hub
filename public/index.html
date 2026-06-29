@@ -296,7 +296,8 @@
                 const todayStr = new Date().toISOString().split('T')[0];
                 let dynamicLimit = 4;
                 if (window.innerWidth >= 1024) {
-                    const annHeight = annContainer.offsetHeight || 0;
+                    const annContainerElement = document.getElementById('announcement-list');
+                    const annHeight = annContainerElement ? annContainerElement.offsetHeight : 0;
                     if (annHeight > 0) dynamicLimit = Math.max(2, Math.floor(annHeight / 110));
                 }
                 const qCombined = query(collection(db, "Combined_events"), where("date", ">=", todayStr), orderBy("date", "asc"), limit(dynamicLimit));
@@ -345,7 +346,6 @@
                             </div>
                         </div>
                     `;
-                } else {
                 } else {
                     onSnapshot(query(collection(db, "home_spotlights"), orderBy("sortOrder", "asc")), (spotSnap) => {
                         let spotHTML = '';
@@ -431,7 +431,6 @@
                             });
                         }
                     });
-                }
                 } // End isUnlocked else
             } catch (e) { console.error("Hub Load Error:", e); }
         }
