@@ -1,10 +1,12 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.12.77
+**Version**: v7.12.78
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment)
 **DevOps**: The beta environment is now securely tracked and isolated on the beta-admin branch of the GitHub repository.
+
+- **initHub() Scope Repair**: Resolved a critical `ReferenceError` inside `public/index.html` by replacing an out-of-scope `annContainer` reference with a fresh DOM query, successfully preventing the rendering pipeline from aborting and restoring the Youth Spotlights and Next Combined Events functionality.
 
 - **Environment & Database Safety Protocols**: Updated `AG_Best_Practices.md` to explicitly define strict "Beta-First" operational rules and document the shared database bleed risk between the Beta and Production Firestore instances, forbidding destructive testing and careless security rule pushes.
 
