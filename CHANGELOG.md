@@ -12,10 +12,19 @@
 - **Auto-Open Deep Linking**: Enabled deep linking via `?video=true`, `?watch=true`, and `#video` query parameters to trigger automatic announcement video modal launch on page load.
 - **Video Modal Header Banner**: Added dynamic video announcement title rendering with responsive truncation in the lightbox header.
 - **Spotlights Compatibility**: Gated spotlights automatically resolve embedded YouTube/Vimeo URLs and generate HQ thumbnails.
-- **Announcement Video Lightbox (Option 3)**: Introduced a distraction-free on-site video player lightbox modal (`#videoModal`) to play announcement videos directly inside the Hub without navigating off-site or throwing off home page column alignment.
-- **Universal Video Parser (`parseVideoInfo`)**: Implemented automatic parsing and conversion for YouTube links across all standard formats (`watch?v=`, `youtu.be/`, `shorts/`, `embed/`) and Vimeo links into compliant autoplay iframe sources (`/embed/ID?autoplay=1`).
-- **Spotlights Compatibility**: Updated the Youth Spotlights module to utilize the new parser, resolving YouTube `X-Frame-Options` iframe connection failures and automatically retrieving HQ video thumbnails.
-- **Keyboard & Backdrop Controls**: Bound Escape key listeners and dark backdrop click handlers to close the lightbox modal and clear the iframe source, immediately stopping video playback and background audio.
+
+## [2026-10-15 23:35] - v7.12.81 Video Announcement Auto-Open Deep-Linking
+- **Deep-Link Auto-Opening**: Integrated URL parameter (`?video=true`, `?watch=true`) and hash (`#video`) handling on `public/index.html` to automatically open the in-page video modal when visitors access the direct share link. Cleans URL on modal dismiss via `history.replaceState`.
+
+## [2026-10-15 23:26] - v7.12.80 Video Modal Header Banner Title Refinement
+- **Header Banner URL Label Binding**: Modified video modal trigger in `public/index.html` to pass the announcement's specific URL label (`linkText`) to the modal title element (`#videoModalTitle`), replacing the general announcement text with the clean video title.
+
+## [2026-10-15 23:17] - v7.12.79 Home Announcements In-Interface Video Modal
+- **In-Interface Video Modal**: Built an in-page 16:9 responsive video modal (`#videoModal`) directly into `public/index.html`.
+- **Automatic Video URL Detection**: Announcements containing Vimeo (standard, unlisted, vanity/redirects) or YouTube (watch, shorts, youtu.be, embed) URLs are now automatically identified and rendered as interactive `▶ Watch Video` modal triggers, eliminating disruptive redirects off-site.
+- **Accessible Modal Lifecycle**: Provided clean backdrop click dismiss, keyboard `Escape` support, and immediate iframe teardown upon closing to prevent lingering audio playback. Non-video URLs continue opening in new tabs via `target="_blank"`.
+
+## [2026-04-13 01:30] - v7.10.1 Global Branding & Routing
 - Universal Version Logic: Extracted version management to `cfm-config.js` and injected dynamic footer branding uniformly across all organizational pages (Deacons, Priests, etc.).
 - Routing Refinement: Corrected static `<h1>` initial states mapped dynamically in secondary organizational loops to appropriately render localized titles, eliminating the visual jump from default legacy strings.
 - Master Footer Synchronization: Forced Suggestions & Help logic to mount in a persistent global component appended beneath secondary calendars for full accessibility.

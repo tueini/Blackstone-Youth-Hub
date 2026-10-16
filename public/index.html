@@ -353,7 +353,7 @@
                         let linkHTML = '';
                         if (embedUrl) {
                             const finalLinkText = data.linkText || 'Watch Video';
-                            const safeTitle = encodeURIComponent(data.text ? data.text.substring(0, 80) : finalLinkText);
+                            const safeTitle = encodeURIComponent(finalLinkText);
                             linkHTML = `<button type="button" onclick="window.openVideoModal(event, '${embedUrl}', '${safeTitle}')" class="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-blue-600/20 text-blue-300 hover:text-white hover:bg-blue-600 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/40 transition cursor-pointer shadow-sm active:scale-95"><span class="text-xs">▶</span> ${finalLinkText}</button>`;
                         } else if (data.linkUrl) {
                             let finalLinkText = data.linkText || 'View More';
@@ -395,7 +395,7 @@
                             const embedUrl = parseVideoEmbedUrl(d.linkUrl) || parseVideoEmbedUrl(d.text);
                             if (embedUrl) {
                                 const finalLinkText = d.linkText || 'Video';
-                                const safeTitle = encodeURIComponent(d.text ? d.text.substring(0, 80) : finalLinkText);
+                                const safeTitle = encodeURIComponent(finalLinkText);
                                 setTimeout(() => {
                                     window.openVideoModal(null, embedUrl, safeTitle);
                                 }, 300);
@@ -797,6 +797,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Global Feedback Modal -->
     <div id="feedbackModal"

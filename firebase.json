@@ -12,6 +12,16 @@
         "**/.*",
         "**/node_modules/**"
       ]
+    },
+    {
+      "target": "blackstoneward",
+      "public": "public",
+      "cleanUrls": true,
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ]
     }
   ],
   "functions": {
