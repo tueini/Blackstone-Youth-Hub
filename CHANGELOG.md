@@ -1,3 +1,6 @@
+## [2026-10-15 23:35] - v7.12.81 Video Announcement Auto-Open Deep-Linking
+- **Deep-Link Auto-Opening**: Integrated URL parameter (`?video=true`, `?watch=true`) and hash (`#video`) handling on `public/index.html` to automatically open the in-page video modal when visitors access the direct share link. Cleans URL on modal dismiss via `history.replaceState`.
+
 ## [2026-10-15 23:26] - v7.12.80 Video Modal Header Banner Title Refinement
 - **Header Banner URL Label Binding**: Modified video modal trigger in `public/index.html` to pass the announcement's specific URL label (`linkText`) to the modal title element (`#videoModalTitle`), replacing the general announcement text with the clean video title.
 

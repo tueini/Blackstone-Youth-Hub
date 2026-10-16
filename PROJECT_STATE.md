@@ -1,10 +1,12 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.12.80
+**Version**: v7.12.81
 **Active Branch**: `main`
 **Hosting Target**: `blackstoneward` (Production) & `test-blackstoneward` (Staging)
 **DevOps**: The beta environment is now securely tracked and isolated on the beta-admin branch of the GitHub repository.
+
+- **Video Announcement Auto-Open Deep-Linking**: Implemented direct URL parameter and hash detection (`?video=true`, `?watch=true`, `#video`) in `public/index.html`. Visiting the home page via deep-link automatically triggers and opens the video modal overlay with the embedded player once announcements load, and cleanly resets the URL in browser history upon dismissal without triggering page reload.
 
 - **Video Modal Header Banner Title Refinement**: Updated the video modal trigger in `public/index.html` to pass the announcement's specific URL label (`linkText`) instead of the general announcement body text, ensuring the modal's header banner cleanly displays the video title (e.g. "Dare Mighty Things").
 

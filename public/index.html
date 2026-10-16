@@ -280,6 +280,25 @@
                             </div>`;
                     });
                     annContainer.innerHTML = annHTML || '<p class="italic opacity-30 text-xs">No active announcements.</p>';
+
+                    // Auto-open video modal if deep-linked via URL parameter (?video=true, ?watch=true) or hash (#video)
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const hasDeepLink = urlParams.has('video') || urlParams.has('watch') || window.location.hash === '#video';
+                    if (!window._hasAutoOpenedVideo && hasDeepLink) {
+                        window._hasAutoOpenedVideo = true;
+                        for (const s of annDocs) {
+                            const d = s.data();
+                            const embedUrl = parseVideoEmbedUrl(d.linkUrl);
+                            if (embedUrl) {
+                                const finalLinkText = d.linkText || 'Video';
+                                const safeTitle = encodeURIComponent(finalLinkText);
+                                setTimeout(() => {
+                                    window.openVideoModal(null, embedUrl, safeTitle);
+                                }, 300);
+                                break;
+                            }
+                        }
+                    }
                 });
 
                 // 2. Theme
@@ -650,6 +669,10 @@
                 modal.classList.remove('flex');
             }
             document.body.classList.remove('overflow-hidden');
+            if (window.history && window.history.replaceState && (window.location.search.includes('video') || window.location.search.includes('watch') || window.location.hash.includes('video'))) {
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState(null, '', cleanUrl);
+            }
         };
 
         // Light dismiss on backdrop click
