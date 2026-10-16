@@ -1,4 +1,9 @@
-> **Note**: The current app version is v7.12.85 on beta-admin.
+> **Note**: The current app version is v7.12.86 on beta-admin.
+
+## [2026-10-16 12:15] - v7.12.86 Restore Deterministic Video ID Deep-Linking
+- **Video ID & Announcement Document ID Resolution**: Restored and enhanced the deep-linking engine in `public/index.html` to scan active announcements for exact Vimeo/YouTube Video IDs (e.g. `?video=1236419866`, `?watch=1236419866`) or Firestore announcement document IDs (`?video=<DOC_ID>`). If multiple video announcements exist simultaneously, the modal player opens the specific video matched by ID rather than defaulting to the first item.
+- **Graceful Fallbacks**: Preserved `?video=true`, `?watch=true`, and `#video` to automatically open the most recent active video announcement. If an unmatched ID is provided, the engine gracefully falls back to the top video.
+- **Client Cache-Busting & Version Sync**: Synchronized global version to `7.12.86` across `cfm-config.js`, `index.html` script cache-buster (`/cfm-config.js?v=7.12.86`), and static footer fallback.
 
 ## [2026-10-16 01:15] - v7.12.85 Announcements Manager Manual Reordering
 - **Interactive Reordering Tool**: Added dedicated ↑ and ↓ reordering arrow buttons to each announcement card in the Admin Portal (Settings & Privacy -> Announcements Manager).
