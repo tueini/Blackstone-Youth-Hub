@@ -1,4 +1,21 @@
-## [2026-04-13 01:30] - v7.10.1 Global Branding & Routing
+> **Note**: The current app version is v7.12.85 on beta-admin.
+
+## [2026-10-16 01:15] - v7.12.85 Announcements Manager Manual Reordering
+- **Interactive Reordering Tool**: Added dedicated ↑ and ↓ reordering arrow buttons to each announcement card in the Admin Portal (Settings & Privacy -> Announcements Manager).
+- **Atomic Firestore Synchronization**: Swapping adjacent announcement cards uses an atomic Firestore `writeBatch` update on `timestamp` (the primary field used in `orderBy("timestamp", "desc")` on the client site), with automatic collision handling and timestamp redistribution if documents share equal timestamps.
+- **Top-Priority New Entries**: Newly created announcements calculate a top-default timestamp that prepends above existing items, maintaining consistent ascending/descending alignment.
+- **Visual Boundaries & Polish**: Bound list boundary states with disabled and muted styling on the first (↑) and last (↓) items, accompanied by a new instructional subtitle in the Announcements Manager header.
+
+## [2026-10-16 01:00] - v7.12.84 Video Modal Header Title URL Label Fix
+- **URL Link Text Mapping**: Replaced announcement body text references in the video modal banner with the announcement's dedicated URL link text (`data.linkText`, e.g., "Defying Defeat"), ensuring the lightbox header displays the clean video title rather than lengthy announcement descriptions.
+- **Unified Video Embed Parser**: Merged full video parsing capabilities supporting YouTube (desktop watch, youtu.be, shorts, embed) and Vimeo (standard, player, unlisted, and vanity links).
+- **Auto-Open Deep Linking**: Enabled deep linking via `?video=true`, `?watch=true`, and `#video` query parameters to trigger automatic announcement video modal launch on page load.
+- **Video Modal Header Banner**: Added dynamic video announcement title rendering with responsive truncation in the lightbox header.
+- **Spotlights Compatibility**: Gated spotlights automatically resolve embedded YouTube/Vimeo URLs and generate HQ thumbnails.
+- **Announcement Video Lightbox (Option 3)**: Introduced a distraction-free on-site video player lightbox modal (`#videoModal`) to play announcement videos directly inside the Hub without navigating off-site or throwing off home page column alignment.
+- **Universal Video Parser (`parseVideoInfo`)**: Implemented automatic parsing and conversion for YouTube links across all standard formats (`watch?v=`, `youtu.be/`, `shorts/`, `embed/`) and Vimeo links into compliant autoplay iframe sources (`/embed/ID?autoplay=1`).
+- **Spotlights Compatibility**: Updated the Youth Spotlights module to utilize the new parser, resolving YouTube `X-Frame-Options` iframe connection failures and automatically retrieving HQ video thumbnails.
+- **Keyboard & Backdrop Controls**: Bound Escape key listeners and dark backdrop click handlers to close the lightbox modal and clear the iframe source, immediately stopping video playback and background audio.
 - Universal Version Logic: Extracted version management to `cfm-config.js` and injected dynamic footer branding uniformly across all organizational pages (Deacons, Priests, etc.).
 - Routing Refinement: Corrected static `<h1>` initial states mapped dynamically in secondary organizational loops to appropriately render localized titles, eliminating the visual jump from default legacy strings.
 - Master Footer Synchronization: Forced Suggestions & Help logic to mount in a persistent global component appended beneath secondary calendars for full accessibility.

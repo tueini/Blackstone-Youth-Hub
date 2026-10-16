@@ -1953,6 +1953,17 @@ window.moveSpotlightDown = async (id) => {
 // Announcements Logic
 let currentlyEditingAnnId = null;
 
+function getTimestampMs(item) {
+    if (!item || !item.timestamp) return Date.now();
+    const t = item.timestamp;
+    if (typeof t.toMillis === 'function') return t.toMillis();
+    if (typeof t.seconds === 'number') return t.seconds * 1000 + Math.floor((t.nanoseconds || 0) / 1000000);
+    if (t instanceof Date) return t.getTime();
+    if (typeof t === 'number') return t;
+    const parsed = new Date(t).getTime();
+    return isNaN(parsed) ? Date.now() : parsed;
+}
+
 async function loadAnnouncements() {
     const list = document.getElementById('announcements-data');
     if (!list) return;
@@ -1962,10 +1973,7 @@ async function loadAnnouncements() {
         
         let docs = [];
         snap.forEach(d => docs.push({...d.data(), id: d.id}));
-        docs.sort((a,b) => {
-            if (a.timestamp && b.timestamp) return b.timestamp.seconds - a.timestamp.seconds;
-            return 0;
-        });
+        docs.sort((a,b) => getTimestampMs(b) - getTimestampMs(a));
 
         window.currentAnnData = docs;
         renderAnnouncementsList(docs, list);
@@ -1978,8 +1986,10 @@ function renderAnnouncementsList(docs, list) {
         return;
     }
 
-    list.innerHTML = docs.map(data => {
+    list.innerHTML = docs.map((data, idx) => {
         const isWriting = currentlyEditingAnnId === data.id;
+        const isFirst = idx === 0;
+        const isLast = idx === docs.length - 1;
         if (isWriting) {
             return `<div class="flex flex-col md:flex-row items-start md:items-center gap-2 p-4 bg-slate-800/80 rounded-xl border border-slate-800/50 w-full mb-2">
                 <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -2005,7 +2015,9 @@ function renderAnnouncementsList(docs, list) {
                 </div>` : ''}
                 <div class="w-full md:w-auto flex justify-end shrink-0 action-col">
                     <div class="flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                        ${window.currentUserRole === 'Admin' ? `
+                        ${(window.currentUserRole === 'Admin' || !window.currentUserRole) ? `
+                        <button onclick="window.moveAnnouncementUp('${data.id}')" class="${isFirst ? 'opacity-30 cursor-not-allowed text-slate-600' : 'text-slate-400 hover:text-white hover:bg-slate-600'} bg-slate-800 rounded-lg w-8 h-8 flex items-center justify-center transition-colors text-sm" title="Move Up" ${isFirst ? 'disabled' : ''}>↑</button>
+                        <button onclick="window.moveAnnouncementDown('${data.id}')" class="${isLast ? 'opacity-30 cursor-not-allowed text-slate-600' : 'text-slate-400 hover:text-white hover:bg-slate-600'} bg-slate-800 rounded-lg w-8 h-8 flex items-center justify-center transition-colors text-sm" title="Move Down" ${isLast ? 'disabled' : ''}>↓</button>
                         <button onclick="window.editAnn('${data.id}')" class="text-blue-400 hover:text-white bg-blue-900/30 hover:bg-blue-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors text-sm" title="Edit">✎</button>
                         <button onclick="window.delAnn('${data.id}')" class="text-red-400 hover:text-white bg-red-900/20 hover:bg-red-600 rounded-lg w-8 h-8 flex items-center justify-center transition-colors text-sm" title="Delete">🗑</button>
                         ` : ''}
@@ -2032,6 +2044,90 @@ function renderAnnouncementsList(docs, list) {
     });
 }
 
+window.moveAnnouncementUp = async (id) => {
+    if (!window.currentAnnData) return;
+    const idx = window.currentAnnData.findIndex(a => a.id === id);
+    if (idx <= 0) return;
+
+    const curr = window.currentAnnData[idx];
+    const prev = window.currentAnnData[idx - 1];
+
+    window.currentAnnData[idx] = prev;
+    window.currentAnnData[idx - 1] = curr;
+    renderAnnouncementsList(window.currentAnnData, document.getElementById('announcements-data'));
+
+    try {
+        let tCurr = getTimestampMs(curr);
+        let tPrev = getTimestampMs(prev);
+
+        if (tPrev === tCurr) {
+            const baseTime = Date.now();
+            const batch = writeBatch(db);
+            window.currentAnnData.forEach((item, i) => {
+                const newDate = new Date(baseTime - (i * 60000));
+                item.timestamp = { seconds: Math.floor(newDate.getTime() / 1000) };
+                batch.update(doc(db, "home_announcements", item.id), { timestamp: newDate });
+            });
+            await batch.commit();
+        } else {
+            const dateCurr = new Date(Math.max(tCurr, tPrev));
+            const datePrev = new Date(Math.min(tCurr, tPrev));
+            curr.timestamp = { seconds: Math.floor(dateCurr.getTime() / 1000) };
+            prev.timestamp = { seconds: Math.floor(datePrev.getTime() / 1000) };
+
+            const batch = writeBatch(db);
+            batch.update(doc(db, "home_announcements", curr.id), { timestamp: dateCurr });
+            batch.update(doc(db, "home_announcements", prev.id), { timestamp: datePrev });
+            await batch.commit();
+        }
+    } catch(e) {
+        alert("Error updating order: " + e.message);
+        loadAnnouncements();
+    }
+};
+
+window.moveAnnouncementDown = async (id) => {
+    if (!window.currentAnnData) return;
+    const idx = window.currentAnnData.findIndex(a => a.id === id);
+    if (idx < 0 || idx >= window.currentAnnData.length - 1) return;
+
+    const curr = window.currentAnnData[idx];
+    const next = window.currentAnnData[idx + 1];
+
+    window.currentAnnData[idx] = next;
+    window.currentAnnData[idx + 1] = curr;
+    renderAnnouncementsList(window.currentAnnData, document.getElementById('announcements-data'));
+
+    try {
+        let tCurr = getTimestampMs(curr);
+        let tNext = getTimestampMs(next);
+
+        if (tNext === tCurr) {
+            const baseTime = Date.now();
+            const batch = writeBatch(db);
+            window.currentAnnData.forEach((item, i) => {
+                const newDate = new Date(baseTime - (i * 60000));
+                item.timestamp = { seconds: Math.floor(newDate.getTime() / 1000) };
+                batch.update(doc(db, "home_announcements", item.id), { timestamp: newDate });
+            });
+            await batch.commit();
+        } else {
+            const dateCurr = new Date(Math.min(tCurr, tNext));
+            const dateNext = new Date(Math.max(tCurr, tNext));
+            curr.timestamp = { seconds: Math.floor(dateCurr.getTime() / 1000) };
+            next.timestamp = { seconds: Math.floor(dateNext.getTime() / 1000) };
+
+            const batch = writeBatch(db);
+            batch.update(doc(db, "home_announcements", curr.id), { timestamp: dateCurr });
+            batch.update(doc(db, "home_announcements", next.id), { timestamp: dateNext });
+            await batch.commit();
+        }
+    } catch(e) {
+        alert("Error updating order: " + e.message);
+        loadAnnouncements();
+    }
+};
+
 window.editAnn = (id) => {
     currentlyEditingAnnId = id;
     if (window.currentAnnData) renderAnnouncementsList(window.currentAnnData, document.getElementById('announcements-data'));
@@ -2057,11 +2153,21 @@ window.saveEditedAnn = async (id) => {
     
     try {
         if (id.startsWith('temp_')) {
+            let topTimestamp = Date.now();
+            if (window.currentAnnData && window.currentAnnData.length > 0) {
+                const nonTemp = window.currentAnnData.find(a => !a.id.startsWith('temp_') && a.timestamp);
+                if (nonTemp) {
+                    const topMs = getTimestampMs(nonTemp);
+                    if (topMs >= topTimestamp) {
+                        topTimestamp = topMs + 1000;
+                    }
+                }
+            }
             await addDoc(collection(db, "home_announcements"), { 
                 text: newText, 
                 linkText: newLinkText, 
                 linkUrl: newLinkUrl, 
-                timestamp: new Date()
+                timestamp: new Date(topTimestamp)
             });
         } else {
             await setDoc(doc(db, "home_announcements", id), { 

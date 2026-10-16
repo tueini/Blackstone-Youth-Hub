@@ -93,3 +93,14 @@ build/
 config.js
 .firebaserc
 zzGoogle/
+
+# Admin Credentials & Test Scripts
+Admin/Credentials_Deacons.docx
+Admin/Credentials_Priests.docx
+Admin/Credentials_Primary.docx
+Admin/Credentials_Teachers.docx
+Admin/Credentials_YW.docx
+test-login.js
+
+# Backup Archives
+Youth_Hub_Backup/
