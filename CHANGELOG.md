@@ -1,3 +1,18 @@
+> **Note**: The current app version is v7.12.85 on beta-admin.
+
+## [2026-10-16 01:15] - v7.12.85 Announcements Manager Manual Reordering
+- **Interactive Reordering Tool**: Added dedicated ↑ and ↓ reordering arrow buttons to each announcement card in the Admin Portal (Settings & Privacy -> Announcements Manager).
+- **Atomic Firestore Synchronization**: Swapping adjacent announcement cards uses an atomic Firestore `writeBatch` update on `timestamp` (the primary field used in `orderBy("timestamp", "desc")` on the client site), with automatic collision handling and timestamp redistribution if documents share equal timestamps.
+- **Top-Priority New Entries**: Newly created announcements calculate a top-default timestamp that prepends above existing items, maintaining consistent ascending/descending alignment.
+- **Visual Boundaries & Polish**: Bound list boundary states with disabled and muted styling on the first (↑) and last (↓) items, accompanied by a new instructional subtitle in the Announcements Manager header.
+
+## [2026-10-16 01:00] - v7.12.84 Video Modal Header Title URL Label Fix
+- **URL Link Text Mapping**: Replaced announcement body text references in the video modal banner with the announcement's dedicated URL link text (`data.linkText`, e.g., "Defying Defeat"), ensuring the lightbox header displays the clean video title rather than lengthy announcement descriptions.
+- **Unified Video Embed Parser**: Merged full video parsing capabilities supporting YouTube (desktop watch, youtu.be, shorts, embed) and Vimeo (standard, player, unlisted, and vanity links).
+- **Auto-Open Deep Linking**: Enabled deep linking via `?video=true`, `?watch=true`, and `#video` query parameters to trigger automatic announcement video modal launch on page load.
+- **Video Modal Header Banner**: Added dynamic video announcement title rendering with responsive truncation in the lightbox header.
+- **Spotlights Compatibility**: Gated spotlights automatically resolve embedded YouTube/Vimeo URLs and generate HQ thumbnails.
+
 ## [2026-10-15 23:35] - v7.12.81 Video Announcement Auto-Open Deep-Linking
 - **Deep-Link Auto-Opening**: Integrated URL parameter (`?video=true`, `?watch=true`) and hash (`#video`) handling on `public/index.html` to automatically open the in-page video modal when visitors access the direct share link. Cleans URL on modal dismiss via `history.replaceState`.
 

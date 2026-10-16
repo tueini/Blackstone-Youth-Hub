@@ -1,16 +1,18 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.12.81
-**Active Branch**: `main`
-**Hosting Target**: `blackstoneward` (Production) & `test-blackstoneward` (Staging)
+**Version**: v7.12.85
+**Active Branch**: `beta-admin`
+**Hosting Target**: `test-blackstoneward` (Staging Environment)
 **DevOps**: The beta environment is now securely tracked and isolated on the beta-admin branch of the GitHub repository.
+
+- **Announcements Manual Reordering (Up/Down Arrows & Timestamp Sync)**: Added dedicated reordering tools to the Announcements Manager in the Admin Portal (Settings & Privacy -> Announcements). Announcement cards now feature interactive ↑ and ↓ arrows with dynamic disabled/opacity styling at the list boundaries. Reordering performs an instant local array swap for zero-latency UI feedback, followed by an atomic Firestore `writeBatch` update that synchronizes document timestamps (and automatically redistributes timestamps if records share identical creation times). Newly created announcements are dynamically assigned top-priority timestamps ensuring they seamlessly prepend above existing items.
 
 - **Video Announcement Auto-Open Deep-Linking**: Implemented direct URL parameter and hash detection (`?video=true`, `?watch=true`, `#video`) in `public/index.html`. Visiting the home page via deep-link automatically triggers and opens the video modal overlay with the embedded player once announcements load, and cleanly resets the URL in browser history upon dismissal without triggering page reload.
 
 - **Video Modal Header Banner Title Refinement**: Updated the video modal trigger in `public/index.html` to pass the announcement's specific URL label (`linkText`) instead of the general announcement body text, ensuring the modal's header banner cleanly displays the video title (e.g. "Dare Mighty Things").
 
-- **In-Interface Video Modal for Home Announcements**: Integrated a responsive 16:9 embedded video player modal directly within `public/index.html`. Announcement links referencing video content (Vimeo standard/unlisted/vanity URLs and YouTube standard/shorts/embed URLs) are automatically detected and rendered as interactive modal triggers (`▶ Watch Video`), allowing visitors to view video announcements smoothly inside the interface without navigating away from the site. Includes complete modal lifecycle handling (backdrop light dismiss, keyboard Escape listener, and instant audio/iframe teardown upon closing).
+- **Announcement Video Lightbox & Universal Video Embed Resolution (Option 3)**: Implemented a responsive dark-mode video lightbox modal (`#videoModal`) on the homepage to play YouTube and Vimeo videos on-site without navigating away or breaking grid layout balance. Engineered `parseVideoInfo(url)` to automatically detect and extract video IDs from any YouTube format (`watch?v=`, `youtu.be/`, `shorts/`, `embed/`) and Vimeo links, converting them into auto-playing embed URLs (`/embed/ID?autoplay=1`). Announcements containing video links now feature a stylized "▶ Watch Video" button triggering the on-site lightbox player. Also integrated the parser into the Youth Spotlights module to ensure YouTube links correctly generate video thumbnails and embed within the existing player window without encountering YouTube's `X-Frame-Options` iframe restriction.
 
 - **initHub() Scope Repair**: Resolved a critical `ReferenceError` inside `public/index.html` by replacing an out-of-scope `annContainer` reference with a fresh DOM query, successfully preventing the rendering pipeline from aborting and restoring the Youth Spotlights and Next Combined Events functionality.
 
@@ -61,7 +63,7 @@
 - **Stacked UI Component Integrity Verification**: Verified that `#teachers-section` and `#lessons-section` Stacked UI elements (including their `+ Add` buttons and data wrappers) are solidly injected within the `#lessons-manager` HTML tree. Adjusted the `admin-app.js` data-binding empty state injection to perfectly format the `<p>No teachers found.</p>` fallback message directly into `#teacher-roster-data`, ensuring total UI control separation.
 
 ## Application Version
-**7.12.60** (May 2026 DB Sync Pending)
+**7.12.83** (May 2026 DB Sync Pending)
 
 ## Recent Significant Actions
 - **Pipeline Halt Resolution & HTML Structure Repair**: Discovered that an unprotected `.replace()` on potentially undefined properties (`item.details`) in the *Activities* module was silently throwing a TypeError, halting the global `refreshUI()` pipeline and completely preventing the *Lessons* and *Birthdays* rendering functions from ever executing (explaining the blank screens). Applied strict `String()` wrappers across the `renderDataManager` template to resolve. Additionally, repaired misaligned `</div>` closures in `index.html` that had inadvertently orphaned the Lessons and Birthdays tab containers outside the `#admin-dashboard` layout flow.
@@ -83,7 +85,7 @@
 
 ## GitHub Tracking Status
 - **Repository**: [tueini/Blackstone-Youth-Hub](https://github.com/tueini/Blackstone-Youth-Hub)
-- **Status**: The project has been successfully initialized as a Git repository. Version **v7.12.24** is currently live on Firebase and securely tracked on the `beta-admin` branch.
+- **Status**: The project has been successfully initialized as a Git repository. Version **v7.12.84** is currently live on Firebase and securely tracked on the `beta-admin` branch.
 - **Sanitization**: All legacy `.zip` archives, the `zzarch/` and `zzimport/` directories, and obsolete files like `set_version.html` were successfully deleted.
 - **Security**: Firebase secrets (e.g., `.firebaserc`, `zzGoogle/`) and `node_modules` are safely ignored in `.gitignore`.
 

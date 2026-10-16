@@ -1,37 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Youth Hub</title>
     <script src="security-config.js"></script>
-    <script src="cfm-config.js"></script>
+    <script src="/cfm-config.js?v=7.12.85"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; -webkit-tap-highlight-color: transparent; }
-        .card-hover { transition: all 0.3s ease; border: 1px solid #334155; position: relative; overflow: hidden; touch-action: manipulation; }
-        .card-hover:hover { transform: translateY(-5px); border-color: #3b82f6; background: #1e293b; }
-        .card-combined { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
-        .admin-input { background: #0f172a; border: 1px solid #334155; color: white; padding: 12px; border-radius: 8px; width: 100%; font-size: 14px; outline: none; }
-        .admin-input:focus { border-color: #3b82f6; }
-        .btn-primary { background: #2563eb; color: white; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.2s; }
-        .btn-primary:active { transform: scale(0.98); }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+            border: 1px solid #334155;
+            position: relative;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            background: #1e293b;
+        }
+
+        .card-combined {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .admin-input {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .admin-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
+
 <body>
     <header class="py-5 px-4 bg-transparent text-center flex justify-center">
         <a href="./index.html" class="inline-block">
-            <img src="./images/BlackstoneYouthHubLogo.png" alt="Blackstone Ward Youth Hub" style="max-height: 150px; width: auto;" class="object-contain">
+            <img src="./images/BlackstoneYouthHubLogo.png" alt="Blackstone Ward Youth Hub"
+                style="max-height: 150px; width: auto;" class="object-contain">
         </a>
     </header>
 
     <main class="max-w-7xl mx-auto px-6 pb-12">
         <h2 class="text-3xl font-black text-white mb-6 uppercase tracking-widest pl-2">Activities</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            <a href="/Combined/" class="card-hover card-combined p-8 md:p-12 rounded-2xl block text-center md:col-span-3">
+            <a href="/Combined/"
+                class="card-hover card-combined p-8 md:p-12 rounded-2xl block text-center md:col-span-3">
                 <h3 class="text-2xl md:text-3xl font-black text-white mb-2">Combined</h3>
-                <p class="text-blue-400 text-[10px] font-bold uppercase tracking-widest">Dances • Conferences • Ward Nights</p>
+                <p class="text-blue-400 text-[10px] font-bold uppercase tracking-widest">Dances • Conferences • Ward
+                    Nights</p>
             </a>
 
             <a href="/Priests/" class="card-hover p-6 md:p-8 rounded-2xl bg-slate-800/40 block text-center">
@@ -46,11 +96,12 @@
             <a href="/YW/" class="card-hover p-6 md:p-8 rounded-2xl bg-slate-800/40 block text-center">
                 <h3 class="text-lg font-bold text-white uppercase tracking-wider">Young Women</h3>
             </a>
-            <a href="/Primary/" class="card-hover p-6 md:p-8 rounded-2xl bg-slate-800/40 block text-center md:col-span-2">
+            <a href="/Primary/"
+                class="card-hover p-6 md:p-8 rounded-2xl bg-slate-800/40 block text-center md:col-span-2">
                 <h3 class="text-lg font-bold text-white uppercase tracking-wider">Primary</h3>
             </a>
         </div>
-        
+
         <hr class="border-slate-800 my-10 max-w-7xl mx-auto">
         <h2 class="text-3xl font-black text-white mb-6 uppercase tracking-widest pl-2">General Announcements</h2>
     </main>
@@ -61,8 +112,8 @@
             <div id="announcement-list" class="space-y-4 text-slate-300 text-sm mb-6 flex-1">
                 <p class="italic opacity-50">Loading announcements...</p>
             </div>
-            
-            
+
+
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl flex flex-col shadow-xl">
@@ -71,7 +122,7 @@
                 <p class="italic text-slate-500 text-sm">Syncing...</p>
             </div>
 
-            
+
         </div>
     </section>
 
@@ -81,36 +132,53 @@
             <p class="italic opacity-50 text-slate-300 text-sm pl-2">Loading spotlights...</p>
         </div>
 
-        <div id="spotlight-gate-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm">
-            <div class="bg-slate-900 border border-blue-500/30 rounded-2xl p-8 max-w-md w-full shadow-2xl relative text-center">
-                <button onclick="window.closeSpotlightGate()" class="absolute top-4 right-4 text-slate-500 hover:text-white transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <div id="spotlight-gate-modal"
+            class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm">
+            <div
+                class="bg-slate-900 border border-blue-500/30 rounded-2xl p-8 max-w-md w-full shadow-2xl relative text-center">
+                <button onclick="window.closeSpotlightGate()"
+                    class="absolute top-4 right-4 text-slate-500 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
                 </button>
                 <div class="w-16 h-16 bg-blue-900/40 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z">
+                        </path>
+                    </svg>
                 </div>
                 <h3 class="text-xl font-black text-white mb-2 uppercase tracking-widest">Verify Access</h3>
-                <p class="text-slate-400 text-sm mb-6 leading-relaxed">Enter the last name of any adult YW/YM leader to unlock the spotlights.</p>
-                <input type="text" id="gate-input-name" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 mb-4 focus:ring-2 focus:ring-blue-500 outline-none text-center" placeholder="Leader Last Name" onkeydown="if(event.key==='Enter') window.confirmSpotlightUnlock()">
+                <p class="text-slate-400 text-sm mb-6 leading-relaxed">Enter the last name of any adult YW/YM leader to
+                    unlock the spotlights.</p>
+                <input type="text" id="gate-input-name"
+                    class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 mb-4 focus:ring-2 focus:ring-blue-500 outline-none text-center"
+                    placeholder="Leader Last Name" onkeydown="if(event.key==='Enter') window.confirmSpotlightUnlock()">
                 <p id="gate-error-text" class="text-red-400 text-xs mb-4 hidden font-medium">Incorrect entry</p>
-                <button onclick="window.confirmSpotlightUnlock()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg uppercase tracking-widest text-sm">Submit</button>
+                <button onclick="window.confirmSpotlightUnlock()"
+                    class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg uppercase tracking-widest text-sm">Submit</button>
             </div>
         </div>
-        
-        
-        
-        
+
+
+
+
     </section>
 
     <footer class="text-center pb-20">
         <p id="display-theme" class="text-lg text-emerald-400 font-medium italic mb-6 px-4">Loading theme...</p>
-        
-        
-        <button id="globalFeedbackBtn" class="text-[10px] ml-4 font-bold text-blue-400 hover:text-white tracking-widest transition uppercase">
+
+
+        <button id="globalFeedbackBtn"
+            class="text-[10px] ml-4 font-bold text-blue-400 hover:text-white tracking-widest transition uppercase">
             Suggestions & Help
         </button>
-        <a href="/admin/index.html" class="text-[10px] ml-4 font-bold text-amber-500 hover:text-white tracking-widest transition uppercase">Admin Portal</a>
-        <p class="app-version-display text-[9px] text-slate-400 mt-4 font-bold uppercase tracking-widest">Loading version...</p>
+        <a href="/admin/index.html"
+            class="text-[10px] ml-4 font-bold text-amber-500 hover:text-white tracking-widest transition uppercase">Admin
+            Portal</a>
+        <p class="app-version-display text-[9px] text-slate-400 mt-4 font-bold uppercase tracking-widest">Blackstone Ward Youth Hub V7.12.85</p>
     </footer>
 
     <script type="module">
@@ -130,13 +198,50 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         window._firebaseDb = db;
-        
+
         let isAdminMode = false;
-        
+
         // --- Spotlight Image Processing ---
         let currentSpotlightImageData = null;
-        
-                
+
+        function parseVideoEmbedUrl(url) {
+            if (!url || typeof url !== 'string') return null;
+            const cleanUrl = url.trim();
+
+            // Direct mapping for known vanity links
+            if (/vimeo\.com\/duaneharris\/daremightythings/i.test(cleanUrl)) {
+                return "https://player.vimeo.com/video/1236419866?h=f1a12f4634&autoplay=1";
+            }
+
+            // Direct player.vimeo.com/video/123456...
+            if (/player\.vimeo\.com\/video\/(\d+)/i.test(cleanUrl)) {
+                const sep = cleanUrl.includes('?') ? '&' : '?';
+                return cleanUrl.includes('autoplay') ? cleanUrl : `${cleanUrl}${sep}autoplay=1`;
+            }
+
+            // Vimeo standard or unlisted: vimeo.com/123456789 or vimeo.com/123456789/abcdef123
+            const vimeoMatch = cleanUrl.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]+\/videos\/|)(\d+)(?:\/([a-zA-Z0-9]+))?/i);
+            if (vimeoMatch) {
+                const id = vimeoMatch[1];
+                const h = vimeoMatch[2];
+                return `https://player.vimeo.com/video/${id}${h ? "?h=" + h + "&" : "?"}autoplay=1`;
+            }
+
+            // YouTube: watch?v=ID, youtu.be/ID, shorts/ID, embed/ID, m.youtube.com
+            const ytMatch = cleanUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
+            if (ytMatch) {
+                return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+            }
+
+            return null;
+        }
+
+        function getYouTubeThumb(url) {
+            if (!url || typeof url !== 'string') return null;
+            const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
+            return ytMatch ? `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg` : null;
+        }
+
         window.resetSpotlightForm = () => {
             document.getElementById('edit-spot-id').value = '';
             document.getElementById('new-spot-org').value = '';
@@ -212,7 +317,7 @@
                         bdayNames.push(fName);
                     }
                 });
-                
+
                 if (bdayNames.length > 0) {
                     let formattedNames = bdayNames.join(' and ');
                     if (bdayNames.length > 2) {
@@ -234,7 +339,7 @@
                     const mainSec = document.querySelector('main.max-w-7xl');
                     if (mainSec) mainSec.insertAdjacentHTML('afterbegin', bHTML);
                 }
-            } catch(e) { console.error("Bday fetch:", e); }
+            } catch (e) { console.error("Bday fetch:", e); }
 
             try {
                 // 1. Announcements
@@ -244,18 +349,17 @@
                     const annDocs = annSnap.docs;
                     annDocs.forEach((s, idx) => {
                         const data = s.data();
-                        let finalLinkText = data.linkText || 'View More';
-                        const embedUrl = parseVideoEmbedUrl(data.linkUrl);
+                        const embedUrl = parseVideoEmbedUrl(data.linkUrl) || parseVideoEmbedUrl(data.text);
                         let linkHTML = '';
-                        if (data.linkUrl) {
-                            if (embedUrl) {
-                                const safeTitle = encodeURIComponent(finalLinkText || 'Video');
-                                linkHTML = `<button type="button" onclick="window.openVideoModal(event, '${embedUrl}', '${safeTitle}')" class="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-blue-600/20 text-blue-300 hover:text-white hover:bg-blue-600 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/40 transition cursor-pointer shadow-sm active:scale-95"><span class="text-xs">▶</span> ${finalLinkText}</button>`;
-                            } else {
-                                linkHTML = `<a href="${data.linkUrl}" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 px-4 py-2 bg-blue-500/10 text-blue-400 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/20 hover:bg-blue-500/20 transition cursor-pointer">${finalLinkText}</a>`;
-                            }
+                        if (embedUrl) {
+                            const finalLinkText = data.linkText || 'Watch Video';
+                            const safeTitle = encodeURIComponent(finalLinkText);
+                            linkHTML = `<button type="button" onclick="window.openVideoModal(event, '${embedUrl}', '${safeTitle}')" class="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-blue-600/20 text-blue-300 hover:text-white hover:bg-blue-600 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/40 transition cursor-pointer shadow-sm active:scale-95"><span class="text-xs">▶</span> ${finalLinkText}</button>`;
+                        } else if (data.linkUrl) {
+                            let finalLinkText = data.linkText || 'View More';
+                            linkHTML = `<a href="${data.linkUrl}" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 px-4 py-2 bg-blue-500/10 text-blue-400 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/20 hover:bg-blue-500/20 transition cursor-pointer">${finalLinkText}</a>`;
                         }
-                        
+
                         let moveUpHTML = idx > 0 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx - 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Up">↑</button>` : '';
                         let moveDownHTML = idx < annDocs.length - 1 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx + 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Down">↓</button>` : '';
 
@@ -288,7 +392,7 @@
                         window._hasAutoOpenedVideo = true;
                         for (const s of annDocs) {
                             const d = s.data();
-                            const embedUrl = parseVideoEmbedUrl(d.linkUrl);
+                            const embedUrl = parseVideoEmbedUrl(d.linkUrl) || parseVideoEmbedUrl(d.text);
                             if (embedUrl) {
                                 const finalLinkText = d.linkText || 'Video';
                                 const safeTitle = encodeURIComponent(finalLinkText);
@@ -309,7 +413,7 @@
                     if (editThemeEl) editThemeEl.value = themeDoc.data().theme || "";
                 }
 
-                
+
                 // 2.5 Privacy Config
                 try {
                     const privSnap = await getDoc(doc(db, "site_settings", "privacy_config"));
@@ -359,7 +463,7 @@
                 const spotContainer = document.getElementById('youth-spotlight-container');
                 const isUnlocked = sessionStorage.getItem('spotlightsUnlocked') === 'true' || isAdminMode;
 
-                
+
 
                 if (!isUnlocked) {
                     spotContainer.innerHTML = `
@@ -383,18 +487,22 @@
                                 const data = s.data() || {};
                                 let moveUpHTML = idx > 0 ? `<button onclick="window.swapSpot('${s.id}', '${spotDocs[idx - 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Up">↑</button>` : '';
                                 let moveDownHTML = idx < spotDocs.length - 1 ? `<button onclick="window.swapSpot('${s.id}', '${spotDocs[idx + 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Down">↓</button>` : '';
-                                
+
                                 const safeVideoUrl = (data.video_url || data.videoUrl || '');
                                 const safeImageUrl = data.image_url || '';
+                                const embedUrl = parseVideoEmbedUrl(safeVideoUrl);
+                                const activeEmbedUrl = embedUrl || safeVideoUrl;
                                 let thumbHTML = '';
                                 if (safeVideoUrl) {
                                     if (safeImageUrl) {
                                         thumbHTML = `<img src="${safeImageUrl}" class="absolute inset-0 w-full h-full object-cover">`;
-                                    } else if (safeVideoUrl.includes && safeVideoUrl.includes('youtube.com')) {
-                                        const m = safeVideoUrl.match(/embed\/([^?]+)/);
-                                        thumbHTML = `<img src="https://img.youtube.com/vi/${m ? m[1] : ''}/hqdefault.jpg" class="absolute inset-0 w-full h-full object-cover">`;
                                     } else {
-                                        thumbHTML = `<div class="absolute inset-0 bg-slate-900 border border-slate-800"></div>`;
+                                        const ytThumb = getYouTubeThumb(safeVideoUrl);
+                                        if (ytThumb) {
+                                            thumbHTML = `<img src="${ytThumb}" class="absolute inset-0 w-full h-full object-cover">`;
+                                        } else {
+                                            thumbHTML = `<div class="absolute inset-0 bg-slate-900 border border-slate-800"></div>`;
+                                        }
                                     }
                                 }
 
@@ -414,7 +522,7 @@
                                         ` : ''}
                                         <div class="w-full md:w-1/3 min-h-[250px] bg-slate-800 flex-shrink-0 relative overflow-hidden">
                                             ${safeVideoUrl ? `
-                                                <div class="absolute inset-0 cursor-pointer group" onclick="this.parentElement.innerHTML='<iframe src=&quot;${safeVideoUrl}&quot; class=&quot;absolute inset-0 w-full h-full&quot; frameborder=&quot;0&quot; allow=&quot;autoplay; fullscreen&quot; allowfullscreen></iframe>'">
+                                                <div class="absolute inset-0 cursor-pointer group" onclick="this.parentElement.innerHTML='<iframe src=&quot;${activeEmbedUrl}&quot; class=&quot;absolute inset-0 w-full h-full&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen&quot; allowfullscreen></iframe>'">
                                                     ${thumbHTML}
                                                     <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition flex items-center justify-center">
                                                         <div class="w-16 h-16 bg-blue-600/90 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition border border-white/20">
@@ -464,21 +572,21 @@
         }
 
         // ADMIN LOGIC
-        
 
-        
-        
-        
+
+
+
+
         window.editSpot = (id, org, desc, img, spotDate, vidUrl) => {
             document.getElementById('saveSpotBtn').innerText = 'Update Spotlight';
             document.getElementById('cancelSpotBtn').classList.remove('hidden');
-            
+
             document.getElementById('edit-spot-id').value = id;
             document.getElementById('new-spot-org').value = org;
             document.getElementById('new-spot-desc').value = desc;
             document.getElementById('new-spot-date').value = spotDate || '';
             document.getElementById('new-spot-video').value = vidUrl || '';
-            
+
             const preview = document.getElementById('spot-preview-img');
             if (img) {
                 currentSpotlightImageData = img;
@@ -490,7 +598,7 @@
                 preview.classList.add('hidden');
             }
             document.getElementById('new-spot-upload').value = '';
-            
+
             // Scroll to form
             document.getElementById('spotlights-admin-controls').scrollIntoView({ behavior: 'smooth' });
         };
@@ -529,8 +637,8 @@
                     if (snap.data().authorizedNames.includes(inputLower)) {
                         sessionStorage.setItem('spotlightsUnlocked', 'true');
                         window.closeSpotlightGate();
-                        
-                        
+
+
                         initHub();
                         return;
                     }
@@ -546,7 +654,7 @@
             try {
                 const doc1 = await getDoc(doc(db, "home_spotlights", id1));
                 const doc2 = await getDoc(doc(db, "home_spotlights", id2));
-                if(doc1.exists() && doc2.exists()){
+                if (doc1.exists() && doc2.exists()) {
                     const batch = writeBatch(db);
                     batch.update(doc(db, "home_spotlights", id1), { sortOrder: doc2.data().sortOrder });
                     batch.update(doc(db, "home_spotlights", id2), { sortOrder: doc1.data().sortOrder });
@@ -578,7 +686,7 @@
             try {
                 const doc1 = await getDoc(doc(db, "home_announcements", id1));
                 const doc2 = await getDoc(doc(db, "home_announcements", id2));
-                if(doc1.exists() && doc2.exists()){
+                if (doc1.exists() && doc2.exists()) {
                     const batch = writeBatch(db);
                     batch.update(doc(db, "home_announcements", id1), { timestamp: doc2.data().timestamp });
                     batch.update(doc(db, "home_announcements", id2), { timestamp: doc1.data().timestamp });
@@ -597,7 +705,7 @@
             document.getElementById('cancelAnnBtn').classList.remove('hidden');
             document.getElementById('admin-controls').scrollIntoView({ behavior: 'smooth' });
         };
-        
+
         window.resetAnnForm = () => {
             document.getElementById('edit-ann-id').value = '';
             document.getElementById('new-ann-text').value = '';
@@ -606,38 +714,6 @@
             document.getElementById('saveAnnBtn').innerText = 'Post Announcement';
             document.getElementById('cancelAnnBtn').classList.add('hidden');
         };
-
-        function parseVideoEmbedUrl(url) {
-            if (!url) return null;
-            const cleanUrl = url.trim();
-
-            // Direct mapping for known vanity links
-            if (/vimeo\.com\/duaneharris\/daremightythings/i.test(cleanUrl)) {
-                return "https://player.vimeo.com/video/1236419866?h=f1a12f4634&autoplay=1";
-            }
-
-            // Direct player.vimeo.com/video/123456...
-            if (/player\.vimeo\.com\/video\/(\d+)/i.test(cleanUrl)) {
-                const sep = cleanUrl.includes('?') ? '&' : '?';
-                return cleanUrl.includes('autoplay') ? cleanUrl : `${cleanUrl}${sep}autoplay=1`;
-            }
-
-            // Vimeo standard or unlisted: vimeo.com/123456789 or vimeo.com/123456789/abcdef123
-            const vimeoMatch = cleanUrl.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]+\/videos\/|)(\d+)(?:\/([a-zA-Z0-9]+))?/i);
-            if (vimeoMatch) {
-                const id = vimeoMatch[1];
-                const h = vimeoMatch[2];
-                return `https://player.vimeo.com/video/${id}${h ? "?h=" + h + "&" : "?"}autoplay=1`;
-            }
-
-            // YouTube: watch?v=ID, youtu.be/ID, shorts/ID, embed/ID
-            const ytMatch = cleanUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/i);
-            if (ytMatch) {
-                return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
-            }
-
-            return null;
-        }
 
         window.openVideoModal = (event, embedUrl, encodedTitle) => {
             if (event && event.preventDefault) event.preventDefault();
@@ -649,7 +725,7 @@
             if (titleEl && encodedTitle) {
                 try {
                     titleEl.innerText = decodeURIComponent(encodedTitle).trim() || 'Video';
-                } catch(e) {
+                } catch (e) {
                     titleEl.innerText = 'Video';
                 }
             }
@@ -695,20 +771,26 @@
 
         initHub();
     </script>
-    
+
 
     <!-- Password Modal -->
-    
+
 
     <!-- Video Player Modal -->
-    <div id="videoModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[150] items-center justify-center p-4 transition-opacity" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
-        <div class="bg-slate-900 border border-blue-500/30 rounded-2xl w-full max-w-4xl shadow-2xl relative overflow-hidden flex flex-col">
+    <div id="videoModal"
+        class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[150] items-center justify-center p-4 transition-opacity"
+        role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
+        <div
+            class="bg-slate-900 border border-blue-500/30 rounded-2xl w-full max-w-4xl shadow-2xl relative overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/60">
                 <div class="flex items-center gap-2 overflow-hidden pr-4">
                     <span class="text-blue-400 text-sm shrink-0">▶</span>
-                    <h2 id="videoModalTitle" class="font-black text-xs md:text-sm text-white uppercase tracking-widest truncate">Video</h2>
+                    <h2 id="videoModalTitle"
+                        class="font-black text-xs md:text-sm text-white uppercase tracking-widest truncate">Video</h2>
                 </div>
-                <button id="closeVideoBtn" onclick="window.closeVideoModal()" class="text-slate-400 hover:text-white transition font-black text-xl w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800 active:scale-95 shrink-0" aria-label="Close video player">✕</button>
+                <button id="closeVideoBtn" onclick="window.closeVideoModal()"
+                    class="text-slate-400 hover:text-white transition font-black text-xl w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800 active:scale-95 shrink-0"
+                    aria-label="Close video player">✕</button>
             </div>
             <div class="relative w-full aspect-video bg-black flex items-center justify-center">
                 <div id="videoContainer" class="w-full h-full"></div>
@@ -716,38 +798,51 @@
         </div>
     </div>
 
+
     <!-- Global Feedback Modal -->
-    <div id="feedbackModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700/50 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden text-left">
+    <div id="feedbackModal"
+        class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] items-center justify-center p-4">
+        <div
+            class="bg-slate-900 border border-slate-700/50 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden text-left">
             <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
                 <h2 class="font-black text-lg text-white uppercase tracking-widest">Feedback</h2>
-                <button id="closeFeedbackBtn" class="text-slate-400 hover:text-white transition font-black text-xl active:scale-95">✕</button>
+                <button id="closeFeedbackBtn"
+                    class="text-slate-400 hover:text-white transition font-black text-xl active:scale-95">✕</button>
             </div>
             <div class="p-6">
-                <div id="feedbackSuccess" class="hidden mb-4 p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-lg text-emerald-400 text-xs font-black text-center uppercase tracking-widest">
+                <div id="feedbackSuccess"
+                    class="hidden mb-4 p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-lg text-emerald-400 text-xs font-black text-center uppercase tracking-widest">
                     Success! Your feedback has been sent.
                 </div>
                 <form id="feedbackForm" class="flex flex-col gap-4">
                     <div>
-                        <label class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Your Name</label>
-                        <input type="text" id="feedbackName" required class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm shadow-inner">
+                        <label class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Your
+                            Name</label>
+                        <input type="text" id="feedbackName" required
+                            class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm shadow-inner">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Category</label>
-                        <select id="feedbackCategory" required class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm shadow-inner">
+                        <label
+                            class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Category</label>
+                        <select id="feedbackCategory" required
+                            class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm shadow-inner">
                             <option value="Suggestion">💡 Suggestion</option>
                             <option value="Help">🙋 Help / Question</option>
                             <option value="Bug">🐛 Report a Bug</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Message</label>
-                        <textarea id="feedbackMessage" rows="4" required class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm resize-none shadow-inner"></textarea>
+                        <label
+                            class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Message</label>
+                        <textarea id="feedbackMessage" rows="4" required
+                            class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm resize-none shadow-inner"></textarea>
                     </div>
-                    <button type="submit" id="feedbackSubmitBtn" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-4 rounded-xl shadow-lg transition active:scale-95 uppercase tracking-widest">
+                    <button type="submit" id="feedbackSubmitBtn"
+                        class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-4 rounded-xl shadow-lg transition active:scale-95 uppercase tracking-widest">
                         Send Message
                     </button>
-                    <button type="button" id="feedbackCloseBtn" class="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold text-[10px] py-3 rounded-xl transition active:scale-95 uppercase tracking-widest">Close</button>
+                    <button type="button" id="feedbackCloseBtn"
+                        class="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold text-[10px] py-3 rounded-xl transition active:scale-95 uppercase tracking-widest">Close</button>
                 </form>
             </div>
         </div>
@@ -755,7 +850,7 @@
 
     <script type="module">
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        
+
         const fModal = document.getElementById('feedbackModal');
         const fClose = document.getElementById('closeFeedbackBtn');
         const fClose2 = document.getElementById('feedbackCloseBtn');
@@ -769,16 +864,16 @@
             document.getElementById('feedbackForm').reset();
         };
 
-        if(fBtnFooter) fBtnFooter.addEventListener('click', openFeedback);
-        if(fBtnSide) fBtnSide.addEventListener('click', openFeedback);
-        
+        if (fBtnFooter) fBtnFooter.addEventListener('click', openFeedback);
+        if (fBtnSide) fBtnSide.addEventListener('click', openFeedback);
+
         const closeM = () => {
             fModal.classList.add('hidden');
             fModal.classList.remove('flex');
         };
-        if(fClose) fClose.addEventListener('click', closeM);
-        if(fClose2) fClose2.addEventListener('click', closeM);
-        
+        if (fClose) fClose.addEventListener('click', closeM);
+        if (fClose2) fClose2.addEventListener('click', closeM);
+
         document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('feedbackSubmitBtn');
@@ -794,7 +889,7 @@
                 });
                 document.getElementById('feedbackForm').reset();
                 document.getElementById('feedbackSuccess').classList.remove('hidden');
-            } catch(err) {
+            } catch (err) {
                 alert('Permissions or Network Error: ' + err.message);
             } finally {
                 btn.disabled = false;
@@ -803,4 +898,5 @@
         });
     </script>
 </body>
+
 </html>
