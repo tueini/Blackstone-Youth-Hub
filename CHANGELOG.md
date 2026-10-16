@@ -1,3 +1,8 @@
+## [2026-10-15 23:17] - v7.12.79 Home Announcements In-Interface Video Modal
+- **In-Interface Video Modal**: Built an in-page 16:9 responsive video modal (`#videoModal`) directly into `public/index.html`.
+- **Automatic Video URL Detection**: Announcements containing Vimeo (standard, unlisted, vanity/redirects) or YouTube (watch, shorts, youtu.be, embed) URLs are now automatically identified and rendered as interactive `▶ Watch Video` modal triggers, eliminating disruptive redirects off-site.
+- **Accessible Modal Lifecycle**: Provided clean backdrop click dismiss, keyboard `Escape` support, and immediate iframe teardown upon closing to prevent lingering audio playback. Non-video URLs continue opening in new tabs via `target="_blank"`.
+
 ## [2026-04-13 01:30] - v7.10.1 Global Branding & Routing
 - Universal Version Logic: Extracted version management to `cfm-config.js` and injected dynamic footer branding uniformly across all organizational pages (Deacons, Priests, etc.).
 - Routing Refinement: Corrected static `<h1>` initial states mapped dynamically in secondary organizational loops to appropriately render localized titles, eliminating the visual jump from default legacy strings.

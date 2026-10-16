@@ -245,7 +245,16 @@
                     annDocs.forEach((s, idx) => {
                         const data = s.data();
                         let finalLinkText = data.linkText || 'View More';
-                        let linkHTML = data.linkUrl ? `<a href="${data.linkUrl}" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 px-4 py-2 bg-blue-500/10 text-blue-400 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/20 hover:bg-blue-500/20 transition cursor-pointer">${finalLinkText}</a>` : '';
+                        const embedUrl = parseVideoEmbedUrl(data.linkUrl);
+                        let linkHTML = '';
+                        if (data.linkUrl) {
+                            if (embedUrl) {
+                                const safeTitle = encodeURIComponent(data.text ? data.text.substring(0, 80) : 'Video Announcement');
+                                linkHTML = `<button type="button" onclick="window.openVideoModal(event, '${embedUrl}', '${safeTitle}')" class="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-blue-600/20 text-blue-300 hover:text-white hover:bg-blue-600 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/40 transition cursor-pointer shadow-sm active:scale-95"><span class="text-xs">▶</span> ${finalLinkText}</button>`;
+                            } else {
+                                linkHTML = `<a href="${data.linkUrl}" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 px-4 py-2 bg-blue-500/10 text-blue-400 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/20 hover:bg-blue-500/20 transition cursor-pointer">${finalLinkText}</a>`;
+                            }
+                        }
                         
                         let moveUpHTML = idx > 0 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx - 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Up">↑</button>` : '';
                         let moveDownHTML = idx < annDocs.length - 1 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx + 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Down">↓</button>` : '';
@@ -579,12 +588,110 @@
             document.getElementById('cancelAnnBtn').classList.add('hidden');
         };
 
+        function parseVideoEmbedUrl(url) {
+            if (!url) return null;
+            const cleanUrl = url.trim();
+
+            // Direct mapping for known vanity links
+            if (/vimeo\.com\/duaneharris\/daremightythings/i.test(cleanUrl)) {
+                return "https://player.vimeo.com/video/1236419866?h=f1a12f4634&autoplay=1";
+            }
+
+            // Direct player.vimeo.com/video/123456...
+            if (/player\.vimeo\.com\/video\/(\d+)/i.test(cleanUrl)) {
+                const sep = cleanUrl.includes('?') ? '&' : '?';
+                return cleanUrl.includes('autoplay') ? cleanUrl : `${cleanUrl}${sep}autoplay=1`;
+            }
+
+            // Vimeo standard or unlisted: vimeo.com/123456789 or vimeo.com/123456789/abcdef123
+            const vimeoMatch = cleanUrl.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]+\/videos\/|)(\d+)(?:\/([a-zA-Z0-9]+))?/i);
+            if (vimeoMatch) {
+                const id = vimeoMatch[1];
+                const h = vimeoMatch[2];
+                return `https://player.vimeo.com/video/${id}${h ? "?h=" + h + "&" : "?"}autoplay=1`;
+            }
+
+            // YouTube: watch?v=ID, youtu.be/ID, shorts/ID, embed/ID
+            const ytMatch = cleanUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/i);
+            if (ytMatch) {
+                return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+            }
+
+            return null;
+        }
+
+        window.openVideoModal = (event, embedUrl, encodedTitle) => {
+            if (event && event.preventDefault) event.preventDefault();
+            const modal = document.getElementById('videoModal');
+            const container = document.getElementById('videoContainer');
+            const titleEl = document.getElementById('videoModalTitle');
+            if (!modal || !container) return;
+
+            if (titleEl && encodedTitle) {
+                try {
+                    titleEl.innerText = decodeURIComponent(encodedTitle).trim() || 'Video';
+                } catch(e) {
+                    titleEl.innerText = 'Video';
+                }
+            }
+
+            container.innerHTML = `<iframe src="${embedUrl}" class="w-full h-full" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" allowfullscreen title="Embedded Video"></iframe>`;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        };
+
+        window.closeVideoModal = () => {
+            const modal = document.getElementById('videoModal');
+            const container = document.getElementById('videoContainer');
+            if (container) container.innerHTML = '';
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            document.body.classList.remove('overflow-hidden');
+        };
+
+        // Light dismiss on backdrop click
+        const videoModalEl = document.getElementById('videoModal');
+        if (videoModalEl) {
+            videoModalEl.addEventListener('click', (e) => {
+                if (e.target === videoModalEl) window.closeVideoModal();
+            });
+        }
+
+        // Escape key dismiss
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('videoModal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    window.closeVideoModal();
+                }
+            }
+        });
+
         initHub();
     </script>
     
 
     <!-- Password Modal -->
     
+
+    <!-- Video Player Modal -->
+    <div id="videoModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[150] items-center justify-center p-4 transition-opacity" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
+        <div class="bg-slate-900 border border-blue-500/30 rounded-2xl w-full max-w-4xl shadow-2xl relative overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/60">
+                <div class="flex items-center gap-2 overflow-hidden pr-4">
+                    <span class="text-blue-400 text-sm shrink-0">▶</span>
+                    <h2 id="videoModalTitle" class="font-black text-xs md:text-sm text-white uppercase tracking-widest truncate">Video</h2>
+                </div>
+                <button id="closeVideoBtn" onclick="window.closeVideoModal()" class="text-slate-400 hover:text-white transition font-black text-xl w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800 active:scale-95 shrink-0" aria-label="Close video player">✕</button>
+            </div>
+            <div class="relative w-full aspect-video bg-black flex items-center justify-center">
+                <div id="videoContainer" class="w-full h-full"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- Global Feedback Modal -->
     <div id="feedbackModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] items-center justify-center p-4">

@@ -1,10 +1,12 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.12.78
+**Version**: v7.12.79
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment)
 **DevOps**: The beta environment is now securely tracked and isolated on the beta-admin branch of the GitHub repository.
+
+- **In-Interface Video Modal for Home Announcements**: Integrated a responsive 16:9 embedded video player modal directly within `public/index.html`. Announcement links referencing video content (Vimeo standard/unlisted/vanity URLs and YouTube standard/shorts/embed URLs) are automatically detected and rendered as interactive modal triggers (`▶ Watch Video`), allowing visitors to view video announcements smoothly inside the interface without navigating away from the site. Includes complete modal lifecycle handling (backdrop light dismiss, keyboard Escape listener, and instant audio/iframe teardown upon closing).
 
 - **initHub() Scope Repair**: Resolved a critical `ReferenceError` inside `public/index.html` by replacing an out-of-scope `annContainer` reference with a fresh DOM query, successfully preventing the rendering pipeline from aborting and restoring the Youth Spotlights and Next Combined Events functionality.
 
