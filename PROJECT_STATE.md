@@ -1,10 +1,12 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.12.79
-**Active Branch**: `beta-admin`
-**Hosting Target**: `test-blackstoneward` (Staging Environment)
+**Version**: v7.12.80
+**Active Branch**: `main`
+**Hosting Target**: `blackstoneward` (Production) & `test-blackstoneward` (Staging)
 **DevOps**: The beta environment is now securely tracked and isolated on the beta-admin branch of the GitHub repository.
+
+- **Video Modal Header Banner Title Refinement**: Updated the video modal trigger in `public/index.html` to pass the announcement's specific URL label (`linkText`) instead of the general announcement body text, ensuring the modal's header banner cleanly displays the video title (e.g. "Dare Mighty Things").
 
 - **In-Interface Video Modal for Home Announcements**: Integrated a responsive 16:9 embedded video player modal directly within `public/index.html`. Announcement links referencing video content (Vimeo standard/unlisted/vanity URLs and YouTube standard/shorts/embed URLs) are automatically detected and rendered as interactive modal triggers (`▶ Watch Video`), allowing visitors to view video announcements smoothly inside the interface without navigating away from the site. Includes complete modal lifecycle handling (backdrop light dismiss, keyboard Escape listener, and instant audio/iframe teardown upon closing).
 

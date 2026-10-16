@@ -1,3 +1,6 @@
+## [2026-10-15 23:26] - v7.12.80 Video Modal Header Banner Title Refinement
+- **Header Banner URL Label Binding**: Modified video modal trigger in `public/index.html` to pass the announcement's specific URL label (`linkText`) to the modal title element (`#videoModalTitle`), replacing the general announcement text with the clean video title.
+
 ## [2026-10-15 23:17] - v7.12.79 Home Announcements In-Interface Video Modal
 - **In-Interface Video Modal**: Built an in-page 16:9 responsive video modal (`#videoModal`) directly into `public/index.html`.
 - **Automatic Video URL Detection**: Announcements containing Vimeo (standard, unlisted, vanity/redirects) or YouTube (watch, shorts, youtu.be, embed) URLs are now automatically identified and rendered as interactive `▶ Watch Video` modal triggers, eliminating disruptive redirects off-site.
