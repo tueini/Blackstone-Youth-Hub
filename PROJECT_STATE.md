@@ -1,10 +1,12 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.12.85
+**Version**: v7.12.86
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment)
 **DevOps**: The beta environment is now securely tracked and isolated on the beta-admin branch of the GitHub repository.
+
+- **Deterministic Video ID & Document ID Deep-Linking**: Restored and hardened the video modal auto-open engine in `public/index.html` to support querying by exact Vimeo or YouTube Video ID (e.g. `?video=1236419866`) or Firestore Announcement document ID (`?video=<DOC_ID>`). When visitors navigate to a targeted video link, the script scans all active announcements, matching the unique ID token across the URL, embed link, and document ID to reliably launch the intended video player modal even when multiple announcements feature videos. Retains `?video=true`, `?watch=true`, and `#video` as shortcuts to auto-play the newest video.
 
 - **Announcements Manual Reordering (Up/Down Arrows & Timestamp Sync)**: Added dedicated reordering tools to the Announcements Manager in the Admin Portal (Settings & Privacy -> Announcements). Announcement cards now feature interactive ↑ and ↓ arrows with dynamic disabled/opacity styling at the list boundaries. Reordering performs an instant local array swap for zero-latency UI feedback, followed by an atomic Firestore `writeBatch` update that synchronizes document timestamps (and automatically redistributes timestamps if records share identical creation times). Newly created announcements are dynamically assigned top-priority timestamps ensuring they seamlessly prepend above existing items.
 

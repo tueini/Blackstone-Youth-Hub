@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Youth Hub</title>
     <script src="security-config.js"></script>
-    <script src="/cfm-config.js?v=7.12.85"></script>
+    <script src="/cfm-config.js?v=7.12.86"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -178,7 +178,7 @@
         <a href="/admin/index.html"
             class="text-[10px] ml-4 font-bold text-amber-500 hover:text-white tracking-widest transition uppercase">Admin
             Portal</a>
-        <p class="app-version-display text-[9px] text-slate-400 mt-4 font-bold uppercase tracking-widest">Blackstone Ward Youth Hub V7.12.85</p>
+        <p class="app-version-display text-[9px] text-slate-400 mt-4 font-bold uppercase tracking-widest">Blackstone Ward Youth Hub V7.12.86</p>
     </footer>
 
     <script type="module">
@@ -385,22 +385,49 @@
                     });
                     annContainer.innerHTML = annHTML || '<p class="italic opacity-30 text-xs">No active announcements.</p>';
 
-                    // Auto-open video modal if deep-linked via URL parameter (?video=true, ?watch=true) or hash (#video)
+                    // Auto-open video modal if deep-linked via URL parameter (?video=1236419866, ?video=true) or hash (#video)
                     const urlParams = new URLSearchParams(window.location.search);
-                    const hasDeepLink = urlParams.has('video') || urlParams.has('watch') || window.location.hash === '#video';
-                    if (!window._hasAutoOpenedVideo && hasDeepLink) {
+                    const rawVideoParam = (urlParams.get('video') || urlParams.get('watch') || (window.location.hash === '#video' ? 'true' : '')).trim();
+
+                    if (!window._hasAutoOpenedVideo && rawVideoParam) {
                         window._hasAutoOpenedVideo = true;
-                        for (const s of annDocs) {
-                            const d = s.data();
-                            const embedUrl = parseVideoEmbedUrl(d.linkUrl) || parseVideoEmbedUrl(d.text);
-                            if (embedUrl) {
-                                const finalLinkText = d.linkText || 'Video';
-                                const safeTitle = encodeURIComponent(finalLinkText);
-                                setTimeout(() => {
-                                    window.openVideoModal(null, embedUrl, safeTitle);
-                                }, 300);
-                                break;
+                        const targetId = rawVideoParam.toLowerCase();
+                        let matchedDoc = null;
+
+                        // 1. Look for announcement matching the specific video ID, URL, or document ID
+                        if (targetId !== 'true' && targetId !== '1') {
+                            for (const s of annDocs) {
+                                const d = s.data();
+                                const embedUrl = parseVideoEmbedUrl(d.linkUrl) || parseVideoEmbedUrl(d.text);
+                                if (!embedUrl) continue;
+                                const linkUrlLower = (d.linkUrl || '').toLowerCase();
+                                const textLower = (d.text || '').toLowerCase();
+                                const embedLower = embedUrl.toLowerCase();
+                                if (linkUrlLower.includes(targetId) || textLower.includes(targetId) || embedLower.includes(targetId) || s.id === rawVideoParam) {
+                                    matchedDoc = { doc: d, embedUrl: embedUrl };
+                                    break;
+                                }
                             }
+                        }
+
+                        // 2. Fallback to newest video announcement if 'true', '1', or no specific ID match
+                        if (!matchedDoc) {
+                            for (const s of annDocs) {
+                                const d = s.data();
+                                const embedUrl = parseVideoEmbedUrl(d.linkUrl) || parseVideoEmbedUrl(d.text);
+                                if (embedUrl) {
+                                    matchedDoc = { doc: d, embedUrl: embedUrl };
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (matchedDoc) {
+                            const finalLinkText = matchedDoc.doc.linkText || 'Video';
+                            const safeTitle = encodeURIComponent(finalLinkText);
+                            setTimeout(() => {
+                                window.openVideoModal(null, matchedDoc.embedUrl, safeTitle);
+                            }, 300);
                         }
                     }
                 });
