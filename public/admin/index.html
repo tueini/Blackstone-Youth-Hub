@@ -3,16 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Youth Hub Admin Portal</title>
+    <title>Youth Hub Admin Portal | Blackstone Ward</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .nav-tab.active { background: #1e293b; color: white; border-left: 4px solid #3b82f6; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/seasons.css">
+    <link rel="stylesheet" href="/assets/admin.css?v=7.16.0">
+    <script src="/cfm-config.js?v=7.16.0"></script>
     <script src="/security-config.js"></script>
     <script>
+        function currentSeason() {
+            const month = new Date().getMonth() + 1;
+            return month === 12 || month <= 2 ? 'winter' : month <= 5 ? 'spring' : month <= 8 ? 'summer' : 'fall';
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.dataset.season = currentSeason();
+        });
+
         window.onerror = function(msg, url, line, col, error) {
             console.error("Global Error: ", msg, "at", url, line, col);
             const errEl = document.getElementById('login-error');
@@ -67,6 +73,9 @@
                     if (typeof window.setupRBAC === 'function') {
                         window.setupRBAC();
                     }
+                    if (typeof window.initAdminParallax === 'function') {
+                        window.initAdminParallax();
+                    }
                 } else {
                     const errEl = document.getElementById('login-error');
                     errEl.innerText = `Incorrect password for ${role}`;
@@ -83,15 +92,20 @@
         window.authAdmin = authAdmin;
     </script>
 </head>
-<body class="min-h-screen">
+<body class="admin-body min-h-screen">
     <!-- LOGIN VIEW -->
-    <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-md shadow-2xl text-center">
-            <a href="/" class="inline-block transition hover:opacity-80"><img src="/images/BlackstoneYouthHubLogo.png" class="h-20 mx-auto mb-6 object-contain"></a>
-            <h2 class="text-2xl font-black uppercase tracking-widest text-white mb-2">Admin Portal</h2>
-            <p class="text-xs text-slate-400 mb-8">Secure Access Required</p>
+    <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center p-4 parallax">
+        <div class="scene-image" aria-hidden="true"></div>
+        <div class="scene-wash" aria-hidden="true"></div>
+        <div class="admin-login-card">
+            <a href="/" class="inline-block transition hover:opacity-85" aria-label="Return to Youth Hub">
+                <img src="/assets/ward-logo-moroni.png?v=7.16.0" alt="Blackstone Ward Youth Hub" class="h-16 mx-auto mb-3 object-contain">
+            </a>
+            <div class="text-[11px] font-black uppercase tracking-[0.2em] text-[#007b91] mb-1">Blackstone Ward</div>
+            <h2 class="text-2xl font-black tracking-tight text-[#152548] mb-1">Admin Portal</h2>
+            <p class="text-xs text-[#536484] mb-6 font-medium">Secure Access Required</p>
             
-            <select id="login-role" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white mb-4 outline-none focus:border-blue-500 transition">
+            <select id="login-role" class="w-full p-3.5 mb-4 text-sm font-semibold outline-none cursor-pointer">
                 <option value="Admin">Master Admin</option>
                 <option value="Combined">Combined Leader</option>
                 <option value="Deacons">Deacons Leader</option>
@@ -101,165 +115,187 @@
                 <option value="Primary">Primary Leader</option>
             </select>
             
-            <input type="password" id="login-password" placeholder="Passphrase" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white mb-6 outline-none focus:border-blue-500 transition text-center" onkeydown="if(event.key==='Enter') document.getElementById('login-btn').click()">
-            <p id="login-error" class="text-red-400 text-xs font-bold hidden mb-4">Invalid Access Credentials</p>
-            <button id="login-btn" onclick="window.authAdmin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg transition active:scale-95 uppercase tracking-widest text-sm">Authenticate</button>
+            <input type="password" id="login-password" placeholder="Passphrase" class="w-full p-3.5 mb-5 text-sm font-semibold text-center outline-none" onkeydown="if(event.key==='Enter') document.getElementById('login-btn').click()">
+            <p id="login-error" class="text-rose-600 text-xs font-bold hidden mb-4">Invalid Access Credentials</p>
+            <button id="login-btn" onclick="window.authAdmin()" class="admin-login-btn w-full py-3.5 px-4 shadow-md uppercase tracking-wider text-xs cursor-pointer">Authenticate</button>
             
-            <a href="/" class="block mt-6 text-sm font-bold text-blue-400 hover:text-blue-300 transition tracking-wide">&larr; Back to Main Site</a>
+            <a href="/" class="inline-flex items-center gap-1.5 mt-6 text-xs font-bold text-[#007b91] hover:text-[#005c6d] transition tracking-wide">&larr; Return to Youth Hub</a>
         </div>
     </div>
 
     <!-- MAIN DASHBOARD -->
     <div id="dashboard-view" class="hidden w-full min-h-screen flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <aside id="admin-sidebar" class="fixed z-50 inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 w-64 glass-panel border-r border-slate-800 p-6 flex flex-col h-screen shrink-0 bg-slate-900 md:bg-transparent">
-            <div class="flex justify-between items-start mb-8">
-                <a href="/" class="inline-block transition hover:opacity-80"><img src="/images/BlackstoneYouthHubLogo.png" class="h-12 object-contain"></a>
-                <button id="close-sidebar-btn" class="md:hidden text-slate-400 hover:text-white transition font-black text-xl">✕</button>
+        <aside id="admin-sidebar" class="fixed z-50 inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 w-64 p-6 flex flex-col h-screen shrink-0">
+            <div class="flex justify-between items-start mb-6">
+                <a href="/" class="inline-block transition hover:opacity-85" aria-label="Blackstone Ward Youth Hub">
+                    <img src="/assets/ward-logo-horizontal-v1.0.6.png" class="h-10 object-contain" alt="Blackstone Ward">
+                </a>
+                <button id="close-sidebar-btn" class="md:hidden text-slate-500 hover:text-slate-800 transition font-black text-xl p-1">✕</button>
             </div>
-            <div id="org-tabs" class="flex flex-col gap-2 flex-1 overflow-y-auto">
-                <h3 class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-2">Organizations</h3>
-                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Combined">Combined</button>
-                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Priests">Priests</button>
-                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Teachers">Teachers</button>
-                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Deacons">Deacons</button>
-                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Young Women">Young Women</button>
-                <button class="nav-tab text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition" data-org="Primary">Primary</button>
+            <div id="org-tabs" class="flex flex-col gap-1.5 flex-1 overflow-y-auto">
+                <h3 class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 px-2">Organizations</h3>
+                <button class="nav-tab text-left" data-org="Combined">Combined</button>
+                <button class="nav-tab text-left" data-org="Priests">Priests</button>
+                <button class="nav-tab text-left" data-org="Teachers">Teachers</button>
+                <button class="nav-tab text-left" data-org="Deacons">Deacons</button>
+                <button class="nav-tab text-left" data-org="Young Women">Young Women</button>
+                <button class="nav-tab text-left" data-org="Primary">Primary</button>
             </div>
-            <div class="mt-auto pt-6 border-t border-slate-800">
-                <h3 class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-2">System</h3>
-                <button id="settings-tab" class="hidden w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 transition mb-2" data-org="System Settings">Settings & Privacy</button>
-                <button id="logout-btn" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition">Log Out</button>
+            <div class="mt-auto pt-5 border-t border-[#e9dece]">
+                <h3 class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 px-2">System</h3>
+                <button id="settings-tab" class="hidden w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition mb-1.5" data-org="System Settings">Settings &amp; Privacy</button>
+                <button id="logout-btn" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-rose-600 hover:bg-rose-50 transition">Log Out</button>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 p-8 overflow-y-auto h-screen relative bg-slate-900">
-            <header class="mb-8 border-b border-slate-800 pb-4">
-                <div class="flex items-center gap-4 mb-4 flex-col sm:flex-row">
-                    <div class="flex items-center gap-4 w-full sm:w-auto">
-                        <button id="mobile-menu-btn" class="md:hidden text-white font-black text-2xl">☰</button>
-                        <h1 id="active-org-title" class="text-3xl font-black text-white uppercase tracking-widest">Select Organization</h1>
+        <main class="flex-1 overflow-y-auto h-screen relative flex flex-col">
+            <!-- Panoramic Scenic Parallax Hero Banner -->
+            <div class="admin-hero-banner parallax mb-8 rounded-2xl">
+                <div class="scene-image" aria-hidden="true"></div>
+                <div class="scene-wash" aria-hidden="true"></div>
+                <div class="admin-hero-content">
+                    <div class="admin-hero-top">
+                        <div class="flex items-center gap-3">
+                            <button id="mobile-menu-btn" class="md:hidden text-[#152548] font-black text-2xl p-1" aria-label="Open Sidebar Menu">☰</button>
+                            <span class="admin-brand-badge">Leadership Workspace</span>
+                        </div>
+                        <div class="admin-quick-actions">
+                            <a href="/" class="btn-admin-pill" target="_blank" rel="noopener"><span>View Youth Hub</span> <span aria-hidden="true">↗</span></a>
+                            <button type="button" class="btn-admin-pill logout" onclick="document.getElementById('logout-btn').click()">Log Out</button>
+                        </div>
+                    </div>
+                    <div class="admin-hero-bottom">
+                        <div>
+                            <div class="admin-hero-eyebrow">Administration &amp; Scheduling</div>
+                            <h1 id="active-org-title" class="admin-hero-title">Select Organization</h1>
+                        </div>
                     </div>
                 </div>
-                <div id="dashboard-tabs" class="flex gap-4 overflow-x-auto mt-2">
-                    <button class="dash-tab active px-4 py-2 text-sm font-bold border-b-2 border-blue-500 text-blue-400 transition" data-target="activities-section">Activities</button>
-                    <button class="dash-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition" data-target="lessons-manager">Lessons</button>
-                    <button class="dash-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition" data-target="birthdays-section">Birthdays</button>
+            </div>
+
+            <header class="mb-6">
+                <div id="dashboard-tabs" class="flex gap-4 overflow-x-auto pb-2">
+                    <button class="dash-tab active" data-target="activities-section">Activities</button>
+                    <button class="dash-tab" data-target="lessons-manager">Lessons</button>
+                    <button class="dash-tab" data-target="birthdays-section">Birthdays</button>
                 </div>
             </header>
 
-            <div id="admin-dashboard" class="w-full">
+            <div id="admin-dashboard" class="w-full flex-1">
                 <div id="activities-section" class="tab-pane active space-y-8">
-                <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl mb-8 p-6">
-                    <!-- Org specific tools (Activities) -->
-                <div class="flex flex-wrap items-center justify-between mb-4 border-b border-slate-800 pb-4 gap-4">
-                    <div>
-                        <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Activities Manager</h2>
-                    </div>
-                    <div class="flex gap-4 items-center">
-                        <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-400"><input type="checkbox" id="togglePastActivities" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-blue-500"> See Past Activities</label>
-                        <button id="addNewRowBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Activity</button>
-                    </div>
-                    </div>
-                    <div class="mt-4 mb-8">
-                        <div id="data-editor-list" class="flex flex-col gap-4">
-                            <!-- Data rows go here -->
+                    <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl mb-8 p-6">
+                        <!-- Org specific tools (Activities) -->
+                        <div class="flex flex-wrap items-center justify-between mb-4 border-b border-slate-200 pb-4 gap-4">
+                            <div>
+                                <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Activities Manager</h2>
+                            </div>
+                            <div class="flex gap-4 items-center">
+                                <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-500"><input type="checkbox" id="togglePastActivities" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"> See Past Activities</label>
+                                <button id="addNewRowBtn" class="text-xs items-center flex font-bold py-2.5 px-4 rounded-xl transition uppercase tracking-wider shadow shrink-0">+ Add Activity</button>
+                            </div>
+                        </div>
+                        <div class="mt-4 mb-8">
+                            <div id="data-editor-list" class="flex flex-col gap-3">
+                                <!-- Data rows go here -->
+                            </div>
+                        </div>
+                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-[#007b91] mb-4 mt-8">Database Backup &amp; Sync</h3>
+                        <div class="flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700 sync-box">
+                            <div class="flex-1 min-w-[240px]">
+                                <label for="csvFileInput" class="w-full inline-block text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-wider">Upload CSV Import</label>
+                                <input type="file" id="csvFileInput" accept=".csv" class="hidden">
+                            </div>
+                            <div class="flex-1 min-w-[240px]">
+                                <button id="exportCsvBtn" class="w-full text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-wider">Download CSV Backup</button>
+                            </div>
+                            <div class="flex-1 min-w-[240px]">
+                                <button class="sync-firebase-btn w-full text-[12px] font-black py-3 rounded-xl transition shadow-md uppercase tracking-wider flex items-center justify-center gap-2">Save Changes to Database</button>
+                            </div>
                         </div>
                     </div>
-                    <h3 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-500 mb-4 mt-8">Database Backup & Sync</h3>
-                <div class="flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                    <div class="flex-1 min-w-[250px]">
-                        <label for="csvFileInput" class="w-full inline-block bg-slate-700 hover:bg-emerald-600 text-emerald-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-widest border border-emerald-500/30">Upload CSV Import</label>
-                        <input type="file" id="csvFileInput" accept=".csv" class="hidden">
-                    </div>
-                    <div class="flex-1 min-w-[250px]">
-                        <button id="exportCsvBtn" class="w-full bg-slate-700 hover:bg-blue-600 text-blue-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-widest border border-blue-500/30">Download CSV Backup</button>
-                    </div>
-                    <div class="flex-1 min-w-[250px]">
-                        <button class="sync-firebase-btn w-full bg-emerald-600 hover:bg-emerald-500 text-white text-[12px] font-black py-3 rounded-xl transition shadow-lg uppercase tracking-widest flex items-center justify-center gap-2">Save Changes to Database</button>
-                    </div>
                 </div>
-                </div>
-                <!-- End Activities Section -->
-                </div>
+
                 <div id="lessons-manager" class="tab-pane hidden space-y-8">
                     <div id="lessons-section">
-                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-200 pb-4 gap-4">
                             <div>
                                 <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Lessons Manager</h2>
                             </div>
                             <div class="flex gap-4 items-center">
-                                <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-400"><input type="checkbox" id="togglePastLessons" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-blue-500"> See Past Lessons</label>
-                                <button id="addLessonBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Lesson</button>
+                                <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-500"><input type="checkbox" id="togglePastLessons" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"> See Past Lessons</label>
+                                <button id="addLessonBtn" class="text-xs items-center flex font-bold py-2.5 px-4 rounded-xl transition uppercase tracking-wider shadow shrink-0">+ Add Lesson</button>
                             </div>
                         </div>
                         <div id="lesson-schedule-data" class="bg-slate-900 rounded-2xl shadow-xl border border-slate-700/50 p-6 flex-1 min-h-[100px]">
                             <p class="text-slate-500 italic">Loading schedule...</p>
                         </div>
                         
-                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-500 mb-4 mt-8">Database Backup & Sync</h3>
-                        <div class="flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                            <div class="flex-1 min-w-[250px]">
-                                <label for="csvLessonsInput" class="w-full inline-block bg-slate-700 hover:bg-emerald-600 text-emerald-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-widest border border-emerald-500/30">Upload CSV Import</label>
+                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-[#007b91] mb-4 mt-8">Database Backup &amp; Sync</h3>
+                        <div class="flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700 sync-box">
+                            <div class="flex-1 min-w-[240px]">
+                                <label for="csvLessonsInput" class="w-full inline-block text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-wider">Upload CSV Import</label>
                                 <input type="file" id="csvLessonsInput" accept=".csv" class="hidden">
                             </div>
-                            <div class="flex-1 min-w-[250px]">
-                                <button id="exportLessonsCsvBtn" class="w-full bg-slate-700 hover:bg-blue-600 text-blue-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-widest border border-blue-500/30">Download CSV Backup</button>
+                            <div class="flex-1 min-w-[240px]">
+                                <button id="exportLessonsCsvBtn" class="w-full text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-wider">Download CSV Backup</button>
                             </div>
-                            <div class="flex-1 min-w-[250px]">
-                                <button class="sync-firebase-btn w-full bg-emerald-600 hover:bg-emerald-500 text-white text-[12px] font-black py-3 rounded-xl transition shadow-lg uppercase tracking-widest flex items-center justify-center gap-2">Save Changes to Database</button>
+                            <div class="flex-1 min-w-[240px]">
+                                <button class="sync-firebase-btn w-full text-[12px] font-black py-3 rounded-xl transition shadow-md uppercase tracking-wider flex items-center justify-center gap-2">Save Changes to Database</button>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div id="birthdays-section" class="tab-pane hidden space-y-8">
-                    <div class="bg-slate-900 border border-pink-500/30 w-full rounded-2xl shadow-xl p-6">
-                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                    <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl p-6">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-200 pb-4 gap-4">
                             <div>
                                 <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Birthdays Manager</h2>
                             </div>
-                            <button id="addBirthdayBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Birthday</button>
+                            <button id="addBirthdayBtn" class="text-xs items-center flex font-bold py-2.5 px-4 rounded-xl transition uppercase tracking-wider shadow shrink-0">+ Add Birthday</button>
                         </div>
                         <div id="admin-birthdays-list" class="space-y-0">
                             <!-- Birthday rows go here -->
                         </div>
                         
-                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-500 mb-4 mt-8">Database Backup & Sync</h3>
-                        <div class="flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                            <div class="flex-1 min-w-[250px]">
-                                <label for="csvBirthdaysInput" class="w-full inline-block bg-slate-700 hover:bg-emerald-600 text-emerald-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-widest border border-emerald-500/30">Upload CSV Import</label>
+                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-[#007b91] mb-4 mt-8">Database Backup &amp; Sync</h3>
+                        <div class="flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700 sync-box">
+                            <div class="flex-1 min-w-[240px]">
+                                <label for="csvBirthdaysInput" class="w-full inline-block text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-wider">Upload CSV Import</label>
                                 <input type="file" id="csvBirthdaysInput" accept=".csv" class="hidden">
                             </div>
-                            <div class="flex-1 min-w-[250px]">
-                                <button id="exportBirthdaysCsvBtn" class="w-full bg-slate-700 hover:bg-blue-600 text-blue-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-widest border border-blue-500/30">Download CSV Backup</button>
+                            <div class="flex-1 min-w-[240px]">
+                                <button id="exportBirthdaysCsvBtn" class="w-full text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-wider">Download CSV Backup</button>
                             </div>
-                            <div class="flex-1 min-w-[250px]">
-                                <button class="sync-firebase-btn w-full bg-emerald-600 hover:bg-emerald-500 text-white text-[12px] font-black py-3 rounded-xl transition shadow-lg uppercase tracking-widest flex items-center justify-center gap-2">Save Changes to Database</button>
+                            <div class="flex-1 min-w-[240px]">
+                                <button class="sync-firebase-btn w-full text-[12px] font-black py-3 rounded-xl transition shadow-md uppercase tracking-wider flex items-center justify-center gap-2">Save Changes to Database</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="system-settings-container" class="space-y-8 hidden w-full">
-                <div class="flex gap-4 overflow-x-auto mb-4 border-b border-slate-800 pb-2">
-                    <button class="settings-tab active px-4 py-2 text-sm font-bold border-b-2 border-blue-500 text-blue-400 transition" id="nav-announcements" data-target="announcements-section">Announcements</button>
-                    <button class="settings-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition" id="nav-spotlights" data-target="spotlights-section">Spotlights</button>
-                    <button class="settings-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition" id="nav-teachers" data-target="teachers-section">Teachers</button>
-                    <button class="settings-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition" id="nav-leaders" data-target="leaders-section">Leaders</button>
-                    <button class="settings-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition" id="nav-theme" data-target="theme-section">Theme</button>
+            <!-- Settings Modules -->
+            <div id="system-settings-container" class="space-y-8 hidden w-full flex-1">
+                <div class="flex gap-3 overflow-x-auto mb-4 pb-2">
+                    <button class="settings-tab active" id="nav-announcements" data-target="announcements-section">Announcements</button>
+                    <button class="settings-tab" id="nav-spotlights" data-target="spotlights-section">Spotlights</button>
+                    <button class="settings-tab" id="nav-teachers" data-target="teachers-section">Teachers</button>
+                    <button class="settings-tab" id="nav-leaders" data-target="leaders-section">Leaders</button>
+                    <button class="settings-tab" id="nav-theme" data-target="theme-section">Theme</button>
                 </div>
                 
                 <!-- Announcements Module -->
                 <div id="announcements-section" class="settings-module active space-y-8">
                     <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl p-6">
-                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-200 pb-4 gap-4">
                             <div>
                                 <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Announcements Manager</h2>
-                                <p class="text-xs text-slate-400 mt-1">Manage general announcements and adjust their order of appearance with the ↑ / ↓ arrows.</p>
+                                <p class="text-xs text-slate-500 mt-1">Manage general announcements and adjust their order of appearance with the ↑ / ↓ arrows.</p>
                             </div>
-                            <button id="addAnnouncementBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Announcement</button>
+                            <button id="addAnnouncementBtn" class="text-xs items-center flex font-bold py-2.5 px-4 rounded-xl transition uppercase tracking-wider shadow shrink-0">+ Add Announcement</button>
                         </div>
                         <div id="announcements-data" class="flex flex-col gap-2">
                             <p class="italic opacity-50 text-slate-500 text-center p-8">Loading announcements...</p>
@@ -270,11 +306,11 @@
                 <!-- Spotlights Module -->
                 <div id="spotlights-section" class="settings-module hidden space-y-8">
                     <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl p-6">
-                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-200 pb-4 gap-4">
                             <div>
                                 <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Spotlights Manager</h2>
                             </div>
-                            <button id="addSpotlightBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Spotlight</button>
+                            <button id="addSpotlightBtn" class="text-xs items-center flex font-bold py-2.5 px-4 rounded-xl transition uppercase tracking-wider shadow shrink-0">+ Add Spotlight</button>
                         </div>
                         <div id="spotlights-data" class="flex flex-col gap-2">
                             <p class="italic opacity-50 text-slate-500 text-center p-8">Loading spotlights...</p>
@@ -285,23 +321,23 @@
                 <!-- Teachers Module -->
                 <div id="teachers-section" class="settings-module hidden space-y-8">
                     <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl p-6">
-                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-200 pb-4 gap-4">
                             <div>
                                 <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Teacher Roster</h2>
                             </div>
-                            <button id="addTeacherBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] items-center flex font-bold py-2 px-4 rounded-xl transition uppercase tracking-widest shadow-lg shrink-0">+ Add Teacher</button>
+                            <button id="addTeacherBtn" class="text-xs items-center flex font-bold py-2.5 px-4 rounded-xl transition uppercase tracking-wider shadow shrink-0">+ Add Teacher</button>
                         </div>
-                        <div id="teachersCsvGroup" class="hidden flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-6">
-                            <div class="flex-1 min-w-[250px]">
-                                <label for="importTeachersCsvBtn" class="w-full inline-block bg-slate-700 hover:bg-emerald-600 text-emerald-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-widest border border-emerald-500/30">Upload CSV Import</label>
+                        <div id="teachersCsvGroup" class="hidden flex gap-4 flex-wrap bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-6 sync-box">
+                            <div class="flex-1 min-w-[240px]">
+                                <label for="importTeachersCsvBtn" class="w-full inline-block text-xs font-bold py-3 px-4 rounded-xl transition text-center cursor-pointer uppercase tracking-wider">Upload CSV Import</label>
                                 <input type="file" id="importTeachersCsvBtn" accept=".csv" class="hidden">
                             </div>
-                            <div class="flex-1 min-w-[250px]">
-                                <button id="exportTeachersCsvBtn" class="w-full bg-slate-700 hover:bg-blue-600 text-blue-400 hover:text-white text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-widest border border-blue-500/30">Download CSV Backup</button>
+                            <div class="flex-1 min-w-[240px]">
+                                <button id="exportTeachersCsvBtn" class="w-full text-xs font-bold py-3 px-4 rounded-xl transition text-center uppercase tracking-wider">Download CSV Backup</button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto bg-slate-900 rounded-lg border border-slate-700 p-4">
-                            <div class="flex flex-col md:flex-row gap-4 text-xs uppercase bg-slate-800 text-slate-400 p-3 rounded-lg mb-2">
+                        <div class="overflow-x-auto bg-slate-900 rounded-lg border border-slate-200 p-4">
+                            <div class="flex flex-col md:flex-row gap-4 text-xs uppercase bg-[#faf6ef] text-[#152548] p-3 rounded-lg mb-2 border border-[#e9dece]">
                                 <div class="flex-1 font-bold">Teacher Name</div>
                                 <div class="w-[140px] font-bold">Organization</div>
                                 <div class="w-[100px] font-bold text-right">Actions</div>
@@ -316,16 +352,16 @@
                 <!-- Leaders Module -->
                 <div id="leaders-section" class="settings-module hidden space-y-8">
                     <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl p-6">
-                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-800 pb-4 gap-4">
+                        <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-200 pb-4 gap-4">
                             <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Leaders Management</h2>
-                            <button id="addLeaderBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow transition-colors">+ Add Leader</button>
+                            <button id="addLeaderBtn" class="text-xs items-center flex font-bold py-2.5 px-4 rounded-xl transition uppercase tracking-wider shadow shrink-0">+ Add Leader</button>
                         </div>
-                        <div class="overflow-x-auto bg-slate-900 rounded-lg border border-slate-700 p-4">
-                            <div class="grid grid-cols-4 gap-4 text-xs uppercase bg-slate-800 text-slate-400 p-3 rounded-lg mb-2">
+                        <div class="overflow-x-auto bg-slate-900 rounded-lg border border-slate-200 p-4">
+                            <div class="grid grid-cols-4 gap-4 text-xs uppercase bg-[#faf6ef] text-[#152548] p-3 rounded-lg mb-2 border border-[#e9dece]">
                                 <div class="font-bold">Leader First Name</div>
                                 <div class="font-bold">Leader Last Name</div>
                                 <div class="font-bold">Organization</div>
-                                <div class="font-bold">Calling & Actions</div>
+                                <div class="font-bold">Calling &amp; Actions</div>
                             </div>
                             <div id="leaders-roster-data" class="space-y-2">
                                 <p class="text-center italic text-slate-500 p-4">Loading leaders...</p>
@@ -337,49 +373,88 @@
                 <!-- Theme Module -->
                 <div id="theme-section" class="settings-module hidden space-y-8">
                     <div class="bg-slate-900 border border-slate-700/50 w-full rounded-2xl shadow-xl p-6 max-w-2xl">
-                        <div class="border-b border-slate-800 pb-4 mb-6">
+                        <div class="border-b border-slate-200 pb-4 mb-6">
                             <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 uppercase tracking-widest">Youth Theme &amp; Scripture</h2>
-                            <p class="text-xs text-slate-400 mt-1">Update the annual theme title and scripture reference displayed on the Youth Hub homepage.</p>
+                            <p class="text-xs text-slate-500 mt-1">Update the annual theme title and scripture reference displayed on the Youth Hub homepage.</p>
                         </div>
                         <div class="space-y-5">
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Theme Title</label>
-                                <input type="text" id="admin-theme-title" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:border-blue-500 outline-none text-sm" placeholder="e.g. Walk with me.">
+                                <label class="block text-xs font-bold text-[#152548] uppercase tracking-wider mb-2">Theme Title</label>
+                                <input type="text" id="admin-theme-title" class="w-full px-4 py-3 text-sm" placeholder="e.g. Walk with me.">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Scripture Reference</label>
-                                <input type="text" id="admin-theme-scripture" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:border-blue-500 outline-none text-sm" placeholder="e.g. Moses 6:34">
+                                <label class="block text-xs font-bold text-[#152548] uppercase tracking-wider mb-2">Scripture Reference</label>
+                                <input type="text" id="admin-theme-scripture" class="w-full px-4 py-3 text-sm" placeholder="e.g. Moses 6:34">
                             </div>
-                            <div id="theme-save-status" class="hidden text-xs font-bold text-emerald-400 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                            <div id="theme-save-status" class="hidden text-xs font-bold text-emerald-700 p-3 rounded-xl bg-emerald-50 border border-emerald-300">
                                 ✓ Theme successfully updated in database!
                             </div>
-                            <button id="saveThemeBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 px-6 rounded-xl transition uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
+                            <button id="saveThemeBtn" class="text-xs font-bold py-3.5 px-6 rounded-xl transition uppercase tracking-wider shadow-md flex items-center justify-center gap-2">
                                 Save Theme to Database
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Unified Footer -->
+            <footer class="org-footer">
+                <div class="footer-divider-row">
+                    <span class="footer-divider-line" aria-hidden="true"></span>
+                    <a href="https://blackstoneward.org" class="footer-brand-link" aria-label="Blackstone Ward Main Site" title="Blackstone Ward">
+                        <img src="/assets/ward-logo-moroni.png?v=7.16.0" alt="Blackstone Ward Youth Hub" class="footer-moroni-logo">
+                    </a>
+                    <span class="footer-divider-line" aria-hidden="true"></span>
+                </div>
+                <div class="footer-version-row">
+                    <span class="footer-version-text app-version-display" data-format="short">Version 7.16.0</span>
+                </div>
+            </footer>
         </main>
     </div>
 
     <!-- Modals -->
-    <div id="customModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm">
+    <div id="customModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
         <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-8 shadow-2xl text-center">
             <h3 class="text-xl font-black text-white mb-2">Sync Options</h3>
             <p id="modalMsg" class="text-slate-400 text-sm mb-8 leading-relaxed">Wipe existing calendar before sync? (Recommended for full updates)</p>
             <div class="flex flex-col gap-3">
-                <button id="modalYes" class="bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl uppercase tracking-widest text-xs">Yes, Wipe & Sync</button>
-                <button id="modalNo" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-black py-3 rounded-xl uppercase tracking-widest text-xs">No, Just Add New Items</button>
-                <button id="modalCancel" class="text-slate-600 hover:text-white font-bold text-[10px] mt-2 uppercase tracking-widest">Cancel Entire Import</button>
+                <button id="modalYes" class="bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl uppercase tracking-widest text-xs">Yes, Wipe &amp; Sync</button>
+                <button id="modalNo" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-black py-3 rounded-xl uppercase tracking-widest text-xs">No, Just Add New Items</button>
+                <button id="modalCancel" class="text-slate-500 hover:text-slate-800 font-bold text-[10px] mt-2 uppercase tracking-widest">Cancel Entire Import</button>
             </div>
         </div>
     </div>
 
-    <!-- Add Teacher Modal Removed -->
-
-
     <script type="module" src="/admin/admin-app.js"></script>
+    <script>
+        // Parallax Engine for Admin
+        function initAdminParallax() {
+            const scenes = [...document.querySelectorAll('.parallax')];
+            let frameQueued = false;
+            function renderFrame() {
+                frameQueued = false;
+                const isMobile = window.innerWidth <= 760;
+                const speed = isMobile ? 0.18 : 0.35;
+                for (const scene of scenes) {
+                    const layer = scene.querySelector('.scene-image');
+                    if (!layer) continue;
+                    const box = scene.getBoundingClientRect();
+                    if (box.bottom < -160 || box.top > window.innerHeight + 160) continue;
+                    const scrolled = Math.max(0, -box.top);
+                    const offset = Math.min(150, scrolled * speed);
+                    layer.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0)`;
+                }
+            }
+            function requestFrame() {
+                if (!frameQueued) { frameQueued = true; requestAnimationFrame(renderFrame); }
+            }
+            window.addEventListener('scroll', requestFrame, { passive: true });
+            window.addEventListener('resize', requestFrame, { passive: true });
+            requestFrame();
+        }
+        window.initAdminParallax = initAdminParallax;
+        document.addEventListener('DOMContentLoaded', initAdminParallax);
+    </script>
 </body>
 </html>

@@ -1,10 +1,19 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.15.3
+**Version**: v7.16.0
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment), `youth-blackstoneward` (Production: `youth.blackstoneward.org`)
 **DevOps**: The beta environment is tracked on the `beta-admin` branch. Hosting targets are mapped in `.firebaserc` (`staging` -> `test-blackstoneward`, `youth` -> `youth-blackstoneward`).
+
+- **Admin Portal Seasonal Parallax & Warm Cream Editorial Redesign**:
+  - Overhauled the Admin Portal (`public/admin/index.html`) to align with the Warm Cream Editorial design system established across the Youth Hub and secondary organization pages.
+  - Implemented the panoramic seasonal parallax hero banner (`.admin-hero-banner.parallax`) at the top of the dashboard, displaying the active season's scenic landscape with dynamic gradient wash, quick navigation links ("View Youth Hub ↗", "Log Out"), and clean organization titles.
+  - Upgraded the Login Screen (`#login-view`) into a scenic parallax gate with blurred frosted glass card (`.admin-login-card`), official Moroni branding (`ward-logo-moroni.png`), and high-contrast inputs.
+  - Re-themed all management cards (Activities, Lessons, Birthdays, Announcements, Spotlights, Teacher Roster, Leaders Management, and Youth Theme & Scripture) with clean white cards (`#ffffff`), warm borders (`var(--border)`), and readable high-contrast form controls.
+  - Integrated the unified Blackstone Ward Moroni footer (`.org-footer`) featuring the panoramic pine tree silhouette background and dynamic version indicator.
+  - Built dedicated `public/assets/admin.css` to cleanly encapsulate styles, parallax animation engine, and responsive breakpoints without touching existing database/RBAC logic.
+  - Synchronized global version `v7.16.0` and cache-busting query strings across all assets and templates.
 
 - **Youth Home Page Combined Card Harmonization**:
   - Removed `.card-combined` highlighting from the Combined group card in `public/index.html` and removed specific `.card-combined` background overrides in `public/assets/youth-hub.css`.
