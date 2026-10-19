@@ -1,5 +1,14 @@
-> **Note**: The current app version is v7.15.3 on beta-admin.
+> **Note**: The current app version is v7.16.0 on beta-admin.
  
+## [2026-10-19 17:25] - v7.16.0 Admin Portal Seasons & Parallax Editorial Redesign
+- **Warm Cream Editorial & Parallax Design**: Overhauled `public/admin/index.html` to adopt the site-wide seasons-based warm cream editorial aesthetic.
+- **Panoramic Parallax Hero Banner**: Added dynamic seasonal parallax hero banner (`.admin-hero-banner.parallax`) at the top of the dashboard with active seasonal landscape, gradient wash, quick navigation links ("View Youth Hub ↗", "Log Out"), and responsive typography.
+- **Scenic Login Gate**: Redesigned `#login-view` with blurred frosted glass card, official Moroni emblem (`ward-logo-moroni.png`), and high-contrast form controls on top of the seasonal scenic backdrop.
+- **Editorial Cards & Themed Form Controls**: Replaced dark slate panels with crisp white cards (`#ffffff`), subtle borders (`var(--border)`), warm hover effects, and accessible readable inputs across all management modules (Activities, Lessons, Birthdays, Announcements, Spotlights, Teacher Roster, Leaders Management, and Youth Theme & Scripture).
+- **Unified Footer**: Integrated the transparent pine tree silhouette footer (`.org-footer`) with centered Moroni emblem and dynamic version indicator.
+- **Dedicated Stylesheet**: Created `public/assets/admin.css` to cleanly encapsulate the design tokens, parallax engine, and responsive styles without modifying business logic.
+- **Global Version Sync**: Bumped application version to `v7.16.0` across `cfm-config.js`, all templates, stylesheets, and footers.
+
 ## [2026-10-19 17:10] - v7.15.3 Youth Home Page Combined Card Style Harmonization
 - **Combined Card White Background**: Removed `card-combined` highlighting from `public/index.html` and removed specific `.card-combined` background styling from `public/assets/youth-hub.css`. The Combined card now has the standard `#ffffff` white card background and border matching all other unselected groups.
 - **Global Version Sync**: Bumped application version to `v7.15.3` across `cfm-config.js`, all templates, stylesheets, and footers.
