@@ -1,4 +1,109 @@
-> **Note**: The current app version is v7.12.86 on beta-admin.
+> **Note**: The current app version is v7.15.3 on beta-admin.
+ 
+## [2026-10-19 17:10] - v7.15.3 Youth Home Page Combined Card Style Harmonization
+- **Combined Card White Background**: Removed `card-combined` highlighting from `public/index.html` and removed specific `.card-combined` background styling from `public/assets/youth-hub.css`. The Combined card now has the standard `#ffffff` white card background and border matching all other unselected groups.
+- **Global Version Sync**: Bumped application version to `v7.15.3` across `cfm-config.js`, all templates, stylesheets, and footers.
+
+## [2026-10-19 16:45] - v7.15.2 Youth Home Page Top Menu Refinement
+- **Top Menu Update**: Removed the "Announcements" link from the top navigation bar on the Youth Home page (`public/index.html`).
+- **Admin Portal Navigation**: Added an "Admin" link positioned cleanly between "Spotlights" and "Get help", pointing to `/admin/index.html`.
+- **Global Version Sync**: Bumped application version to `v7.15.2` across `cfm-config.js`, all templates, stylesheets, and footers.
+
+## [2026-10-19 16:35] - v7.15.1 Youth Home Page Footer Harmonization
+- **Harmonized Home Footer**: Replaced the legacy text-and-link footer on `public/index.html` with the identical `.org-footer` from the secondary organization pages.
+- **Silhouette & Moroni Emblem**: Rendered the transparent pine tree silhouette background (`footer-tree-silhouette.png`), flanking horizontal divider lines, centered Blackstone Ward Moroni logo (`ward-logo-moroni.png`) with link to `blackstoneward.org`, and dynamic italicized version tag.
+- **Flush Edge Styling**: Added `.org-footer` styles and `html { background-color: var(--cream); }` to `public/assets/youth-hub.css`, ensuring the silhouette sits flush against the page baseline with zero seams.
+- **Global Version Sync**: Bumped application version to `v7.15.1` across `cfm-config.js`, all templates, stylesheets, and footers.
+
+## [2026-10-19 15:40] - v7.15.0 Full Organization Pages Migration
+- **Secondary Pages Editorial Redesign**: Fully migrated all 5 secondary organization pages (`Priests/`, `Teachers/`, `Deacons/`, `YW/`, `Primary/`) to the approved editorial seasonal design matching the Combined pilot.
+- **Dynamic Group Subtitle Format**: Applied the user's required subtext format across all non-Combined groups: `"Activities, service, and time together for " & [Group Name] & "."` (`Activities, service, and time together for Priests.`, `Activities, service, and time together for Teachers.`, `Activities, service, and time together for Deacons.`, `Activities, service, and time together for Young Women.`, `Activities, service, and time together for Primary.`).
+- **Group Switcher Pill Highlighting**: Contextually highlighted the active organization tab on each page with official vector SVG emblems and `aria-current="page"` accessibility.
+- **Combined + Quorum Event Aggregation**: Integrated dual Firestore `onSnapshot` queries on each quorum/class page listening to both quorum-specific collections (`Priests_events`, `Teachers_events`, `Deacons_events`, `YW_events`, `Primary_events`) and ward-wide `Combined_events` with category color support and ID deduplication.
+- **Legend & Badge Combined Category Styling**: Added `.legend-dot.combined` and `.row-date-badge.combined` styles to `public/assets/org-page.css` and added Combined to the category legend for all quorum/class calendars.
+- **Organization Feedback Routing**: Connected the interactive feedback modal to tag submissions with the respective organization name (`Priests`, `Teachers`, `Deacons`, `Young Women`, `Primary`).
+- **Global Version & Cache Sync**: Bumped application version to `v7.15.0` across `cfm-config.js`, `public/index.html`, `public/Combined/index.html`, all 5 organization pages, and static footers.
+
+## [2026-10-19 15:00] - v7.14.4 Uniform Calendar Grid & 2-Line Text Wrapping
+- **Uniform Grid Sizing**: Configured `.cal-days-grid` with fixed `grid-auto-rows: 94px` (84px on mobile) and `.cal-day-cell` with fixed `height: 94px; overflow: hidden; box-sizing: border-box;`, making every day cell in the calendar grid identical and uniform in dimension.
+- **2-Line Text Wrapping**: Upgraded `.cal-event-pill` and introduced `.cal-pill-title` with `-webkit-line-clamp: 2` and `overflow-wrap: break-word`, allowing event titles to wrap across two lines with graceful ellipsis truncation for longer names.
+- **Top-Aligned Category Bullet**: Set `.cal-event-pill` to `align-items: flex-start` with bullet dot `margin-top: 3px`, ensuring category indicators remain cleanly aligned with the first line of wrapped text.
+- **Cache-Busting & Version Sync**: Incremented cache-busters to `?v=7.14.4` across stylesheet, scripts, and image tags, and synchronized version `7.14.4` across `cfm-config.js`, `public/Combined/index.html`, and `public/index.html`.
+
+## [2026-10-19 14:50] - v7.14.3 Group Switcher Tabs Vertical Centering
+- **Symmetric Vertical Margin**: Updated `.group-tabs-container` with equal top and bottom margins (`margin-top: 24px; margin-bottom: 24px;`), moving the group switcher buttons down so they are perfectly centered between the bottom of the landscape hero banner and the Activity Calendar card.
+- **Cache-Busting & Version Sync**: Incremented cache-busting query strings (`?v=7.14.3`) on `org-page.css`, `ward-logo-moroni.png`, and `footer-tree-silhouette.png`, and synchronized version `7.14.3` across `cfm-config.js`, `public/Combined/index.html`, and `public/index.html`.
+
+## [2026-10-19 14:40] - v7.14.2 Footer Flush Background & Official Logo Integration
+- **Transparent Silhouette Artwork**: Re-rendered `footer-tree-silhouette.png` with complete alpha transparency for the sky and mist, completely removing the white bounding box and contrast seams against the page container.
+- **Flush Edge Alignment**: Configured `.org-footer` with transparent background and `background-size: 100% 100%`, and set `html` background to `var(--cream)` (`#faf6ef`) so the footer is completely flush with the bottom and sides with zero white gaps.
+- **Official Youth Hub Logo Integration**: Replaced the extracted footer emblem with the official transparent, high-res Blackstone Ward Youth Hub logo (`ward-logo-moroni.png`) provided by the user.
+- **Asset Cache-Busting & Version Sync**: Added `?v=7.14.2` query parameters to `footer-tree-silhouette.png`, `ward-logo-moroni.png`, and `org-page.css`, and synchronized version `7.14.2` across `cfm-config.js`, `public/Combined/index.html`, and `public/index.html`.
+
+## [2026-10-19 10:15] - v7.14.1 Footer Silhouette & Moroni Branding
+- **Panoramic Pine Silhouette Artwork**: Integrated high-resolution landscape tree and mountain silhouette (`footer-tree-silhouette.png`) anchored along the footer baseline with top gradient transparency.
+- **Moroni Statue & Youth Hub Brand Block**: Extracted and rendered the centered Blackstone Ward Moroni logo (`ward-logo-moroni.png`) with cyan-blue "YOUTH HUB" title, linked back to `https://blackstoneward.org`.
+- **Flanked Horizontal Dividers**: Positioned responsive 1px horizontal divider lines flanking both sides of the central Moroni emblem, extending across the card width.
+- **Clean Blue Version Display**: Configured footer version display to render strictly `"Version " + [version #]` (e.g. `Version 7.14.1`) in italic blue font.
+- **Dynamic & Fallback Version Synchronization**: Upgraded `renderGlobalFooter` in `cfm-config.js` to format `data-format="short"` version tags dynamically, and synchronized global version `7.14.1` across `cfm-config.js`, `public/Combined/index.html`, and `public/index.html`.
+
+## [2026-10-19 09:59] - v7.14.0 Secondary Organization Pages Redesign (Combined Pilot)
+- **Combined Page GUI Redesign**: Overhauled `/Combined/index.html` to match the approved seasonal editorial design mockup.
+- **Seasonal Background Engine**: Integrated with `seasons.css` and `org-page.css` for automated seasonal landscape artwork and palette transitions.
+- **Interactive Activity Calendar**: Built 7-day responsive calendar grid with month navigation (`< October 2026 >`), today highlighting, category color-coded event pills, category legend, and calendar/list toggle.
+- **Sidebar & Coming Up Modules**: Implemented real-time dynamic "UP NEXT" card, "Good to know" help card, and full-width "Coming up" upcoming activity list.
+- **Interactive Event Details Modal**: Added interactive event detail popover dialog with Google Calendar integration.
+- **Client Cache-Busting & Version Sync**: Synchronized global version to `7.14.0` across `cfm-config.js`, `index.html` cache-buster (`/cfm-config.js?v=7.14.0`), and static footer fallbacks.
+
+## [2026-10-19 01:02] - v7.13.7 Blackstone Ward Home Logo Integration
+- **Brand Logo & Return Link**: Replaced top-left brand element with official Blackstone Ward horizontal logo (`ward-logo-horizontal-v1.0.6.png`) from the main homepage, configured to link back to `https://blackstoneward.org`.
+- **Blue Youth Hub Label**: Scaled the logo to fit the header layout and placed "Youth Hub" underneath in brand blue (`#2165a2`) with clean letter-spacing and typography.
+- **Client Cache-Busting & Version Sync**: Synchronized global version to `7.13.7` across `cfm-config.js`, `index.html` cache-buster (`/cfm-config.js?v=7.13.7`), and static footer fallback.
+
+## [2026-10-19 00:56] - v7.13.6 Parallax Engine Repair & Asset Resolution
+- **Asset Resolution & Fallback**: Corrected seasonal landscape image paths in `seasons.css` and `youth-hub.css` to root-relative `/assets/...`, added fallback assets in `/public/`, and added explicit `body[data-season="fall"]` rule to eliminate 404s.
+- **Continuous Scroll Parallax**: Re-engineered parallax JavaScript to use fluid scroll-anchored translation (`Math.min(150, scrolled * speed)`), removing mid-scroll clamp freezing and premature limits.
+- **Enhanced Visual Depth**: Increased `.scene-image` vertical buffer (`inset: -160px 0`), added `min-height: 560px` to `.welcome-scene`, and refined `.scene-wash` gradient transparency to reveal the landscape behind the hero cards.
+- **Client Cache-Busting & Version Sync**: Synchronized global version to `7.13.6` across `cfm-config.js`, `index.html` cache-buster (`/cfm-config.js?v=7.13.6`), and static footer fallback.
+
+## [2026-10-19 00:52] - v7.13.5 Youth Spotlight Conditional Lock Button
+- **Conditional Lock Button Display**: Hid the header button when spotlights are locked to eliminate redundant unlock buttons and keep the black "Unlock spotlights →" banner as the single action.
+- **Post-Unlock Lock Toggle**: Dynamically displays the `🔒 Lock` button beside the "Youth Spotlight" header only after unlocking, allowing users to re-lock the section at any time.
+- **Client Cache-Busting & Version Sync**: Synchronized global version to `7.13.5` across `cfm-config.js`, `index.html` cache-buster (`/cfm-config.js?v=7.13.5`), and static footer fallback.
+
+## [2026-10-19 00:48] - v7.13.4 Spotlight Video Autoplay Prevention
+- **Disable Spotlight Card Autoplay**: Configured `parseVideoEmbedUrl` to default to `autoplay = false` for inline card renders, removing forced `autoplay=1` parameter injection for Vimeo and YouTube embed links.
+- **Iframe Permission Hardening**: Removed `allow="autoplay"` from spotlight card `<iframe>` containers so video players stay paused until visitors click play.
+- **Preserved Lightbox Modal Autoplay**: Announcement video modal lightbox continues to autoplay as expected when clicked, with automatic parameter handling.
+- **Client Cache-Busting & Version Sync**: Synchronized global version to `7.13.4` across `cfm-config.js`, `index.html` cache-buster (`/cfm-config.js?v=7.13.4`), and static footer fallback.
+
+## [2026-10-19 00:43] - v7.13.3 Youth Spotlight Header, Lock/Unlock Toggle & Card Streamlining
+- **Section Header & Lock Toggle**: Added a dedicated "Youth Spotlight" header above the spotlights container with an interactive Lock/Unlock button enabling quick locking (session reset) or gate access trigger.
+- **Card Bulk Removal**: Removed redundant "Youth" badge and "Spotlight" fallback labels from individual spotlight cards to streamline the presentation and eliminate visual clutter.
+- **Client Cache-Busting & Version Sync**: Synchronized global version to `7.13.3` across `cfm-config.js`, `index.html` cache-buster (`/cfm-config.js?v=7.13.3`), and static footer fallback.
+
+## [2026-10-19 00:36] - v7.13.2 Admin Portal Theme & Scripture Editor
+- **Admin Theme & Scripture Tab**: Added a dedicated "Theme" tab in the Admin Portal under **Settings & Privacy**, providing input controls for Theme Title and Scripture Reference.
+- **Atomic Firestore Sync**: Bound inputs to Firestore document `home_content/general_info` (`theme` and `scripture`), with live status confirmation and automated updates to the Youth Hub homepage.
+- **RBAC Access Control**: Configured tab visibility strictly for Tier 3 (Master Admin) users.
+- **Client Cache-Busting & Version Sync**: Synchronized global version to `7.13.2` across `cfm-config.js`, `index.html` cache-buster (`/cfm-config.js?v=7.13.2`), and static footer fallback.
+
+## [2026-10-19 00:13] - v7.13.1 Official SVG Symbols Integration
+- **Official SVG Symbols**: Replaced placeholder card icons with the dedicated vector symbols from `public/assets/symbols/`: `combined.svg`, `priests.svg`, `teachers.svg`, `deacons.svg`, `young-women.svg`, and `primary.svg`.
+- **Client Cache-Busting & Version Sync**: Synchronized global version to `7.13.1` across `cfm-config.js`, `index.html` cache-buster (`/cfm-config.js?v=7.13.1`), and static footer fallback.
+
+## [2026-10-19 00:05] - v7.13.0 Seasonal Parallax & Editorial GUI Redesign
+- **Seasonal Parallax Redesign**: Transformed the Youth Hub homepage to match the warm, editorial aesthetic of the Ward Home with Massachusetts seasonal palette switching and responsive parallax scrolling (`seasons.css`, landscape assets).
+- **Custom Vector Icon Suite**: Integrated crisp inline SVGs matching the approved GUI layout: dual-loop gradient logo emblem, 3-person team (`Combined`), priest in suit (`Priests`), scriptures (`Teachers`), shield (`Deacons`), lotus blossom (`Young Women`), and radiant sun (`Primary`).
+- **Dynamic "UP NEXT" Hero Card**: Automatically displays the next upcoming Combined youth activity in real-time from Firestore with custom date box badge (`OCT` / `14`).
+- **Dynamic Theme & Scripture**: Bound the Hero theme heading and scripture to Firestore `home_content/general_info`.
+- **Coming Up & Announcements Modernization**: Rendered activities and announcements in the clean two-column layout with date box badges, circular megaphone badges, and preserved video modal deep linking.
+- **Spotlights Protected Banner**: Redesigned the gated youth spotlights banner with circular lock badge and modal integration.
+- **Client Cache-Busting & Version Sync**: Synchronized global version to `7.13.0` across `cfm-config.js`, `index.html` cache-buster (`/cfm-config.js?v=7.13.0`), and static footer.
+
+## [2026-10-18 09:40] - v7.12.86 Multi-Site Hosting & Subdomain Migration
+- **Youth Hub Subdomain Migration**: Successfully decoupled the Youth Hub from the apex domain `blackstoneward.org` to its dedicated custom subdomain `youth.blackstoneward.org` on Firebase Hosting multi-site target `youth-blackstoneward`.
+- **Target Mapping Update**: Updated `.firebaserc` (`"youth": ["youth-blackstoneward"]`) and `firebase.json` (`"target": "youth"`).
 
 ## [2026-10-16 12:15] - v7.12.86 Restore Deterministic Video ID Deep-Linking
 - **Video ID & Announcement Document ID Resolution**: Restored and enhanced the deep-linking engine in `public/index.html` to scan active announcements for exact Vimeo/YouTube Video IDs (e.g. `?video=1236419866`, `?watch=1236419866`) or Firestore announcement document IDs (`?video=<DOC_ID>`). If multiple video announcements exist simultaneously, the modal player opens the specific video matched by ID rather than defaulting to the first item.

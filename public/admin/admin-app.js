@@ -1320,6 +1320,7 @@ window.setupRBAC = function() {
     const navSpot = document.getElementById('nav-spotlights');
     const navTeach = document.getElementById('nav-teachers');
     const navLead = document.getElementById('nav-leaders');
+    const navTheme = document.getElementById('nav-theme');
     const teachersCsvGroup = document.getElementById('teachersCsvGroup');
 
     if (userRole === 'Admin') {
@@ -1327,10 +1328,12 @@ window.setupRBAC = function() {
         if (navSpot) navSpot.classList.remove('hidden');
         if (navTeach) navTeach.classList.remove('hidden');
         if (navLead) navLead.classList.remove('hidden');
+        if (navTheme) navTheme.classList.remove('hidden');
         if (teachersCsvGroup) teachersCsvGroup.classList.remove('hidden');
     } else {
         if (navAnn) navAnn.classList.add('hidden');
         if (navLead) navLead.classList.add('hidden');
+        if (navTheme) navTheme.classList.add('hidden');
         if (navSpot) navSpot.classList.remove('hidden');
         if (navTeach) navTeach.classList.remove('hidden');
         if (teachersCsvGroup) teachersCsvGroup.classList.add('hidden');
@@ -1442,6 +1445,7 @@ if (settingsTab) {
         loadAnnouncements();
         loadSpotlights();
         loadLeaders();
+        loadTheme();
     });
 }
 
@@ -2364,4 +2368,43 @@ window.deleteTeacher = async (id) => {
         } catch(e) { console.error("Del err", e); }
     }
 };
+
+async function loadTheme() {
+    try {
+        const themeDoc = await getDoc(doc(db, "home_content", "general_info"));
+        if (themeDoc.exists()) {
+            const data = themeDoc.data() || {};
+            const titleInput = document.getElementById('admin-theme-title');
+            const scriptureInput = document.getElementById('admin-theme-scripture');
+            if (titleInput) titleInput.value = data.theme || '';
+            if (scriptureInput) scriptureInput.value = data.scripture || '';
+        }
+    } catch (e) {
+        console.error("Error loading theme:", e);
+    }
+}
+
+const saveThemeBtn = document.getElementById('saveThemeBtn');
+if (saveThemeBtn) {
+    saveThemeBtn.addEventListener('click', async () => {
+        saveThemeBtn.disabled = true;
+        saveThemeBtn.innerText = 'Saving...';
+        try {
+            const theme = document.getElementById('admin-theme-title').value.trim();
+            const scripture = document.getElementById('admin-theme-scripture').value.trim();
+            await setDoc(doc(db, "home_content", "general_info"), { theme, scripture }, { merge: true });
+            
+            const statusEl = document.getElementById('theme-save-status');
+            if (statusEl) {
+                statusEl.classList.remove('hidden');
+                setTimeout(() => statusEl.classList.add('hidden'), 4000);
+            }
+        } catch (err) {
+            alert('Failed to save theme: ' + err.message);
+        } finally {
+            saveThemeBtn.disabled = false;
+            saveThemeBtn.innerText = 'Save Theme to Database';
+        }
+    });
+}
 

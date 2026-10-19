@@ -4,186 +4,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Youth Hub</title>
+    <title>Blackstone Ward Youth Hub</title>
     <script src="security-config.js"></script>
-    <script src="/cfm-config.js?v=7.12.86"></script>
+    <script src="/cfm-config.js?v=7.15.3"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .card-hover {
-            transition: all 0.3s ease;
-            border: 1px solid #334155;
-            position: relative;
-            overflow: hidden;
-            touch-action: manipulation;
-        }
-
-        .card-hover:hover {
-            transform: translateY(-5px);
-            border-color: #3b82f6;
-            background: #1e293b;
-        }
-
-        .card-combined {
-            border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.1);
-        }
-
-        .admin-input {
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            width: 100%;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .admin-input:focus {
-            border-color: #3b82f6;
-        }
-
-        .btn-primary {
-            background: #2563eb;
-            color: white;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            transition: all 0.2s;
-        }
-
-        .btn-primary:active {
-            transform: scale(0.98);
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/seasons.css">
+    <link rel="stylesheet" href="assets/youth-hub.css?v=7.15.3">
 </head>
 
-<body>
-    <header class="py-5 px-4 bg-transparent text-center flex justify-center">
-        <a href="./index.html" class="inline-block">
-            <img src="./images/BlackstoneYouthHubLogo.png" alt="Blackstone Ward Youth Hub"
-                style="max-height: 150px; width: auto;" class="object-contain">
-        </a>
-    </header>
+<body class="youth-hub-body">
 
-    <main class="max-w-7xl mx-auto px-6 pb-12">
-        <h2 class="text-3xl font-black text-white mb-6 uppercase tracking-widest pl-2">Activities</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            <a href="/Combined/"
-                class="card-hover card-combined p-8 md:p-12 rounded-2xl block text-center md:col-span-3">
-                <h3 class="text-2xl md:text-3xl font-black text-white mb-2">Combined</h3>
-                <p class="text-blue-400 text-[10px] font-bold uppercase tracking-widest">Dances • Conferences • Ward
-                    Nights</p>
+    <!-- Scenic Parallax Welcome Scene -->
+    <div class="welcome-scene parallax" id="home">
+        <div class="scene-image" aria-hidden="true"></div>
+        <div class="scene-wash" aria-hidden="true"></div>
+
+        <!-- Header -->
+        <header class="site-header wrap">
+            <a href="https://blackstoneward.org" class="brand-link" aria-label="Blackstone Ward Main Site" title="Return to Blackstone Ward Homepage">
+                <div class="brand-block">
+                    <img src="/assets/ward-logo-horizontal-v1.0.6.png" alt="Blackstone Ward" class="brand-ward-logo" width="2019" height="779" fetchpriority="high">
+                    <span class="brand-youth-label">Youth Hub</span>
+                </div>
             </a>
 
-            <a href="/Priests/" class="card-hover p-6 md:p-8 rounded-2xl bg-slate-800/40 block text-center">
-                <h3 class="text-lg font-bold text-white uppercase tracking-wider">Priests</h3>
-            </a>
-            <a href="/Teachers/" class="card-hover p-6 md:p-8 rounded-2xl bg-slate-800/40 block text-center">
-                <h3 class="text-lg font-bold text-white uppercase tracking-wider">Teachers</h3>
-            </a>
-            <a href="/Deacons/" class="card-hover p-6 md:p-8 rounded-2xl bg-slate-800/40 block text-center">
-                <h3 class="text-lg font-bold text-white uppercase tracking-wider">Deacons</h3>
-            </a>
-            <a href="/YW/" class="card-hover p-6 md:p-8 rounded-2xl bg-slate-800/40 block text-center">
-                <h3 class="text-lg font-bold text-white uppercase tracking-wider">Young Women</h3>
-            </a>
-            <a href="/Primary/"
-                class="card-hover p-6 md:p-8 rounded-2xl bg-slate-800/40 block text-center md:col-span-2">
-                <h3 class="text-lg font-bold text-white uppercase tracking-wider">Primary</h3>
-            </a>
-        </div>
+            <nav class="main-nav" aria-label="Main Navigation">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#groups" class="nav-link">Activities</a>
+                <a href="#spotlights" class="nav-link">Spotlights</a>
+                <a href="/admin/index.html" class="nav-link">Admin</a>
+                <button type="button" class="btn-pill-help" id="headerFeedbackBtn">Get help</button>
+            </nav>
+        </header>
 
-        <hr class="border-slate-800 my-10 max-w-7xl mx-auto">
-        <h2 class="text-3xl font-black text-white mb-6 uppercase tracking-widest pl-2">General Announcements</h2>
+        <!-- Hero Grid -->
+        <section class="wrap hero-grid">
+            <div class="hero-left">
+                <div class="hero-eyebrow">2026 Youth Theme</div>
+                <h1 class="hero-heading" id="hero-theme-title">Walk with me.</h1>
+                <p class="hero-scripture" id="hero-theme-scripture">Moses 6:34</p>
+                <p class="hero-subtitle">Find your next activity. Stay connected. Grow together.</p>
+                <div class="hero-actions">
+                    <a href="#groups" class="btn-primary-dark">Explore activities <span aria-hidden="true">→</span></a>
+                    <a href="/Combined/" class="link-secondary">View calendar <span aria-hidden="true">→</span></a>
+                </div>
+            </div>
+
+            <!-- Floating UP NEXT Card (Bound to Next Combined Activity) -->
+            <div class="hero-right">
+                <div class="up-next-card" id="upnext-card">
+                    <div class="up-next-eyebrow">Up Next</div>
+                    <div class="up-next-body">
+                        <div class="date-box">
+                            <span class="date-box-month" id="upnext-month">OCT</span>
+                            <span class="date-box-day" id="upnext-day">--</span>
+                        </div>
+                        <div class="date-divider" aria-hidden="true"></div>
+                        <div class="up-next-info">
+                            <h4 id="upnext-title">Loading next activity...</h4>
+                            <p id="upnext-desc">Combined youth activity</p>
+                        </div>
+                    </div>
+                    <a href="/Combined/" class="up-next-link" id="upnext-link">View details <span aria-hidden="true">→</span></a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Foreground Content -->
+    <main class="wrap">
+
+        <!-- Find Your Group Section -->
+        <section class="section-groups" id="groups" aria-labelledby="groups-heading">
+            <h2 class="section-title" id="groups-heading">Find your group</h2>
+            <p class="section-subtitle">Activities for every age</p>
+
+            <div class="groups-grid">
+                <!-- Combined Card -->
+                <a href="/Combined/" class="group-card">
+                    <div class="group-card-top">
+                        <div class="group-card-icon">
+                            <img src="assets/symbols/combined.svg" alt="" width="38" height="38" class="w-full h-full object-contain" aria-hidden="true">
+                        </div>
+                    </div>
+                    <div class="group-card-bottom">
+                        <span class="group-card-title">Combined</span>
+                        <span class="group-card-chevron" aria-hidden="true">›</span>
+                    </div>
+                </a>
+
+                <!-- Priests Card -->
+                <a href="/Priests/" class="group-card">
+                    <div class="group-card-top">
+                        <div class="group-card-icon">
+                            <img src="assets/symbols/priests.svg" alt="" width="38" height="38" class="w-full h-full object-contain" aria-hidden="true">
+                        </div>
+                    </div>
+                    <div class="group-card-bottom">
+                        <span class="group-card-title">Priests</span>
+                        <span class="group-card-chevron" aria-hidden="true">›</span>
+                    </div>
+                </a>
+
+                <!-- Teachers Card -->
+                <a href="/Teachers/" class="group-card">
+                    <div class="group-card-top">
+                        <div class="group-card-icon">
+                            <img src="assets/symbols/teachers.svg" alt="" width="38" height="38" class="w-full h-full object-contain" aria-hidden="true">
+                        </div>
+                    </div>
+                    <div class="group-card-bottom">
+                        <span class="group-card-title">Teachers</span>
+                        <span class="group-card-chevron" aria-hidden="true">›</span>
+                    </div>
+                </a>
+
+                <!-- Deacons Card -->
+                <a href="/Deacons/" class="group-card">
+                    <div class="group-card-top">
+                        <div class="group-card-icon">
+                            <img src="assets/symbols/deacons.svg" alt="" width="38" height="38" class="w-full h-full object-contain" aria-hidden="true">
+                        </div>
+                    </div>
+                    <div class="group-card-bottom">
+                        <span class="group-card-title">Deacons</span>
+                        <span class="group-card-chevron" aria-hidden="true">›</span>
+                    </div>
+                </a>
+
+                <!-- Young Women Card -->
+                <a href="/YW/" class="group-card">
+                    <div class="group-card-top">
+                        <div class="group-card-icon">
+                            <img src="assets/symbols/young-women.svg" alt="" width="38" height="38" class="w-full h-full object-contain" aria-hidden="true">
+                        </div>
+                    </div>
+                    <div class="group-card-bottom">
+                        <span class="group-card-title">Young Women</span>
+                        <span class="group-card-chevron" aria-hidden="true">›</span>
+                    </div>
+                </a>
+
+                <!-- Primary Card -->
+                <a href="/Primary/" class="group-card">
+                    <div class="group-card-top">
+                        <div class="group-card-icon">
+                            <img src="assets/symbols/primary.svg" alt="" width="38" height="38" class="w-full h-full object-contain" aria-hidden="true">
+                        </div>
+                    </div>
+                    <div class="group-card-bottom">
+                        <span class="group-card-title">Primary</span>
+                        <span class="group-card-chevron" aria-hidden="true">›</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Two-Column Section: Coming Up & Announcements -->
+        <section class="two-col-grid" aria-label="Activities and Announcements">
+
+            <!-- Left: Coming Up -->
+            <div class="content-card" id="coming-up">
+                <div class="card-header-row">
+                    <h3>Coming up</h3>
+                    <a href="/Combined/" class="header-action-link">View calendar <span aria-hidden="true">→</span></a>
+                </div>
+                <div id="combined-activities-list">
+                    <p class="text-sm italic opacity-50 py-4">Syncing upcoming activities...</p>
+                </div>
+            </div>
+
+            <!-- Right: Announcements -->
+            <div class="content-card" id="announcements">
+                <div class="card-header-row">
+                    <h3>Announcements</h3>
+                    <a href="#announcements" class="header-action-link" id="announcementsViewAllBtn">View all <span aria-hidden="true">→</span></a>
+                </div>
+                <div id="announcement-list">
+                    <p class="text-sm italic opacity-50 py-4">Loading announcements...</p>
+                </div>
+                <a href="#announcements" class="bottom-link" id="pastAnnouncementsBtn">Past announcements <span aria-hidden="true">→</span></a>
+            </div>
+        </section>
+
+        <!-- Youth Spotlights (Gated / Protected Section) -->
+        <section id="spotlights" class="spotlights-wrapper mb-12" aria-labelledby="spotlights-heading">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="section-title" id="spotlights-heading">Youth Spotlight</h2>
+                <button type="button" id="spotlightLockToggleBtn" onclick="window.toggleSpotlightLock()" class="btn-pill-help items-center gap-1.5 text-xs" style="display: none;">
+                    <span id="spotlightLockIcon">🔒</span>
+                    <span id="spotlightLockLabel">Lock</span>
+                </button>
+            </div>
+            <div id="youth-spotlight-container">
+                <div class="spotlights-banner">
+                    <div class="spotlights-banner-inner">
+                        <div class="spotlights-content">
+                            <div class="spotlights-lock-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    <circle cx="12" cy="16" r="1.5"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="spotlights-heading">Celebrating our youth</h3>
+                                <p class="spotlights-subtext">Verify your access to view youth spotlights.</p>
+                            </div>
+                        </div>
+                        <button onclick="window.triggerSpotlightGate()" class="btn-unlock-spotlights">Unlock spotlights <span aria-hidden="true">→</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spotlight Gate Modal -->
+            <div id="spotlight-gate-modal"
+                class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+                <div
+                    class="bg-white border border-[#e9dece] rounded-2xl p-8 max-w-md w-full shadow-2xl relative text-center">
+                    <button onclick="window.closeSpotlightGate()"
+                        class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 transition" aria-label="Close modal">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                    <div class="w-16 h-16 bg-[#e6dbf2] text-[#6d3ba8] rounded-full flex items-center justify-center mx-auto mb-5">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            <circle cx="12" cy="16" r="1.5"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-[#152548] mb-2 font-serif">Verify Access</h3>
+                    <p class="text-[#536484] text-sm mb-6 leading-relaxed">Enter the last name of any adult YW/YM leader to unlock the youth spotlights.</p>
+                    <input type="text" id="gate-input-name"
+                        class="w-full bg-[#f8f6fc] border border-[#dcc8ec] text-[#152548] rounded-xl px-4 py-3 mb-4 focus:ring-2 focus:ring-[#7c4bb5] outline-none text-center font-medium"
+                        placeholder="Leader Last Name" onkeydown="if(event.key==='Enter') window.confirmSpotlightUnlock()">
+                    <p id="gate-error-text" class="text-red-500 text-xs mb-4 hidden font-medium">Incorrect entry</p>
+                    <button onclick="window.confirmSpotlightUnlock()"
+                        class="w-full py-3 bg-[#152548] hover:bg-[#0f1c38] text-white font-bold rounded-xl transition shadow-lg text-sm">Submit</button>
+                </div>
+            </div>
+        </section>
+
     </main>
 
-    <section class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-20">
-        <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl flex flex-col shadow-xl">
-            <h2 class="text-xs font-black mb-6 uppercase tracking-[0.2em] text-blue-500">Announcements</h2>
-            <div id="announcement-list" class="space-y-4 text-slate-300 text-sm mb-6 flex-1">
-                <p class="italic opacity-50">Loading announcements...</p>
-            </div>
-
-
+    <!-- Footer -->
+    <footer class="org-footer">
+        <span id="display-theme" class="hidden"></span>
+        <div class="footer-divider-row">
+            <span class="footer-divider-line" aria-hidden="true"></span>
+            <a href="https://blackstoneward.org" class="footer-brand-link" aria-label="Blackstone Ward Main Site" title="Blackstone Ward">
+                <img src="/assets/ward-logo-moroni.png?v=7.15.3" alt="Blackstone Ward Youth Hub" class="footer-moroni-logo">
+            </a>
+            <span class="footer-divider-line" aria-hidden="true"></span>
         </div>
-
-        <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl flex flex-col shadow-xl">
-            <h2 class="text-xs font-black mb-6 uppercase tracking-[0.2em] text-emerald-500">Next Combined Events</h2>
-            <div id="combined-activities-list" class="flex-1 space-y-4">
-                <p class="italic text-slate-500 text-sm">Syncing...</p>
-            </div>
-
-
+        <div class="footer-version-row">
+            <span class="footer-version-text app-version-display" data-format="short">Version 7.15.3</span>
         </div>
-    </section>
-
-    <section class="max-w-7xl mx-auto px-6 mb-20">
-        <h2 class="text-3xl font-black text-white mb-6 uppercase tracking-widest pl-2">Youth Spotlights</h2>
-        <div id="youth-spotlight-container" class="space-y-6">
-            <p class="italic opacity-50 text-slate-300 text-sm pl-2">Loading spotlights...</p>
-        </div>
-
-        <div id="spotlight-gate-modal"
-            class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm">
-            <div
-                class="bg-slate-900 border border-blue-500/30 rounded-2xl p-8 max-w-md w-full shadow-2xl relative text-center">
-                <button onclick="window.closeSpotlightGate()"
-                    class="absolute top-4 right-4 text-slate-500 hover:text-white transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                        </path>
-                    </svg>
-                </button>
-                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z">
-                        </path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-black text-white mb-2 uppercase tracking-widest">Verify Access</h3>
-                <p class="text-slate-400 text-sm mb-6 leading-relaxed">Enter the last name of any adult YW/YM leader to
-                    unlock the spotlights.</p>
-                <input type="text" id="gate-input-name"
-                    class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 mb-4 focus:ring-2 focus:ring-blue-500 outline-none text-center"
-                    placeholder="Leader Last Name" onkeydown="if(event.key==='Enter') window.confirmSpotlightUnlock()">
-                <p id="gate-error-text" class="text-red-400 text-xs mb-4 hidden font-medium">Incorrect entry</p>
-                <button onclick="window.confirmSpotlightUnlock()"
-                    class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg uppercase tracking-widest text-sm">Submit</button>
-            </div>
-        </div>
-
-
-
-
-    </section>
-
-    <footer class="text-center pb-20">
-        <p id="display-theme" class="text-lg text-emerald-400 font-medium italic mb-6 px-4">Loading theme...</p>
-
-
-        <button id="globalFeedbackBtn"
-            class="text-[10px] ml-4 font-bold text-blue-400 hover:text-white tracking-widest transition uppercase">
-            Suggestions & Help
-        </button>
-        <a href="/admin/index.html"
-            class="text-[10px] ml-4 font-bold text-amber-500 hover:text-white tracking-widest transition uppercase">Admin
-            Portal</a>
-        <p class="app-version-display text-[9px] text-slate-400 mt-4 font-bold uppercase tracking-widest">Blackstone Ward Youth Hub V7.12.86</p>
     </footer>
 
+    <!-- Video Player Lightbox Modal -->
+    <div id="videoModal"
+        class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[150] items-center justify-center p-4 transition-opacity"
+        role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-4xl shadow-2xl relative overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/80">
+                <div class="flex items-center gap-2 overflow-hidden pr-4">
+                    <span class="text-teal-400 text-sm shrink-0">▶</span>
+                    <h2 id="videoModalTitle" class="font-bold text-sm text-white truncate">Video</h2>
+                </div>
+                <button id="closeVideoBtn" onclick="window.closeVideoModal()"
+                    class="text-slate-400 hover:text-white transition font-bold text-xl w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800 active:scale-95 shrink-0"
+                    aria-label="Close video player">✕</button>
+            </div>
+            <div class="relative w-full aspect-video bg-black flex items-center justify-center">
+                <div id="videoContainer" class="w-full h-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Feedback Modal -->
+    <div id="feedbackModal"
+        class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] items-center justify-center p-4">
+        <div class="bg-white border border-[#e9dece] rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden text-left">
+            <div class="px-6 py-4 border-b border-[#f0e6d8] flex items-center justify-between bg-[#faf6ef]">
+                <h2 class="font-bold text-lg text-[#152548] font-serif">Suggestions &amp; Help</h2>
+                <button id="closeFeedbackBtn" class="text-slate-400 hover:text-slate-700 transition font-bold text-xl active:scale-95" aria-label="Close">✕</button>
+            </div>
+            <div class="p-6">
+                <div id="feedbackSuccess"
+                    class="hidden mb-4 p-4 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-800 text-xs font-bold text-center">
+                    Success! Your feedback has been sent to ward leadership.
+                </div>
+                <form id="feedbackForm" class="flex flex-col gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-[#152548] mb-1.5">Your Name</label>
+                        <input type="text" id="feedbackName" required
+                            class="w-full bg-[#f8f6fc] text-[#152548] rounded-xl px-4 py-3 border border-[#dcc8ec] focus:border-[#7c4bb5] outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[#152548] mb-1.5">Category</label>
+                        <select id="feedbackCategory" required
+                            class="w-full bg-[#f8f6fc] text-[#152548] rounded-xl px-4 py-3 border border-[#dcc8ec] focus:border-[#7c4bb5] outline-none text-sm">
+                            <option value="Suggestion">💡 Suggestion</option>
+                            <option value="Help">🙋 Help / Question</option>
+                            <option value="Bug">🐛 Report a Bug</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[#152548] mb-1.5">Message</label>
+                        <textarea id="feedbackMessage" rows="4" required
+                            class="w-full bg-[#f8f6fc] text-[#152548] rounded-xl px-4 py-3 border border-[#dcc8ec] focus:border-[#7c4bb5] outline-none text-sm resize-none"></textarea>
+                    </div>
+                    <button type="submit" id="feedbackSubmitBtn"
+                        class="w-full mt-2 bg-[#152548] hover:bg-[#0f1c38] text-white font-bold text-sm py-3.5 rounded-xl shadow-lg transition active:scale-95">
+                        Send Message
+                    </button>
+                    <button type="button" id="feedbackCloseBtn"
+                        class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs py-2.5 rounded-xl transition active:scale-95">Close</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Application & Real-Time Sync Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, updateDoc, setDoc, doc, deleteDoc, getDoc, query, orderBy, limit, where, Timestamp, writeBatch, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Seasonal Environment Setup
+        function currentSeason(date = new Date()) {
+            const month = Number(new Intl.DateTimeFormat('en-US', { month: 'numeric', timeZone: 'America/New_York' }).format(date));
+            return month === 12 || month <= 2 ? 'winter' : month <= 5 ? 'spring' : month <= 8 ? 'summer' : 'fall';
+        }
+        document.body.dataset.season = currentSeason();
+
+        // Parallax Engine
+        const scenes = [...document.querySelectorAll('.parallax')];
+        let frameQueued = false;
+        function renderFrame() {
+            frameQueued = false;
+            const isMobile = window.innerWidth <= 760;
+            const speed = isMobile ? 0.18 : 0.35;
+            for (const scene of scenes) {
+                const layer = scene.querySelector('.scene-image');
+                if (!layer) continue;
+                const box = scene.getBoundingClientRect();
+                if (box.bottom < -160 || box.top > window.innerHeight + 160) continue;
+                const scrolled = Math.max(0, -box.top);
+                const offset = Math.min(150, scrolled * speed);
+                layer.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0)`;
+            }
+        }
+        function requestFrame() {
+            if (!frameQueued) { frameQueued = true; requestAnimationFrame(renderFrame); }
+        }
+        window.addEventListener('scroll', requestFrame, { passive: true });
+        window.addEventListener('resize', requestFrame, { passive: true });
+        requestFrame();
 
         const firebaseConfig = {
             apiKey: "AIzaSyDrWB07WNqObtjiZb_NntJQZ0dhHyLRBas",
@@ -201,204 +381,104 @@
 
         let isAdminMode = false;
 
-        // --- Spotlight Image Processing ---
-        let currentSpotlightImageData = null;
-
-        function parseVideoEmbedUrl(url) {
+        function parseVideoEmbedUrl(url, autoplay = false) {
             if (!url || typeof url !== 'string') return null;
             const cleanUrl = url.trim();
 
-            // Direct mapping for known vanity links
             if (/vimeo\.com\/duaneharris\/daremightythings/i.test(cleanUrl)) {
-                return "https://player.vimeo.com/video/1236419866?h=f1a12f4634&autoplay=1";
+                return `https://player.vimeo.com/video/1236419866?h=f1a12f4634${autoplay ? '&autoplay=1' : ''}`;
             }
 
-            // Direct player.vimeo.com/video/123456...
             if (/player\.vimeo\.com\/video\/(\d+)/i.test(cleanUrl)) {
-                const sep = cleanUrl.includes('?') ? '&' : '?';
-                return cleanUrl.includes('autoplay') ? cleanUrl : `${cleanUrl}${sep}autoplay=1`;
+                let base = cleanUrl.replace(/([?&])autoplay=[^&]*/gi, '');
+                base = base.replace(/[?&]$/, '');
+                if (autoplay) {
+                    const sep = base.includes('?') ? '&' : '?';
+                    return `${base}${sep}autoplay=1`;
+                }
+                return base;
             }
 
-            // Vimeo standard or unlisted: vimeo.com/123456789 or vimeo.com/123456789/abcdef123
             const vimeoMatch = cleanUrl.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]+\/videos\/|)(\d+)(?:\/([a-zA-Z0-9]+))?/i);
             if (vimeoMatch) {
                 const id = vimeoMatch[1];
                 const h = vimeoMatch[2];
-                return `https://player.vimeo.com/video/${id}${h ? "?h=" + h + "&" : "?"}autoplay=1`;
+                const params = [];
+                if (h) params.push(`h=${h}`);
+                if (autoplay) params.push('autoplay=1');
+                const query = params.length > 0 ? `?${params.join('&')}` : '';
+                return `https://player.vimeo.com/video/${id}${query}`;
             }
 
-            // YouTube: watch?v=ID, youtu.be/ID, shorts/ID, embed/ID, m.youtube.com
             const ytMatch = cleanUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
             if (ytMatch) {
-                return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+                return `https://www.youtube.com/embed/${ytMatch[1]}${autoplay ? '?autoplay=1' : ''}`;
             }
 
             return null;
         }
 
-        function getYouTubeThumb(url) {
-            if (!url || typeof url !== 'string') return null;
-            const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
-            return ytMatch ? `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg` : null;
-        }
-
-        window.resetSpotlightForm = () => {
-            document.getElementById('edit-spot-id').value = '';
-            document.getElementById('new-spot-org').value = '';
-            document.getElementById('new-spot-date').value = '';
-            document.getElementById('new-spot-desc').value = '';
-            document.getElementById('new-spot-upload').value = '';
-            document.getElementById('new-spot-video').value = '';
-            document.getElementById('spot-preview-img').src = '';
-            document.getElementById('spot-preview-img').classList.add('hidden');
-            document.getElementById('saveSpotBtn').innerText = 'Publish Spotlight';
-            document.getElementById('cancelSpotBtn').classList.add('hidden');
-            currentSpotlightImageData = null;
-        };
-        // ----------------------------------
-
         async function initHub() {
             try {
-                // ONE-SHOT STATIC MIGRATION
-                const rawSpots = await getDocs(collection(db, "home_spotlights"));
-                let triggerMigrate = false;
-                const mBatch = writeBatch(db);
-                rawSpots.forEach(sDoc => {
-                    if (sDoc.data().sortOrder === undefined) {
-                        triggerMigrate = true;
-                        let initSOrder = sDoc.data().timestamp ? 100000000000 - sDoc.data().timestamp.toMillis() : 5000000 + Math.floor(Math.random() * 10000);
-                        let sDate = new Date().toISOString().split('T')[0];
-                        if (sDoc.data().timestamp && typeof sDoc.data().timestamp.toDate === "function") {
-                            sDate = sDoc.data().timestamp.toDate().toISOString().split('T')[0];
-                        }
-                        mBatch.update(doc(db, "home_spotlights", sDoc.id), { sortOrder: initSOrder, spotDate: sDate });
+                // 1. Announcements Real-time listener
+                const qAnn = query(collection(db, "home_announcements"), orderBy("timestamp", "desc"));
+                onSnapshot(qAnn, (annSnap) => {
+                    const container = document.getElementById('announcement-list');
+                    if (!container) return;
+
+                    if (annSnap.empty) {
+                        container.innerHTML = '<p class="text-sm italic opacity-50 py-3">No active announcements.</p>';
+                        return;
                     }
-                });
-                if (triggerMigrate) await mBatch.commit();
-            } catch (e) { console.error("Migration Err", e); }
 
-            try {
-                // ONE-SHOT TEACHER MIGRATION
-                const tRef = collection(db, "home_teachers");
-                const tDocs = await getDocs(tRef);
-                if (tDocs.empty && typeof TEACHER_LIST !== "undefined") {
-                    console.log("Migrating static TEACHER_LIST to Firestore...");
-                    const tBatch = writeBatch(db);
-                    TEACHER_LIST.forEach(teacherName => {
-                        const newDocRef = doc(tRef);
-                        tBatch.set(newDocRef, { name: teacherName, org: "General" });
-                    });
-                    await tBatch.commit();
-                } else if (!tDocs.empty) {
-                    const tBatch = writeBatch(db);
-                    let migratedAny = false;
-                    tDocs.forEach(d => {
-                        if (!d.data().org) {
-                            migratedAny = true;
-                            tBatch.update(doc(db, "home_teachers", d.id), { org: "General" });
-                        }
-                    });
-                    if (migratedAny) await tBatch.commit();
-                }
-            } catch (e) {
-                console.error("Teacher Migration Err:", e);
-            }
-
-            try {
-                // 0. Birthdays
-                const bdaySnap = await getDocs(query(collection(db, "birthdays")));
-                const todayMMDD = new Date().toISOString().split('T')[0].substring(5);
-                const bdayNames = [];
-                bdaySnap.forEach(d => {
-                    const b = d.data();
-                    if (b.date && b.date.substring(5) === todayMMDD) {
-                        const parts = b.name.trim().split(' ');
-                        const fName = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1].charAt(0)}.` : b.name;
-                        bdayNames.push(fName);
-                    }
-                });
-
-                if (bdayNames.length > 0) {
-                    let formattedNames = bdayNames.join(' and ');
-                    if (bdayNames.length > 2) {
-                        formattedNames = bdayNames.slice(0, -1).join(', ') + ', and ' + bdayNames[bdayNames.length - 1];
-                    }
-                    const bHTML = `
-                    <div class="mb-10 text-center relative z-30">
-                        <div class="inline-block relative w-full sm:w-auto">
-                            <div class="absolute inset-0 bg-emerald-500 blur-xl opacity-20 rounded-2xl animate-pulse"></div>
-                            <div class="relative bg-slate-900 border border-emerald-500 flex flex-col sm:flex-row items-center justify-center p-6 rounded-2xl shadow-xl gap-4">
-                                <span class="text-4xl hidden sm:block animate-bounce" style="animation-duration: 2s;">🎉</span>
-                                <h2 class="text-xl md:text-2xl font-black text-white uppercase tracking-widest leading-tight text-center">
-                                    Happy Birthday <br class="sm:hidden"/><span class="text-emerald-400 mt-2 sm:mt-0 inline-block">${formattedNames}!</span>
-                                </h2>
-                                <span class="text-4xl animate-bounce" style="animation-duration: 2s; animation-delay: 0.5s;">🎈</span>
-                            </div>
-                        </div>
-                    </div>`;
-                    const mainSec = document.querySelector('main.max-w-7xl');
-                    if (mainSec) mainSec.insertAdjacentHTML('afterbegin', bHTML);
-                }
-            } catch (e) { console.error("Bday fetch:", e); }
-
-            try {
-                // 1. Announcements
-                onSnapshot(query(collection(db, "home_announcements"), orderBy("timestamp", "desc")), (annSnap) => {
-                    const annContainer = document.getElementById('announcement-list');
-                    let annHTML = '';
                     const annDocs = annSnap.docs;
-                    annDocs.forEach((s, idx) => {
-                        const data = s.data();
-                        const embedUrl = parseVideoEmbedUrl(data.linkUrl) || parseVideoEmbedUrl(data.text);
-                        let linkHTML = '';
-                        if (embedUrl) {
-                            const finalLinkText = data.linkText || 'Watch Video';
-                            const safeTitle = encodeURIComponent(finalLinkText);
-                            linkHTML = `<button type="button" onclick="window.openVideoModal(event, '${embedUrl}', '${safeTitle}')" class="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-blue-600/20 text-blue-300 hover:text-white hover:bg-blue-600 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/40 transition cursor-pointer shadow-sm active:scale-95"><span class="text-xs">▶</span> ${finalLinkText}</button>`;
-                        } else if (data.linkUrl) {
-                            let finalLinkText = data.linkText || 'View More';
-                            linkHTML = `<a href="${data.linkUrl}" target="_blank" rel="noopener noreferrer" class="inline-block mt-3 px-4 py-2 bg-blue-500/10 text-blue-400 font-black tracking-widest text-[10px] rounded-lg uppercase border border-blue-500/20 hover:bg-blue-500/20 transition cursor-pointer">${finalLinkText}</a>`;
-                        }
+                    let annHTML = '';
+                    annDocs.forEach((s) => {
+                        const d = s.data();
+                        const safeTitle = (d.title || d.linkText || 'Announcement').trim();
+                        const safeBody = (d.text || d.body || '').trim();
+                        const dateStr = d.date ? new Date(d.date + "T00:00:00").toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+                        const timeStr = d.time ? ' • ' + d.time : '';
+                        const locationStr = d.location ? d.location : '';
+                        const embedUrl = parseVideoEmbedUrl(d.linkUrl, true) || parseVideoEmbedUrl(d.text, true);
 
-                        let moveUpHTML = idx > 0 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx - 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Up">↑</button>` : '';
-                        let moveDownHTML = idx < annDocs.length - 1 ? `<button onclick="window.swapAnn('${s.id}', '${annDocs[idx + 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Down">↓</button>` : '';
+                        let videoBtn = '';
+                        if (embedUrl) {
+                            const encodedTitle = encodeURIComponent(d.linkText || safeTitle);
+                            videoBtn = `<button onclick="window.openVideoModal(event, '${embedUrl}', '${encodedTitle}')" class="announcement-video-btn">▶ Watch Video</button>`;
+                        }
 
                         annHTML += `
-                            <div class="relative flex justify-between items-start border-l-2 border-blue-600 pl-4 py-2 my-1 transition-all ${isAdminMode ? 'border border-amber-500/30 bg-amber-900/10 shadow-[0_0_10px_rgba(245,158,11,0.1)] rounded-r pr-24' : ''}">
-                                <div class="flex flex-col pr-2 w-full">
-                                    <p class="text-white font-medium whitespace-pre-wrap">${data.text}</p>
-                                    ${linkHTML}
+                            <div class="announcement-entry">
+                                <div class="megaphone-badge" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                                        <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                                    </svg>
                                 </div>
-                                ${isAdminMode ? `
-                                    <div class="absolute top-2 right-2 flex gap-1 z-10 bg-slate-900/80 rounded p-1">
-                                        ${moveUpHTML}
-                                        ${moveDownHTML}
-                                        <button onclick="window.editAnn('${s.id}', \`${data.text.replace(/`/g, '\\`').replace(/'/g, "\\'")}\`, \`${data.linkText || ''}\`, \`${data.linkUrl || ''}\`)" class="p-1.5 bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white rounded transition shadow-sm flex items-center justify-center shrink-0 ml-1" title="Edit Announcement">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                        </button>
-                                        <button onclick="window.delAnn('${s.id}')" class="p-1.5 bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white rounded transition shadow-sm flex items-center justify-center shrink-0" title="Delete Announcement">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                        </button>
-                                    </div>
-                                ` : ''}
-                            </div>`;
+                                <div class="announcement-body">
+                                    <h4>${safeTitle}</h4>
+                                    ${(dateStr || timeStr) ? `<p class="announcement-meta">${dateStr}${timeStr}</p>` : ''}
+                                    ${locationStr ? `<p class="announcement-loc">${locationStr}</p>` : ''}
+                                    ${safeBody && safeBody !== safeTitle ? `<p class="announcement-meta" style="margin-top: 4px;">${safeBody}</p>` : ''}
+                                    ${videoBtn}
+                                </div>
+                            </div>
+                        `;
                     });
-                    annContainer.innerHTML = annHTML || '<p class="italic opacity-30 text-xs">No active announcements.</p>';
+                    container.innerHTML = annHTML;
 
-                    // Auto-open video modal if deep-linked via URL parameter (?video=1236419866, ?video=true) or hash (#video)
+                    // Deep-link Video Auto-Open check
                     const urlParams = new URLSearchParams(window.location.search);
-                    const rawVideoParam = (urlParams.get('video') || urlParams.get('watch') || (window.location.hash === '#video' ? 'true' : '')).trim();
-
-                    if (!window._hasAutoOpenedVideo && rawVideoParam) {
-                        window._hasAutoOpenedVideo = true;
-                        const targetId = rawVideoParam.toLowerCase();
+                    const rawVideoParam = urlParams.get('video') || urlParams.get('watch') || (window.location.hash === '#video' ? 'true' : null);
+                    if (rawVideoParam) {
+                        const targetId = rawVideoParam.toLowerCase().trim();
                         let matchedDoc = null;
-
-                        // 1. Look for announcement matching the specific video ID, URL, or document ID
                         if (targetId !== 'true' && targetId !== '1') {
                             for (const s of annDocs) {
                                 const d = s.data();
-                                const embedUrl = parseVideoEmbedUrl(d.linkUrl) || parseVideoEmbedUrl(d.text);
+                                const embedUrl = parseVideoEmbedUrl(d.linkUrl, true) || parseVideoEmbedUrl(d.text, true);
                                 if (!embedUrl) continue;
                                 const linkUrlLower = (d.linkUrl || '').toLowerCase();
                                 const textLower = (d.text || '').toLowerCase();
@@ -409,19 +489,16 @@
                                 }
                             }
                         }
-
-                        // 2. Fallback to newest video announcement if 'true', '1', or no specific ID match
                         if (!matchedDoc) {
                             for (const s of annDocs) {
                                 const d = s.data();
-                                const embedUrl = parseVideoEmbedUrl(d.linkUrl) || parseVideoEmbedUrl(d.text);
+                                const embedUrl = parseVideoEmbedUrl(d.linkUrl, true) || parseVideoEmbedUrl(d.text, true);
                                 if (embedUrl) {
                                     matchedDoc = { doc: d, embedUrl: embedUrl };
                                     break;
                                 }
                             }
                         }
-
                         if (matchedDoc) {
                             const finalLinkText = matchedDoc.doc.linkText || 'Video';
                             const safeTitle = encodeURIComponent(finalLinkText);
@@ -432,318 +509,236 @@
                     }
                 });
 
-                // 2. Theme
+                // 2. Dynamic Theme & Scripture from Firestore
                 const themeDoc = await getDoc(doc(db, "home_content", "general_info"));
                 if (themeDoc.exists()) {
-                    document.getElementById('display-theme').innerText = themeDoc.data().theme || "No theme set.";
-                    const editThemeEl = document.getElementById('edit-theme');
-                    if (editThemeEl) editThemeEl.value = themeDoc.data().theme || "";
+                    const themeData = themeDoc.data() || {};
+                    const rawTheme = themeData.theme || "Walk with me.";
+                    const rawScripture = themeData.scripture || "Moses 6:34";
+
+                    const heroTitleEl = document.getElementById('hero-theme-title');
+                    if (heroTitleEl) heroTitleEl.innerText = rawTheme;
+
+                    const heroScriptureEl = document.getElementById('hero-theme-scripture');
+                    if (heroScriptureEl) heroScriptureEl.innerText = rawScripture;
+
+                    const displayThemeEl = document.getElementById('display-theme');
+                    if (displayThemeEl) displayThemeEl.innerText = rawTheme;
                 }
 
-
-                // 2.5 Privacy Config
+                // 2.5 Privacy Config Load
                 try {
                     const privSnap = await getDoc(doc(db, "site_settings", "privacy_config"));
                     if (privSnap.exists()) {
-                        console.log("Privacy Config Loaded (Init):", privSnap.data().authorizedNames);
+                        console.log("Privacy Config Loaded:", privSnap.data().authorizedNames);
                     }
                 } catch (e) {
-                    console.error("Security rules blocking data access.", e);
+                    console.error("Privacy config access error", e);
                 }
 
-                // 3. Next Combined (Dynamic Height Balancing)
+                // 3. Combined Activities & Hero "UP NEXT" Binding
                 const todayStr = new Date().toISOString().split('T')[0];
-                let dynamicLimit = 4;
-                if (window.innerWidth >= 1024) {
-                    const annContainerElement = document.getElementById('announcement-list');
-                    const annHeight = annContainerElement ? annContainerElement.offsetHeight : 0;
-                    if (annHeight > 0) dynamicLimit = Math.max(2, Math.floor(annHeight / 110));
-                }
-                const qCombined = query(collection(db, "Combined_events"), where("date", ">=", todayStr), orderBy("date", "asc"), limit(dynamicLimit));
+                const qCombined = query(collection(db, "Combined_events"), where("date", ">=", todayStr), orderBy("date", "asc"), limit(4));
                 onSnapshot(qCombined, (combinedSnap) => {
                     const infoContainer = document.getElementById('combined-activities-list');
-                    let infoHTML = '';
+                    if (!infoContainer) return;
+
                     if (!combinedSnap.empty) {
-                        combinedSnap.docs.forEach(s => {
+                        // Populate Floating UP NEXT Hero Card
+                        const topEvent = combinedSnap.docs[0].data();
+                        const topDate = new Date(topEvent.date + "T00:00:00");
+                        const upMonth = document.getElementById('upnext-month');
+                        const upDay = document.getElementById('upnext-day');
+                        const upTitle = document.getElementById('upnext-title');
+                        const upDesc = document.getElementById('upnext-desc');
+
+                        if (upMonth) upMonth.innerText = topDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                        if (upDay) upDay.innerText = topDate.getDate();
+                        if (upTitle) upTitle.innerText = topEvent.name || "Combined Activity";
+                        if (upDesc) upDesc.innerText = topEvent.details || (topEvent.time ? topEvent.time + " • " : "") + "Combined youth activity";
+
+                        // Populate Coming Up List
+                        let infoHTML = '';
+                        combinedSnap.docs.forEach((s) => {
                             const ev = s.data();
                             const d = new Date(ev.date + "T00:00:00");
+                            const m = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                            const day = d.getDate();
+                            const subtitle = ev.details || (d.toLocaleDateString('en-US', { weekday: 'short' }) + (ev.time ? ' • ' + ev.time : ''));
+
                             infoHTML += `
-                                <div class="mb-4 bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <span class="flex h-2 w-2 relative">
-                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                        </span>
-                                        <p class="text-emerald-400 font-bold text-xs leading-tight uppercase tracking-widest">${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' })}</p>
+                                <a href="/Combined/" class="event-row">
+                                    <div class="date-box">
+                                        <span class="date-box-month">${m}</span>
+                                        <span class="date-box-day">${day}</span>
                                     </div>
-                                    <p class="text-white font-black text-lg leading-tight uppercase">${ev.name}</p>
-                                </div>
+                                    <div class="date-divider" aria-hidden="true"></div>
+                                    <div class="event-info">
+                                        <h4>${ev.name}</h4>
+                                        <p>${subtitle}</p>
+                                    </div>
+                                    <span class="event-chevron" aria-hidden="true">›</span>
+                                </a>
                             `;
                         });
                         infoContainer.innerHTML = infoHTML;
                     } else {
-                        infoContainer.innerHTML = '<p class="italic text-slate-500 text-sm">Check back soon for events!</p>';
+                        // Empty states
+                        const upTitle = document.getElementById('upnext-title');
+                        const upDesc = document.getElementById('upnext-desc');
+                        if (upTitle) upTitle.innerText = "No upcoming activities";
+                        if (upDesc) upDesc.innerText = "Check back soon for new events";
+                        infoContainer.innerHTML = '<p class="text-sm italic opacity-50 py-3">Check back soon for upcoming events!</p>';
                     }
                 });
 
-                // 4. Youth Spotlights
-                const spotContainer = document.getElementById('youth-spotlight-container');
-                const isUnlocked = sessionStorage.getItem('spotlightsUnlocked') === 'true' || isAdminMode;
+                // 4. Youth Spotlights Listener & Render
+                renderSpotlights();
 
-
-
-                if (!isUnlocked) {
-                    spotContainer.innerHTML = `
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col md:flex-row relative">
-                            <div class="w-full md:w-1/3 min-h-[250px] bg-slate-800 flex-shrink-0 relative overflow-hidden">
-                                <img src="/images/spotlight.jpeg" class="absolute inset-0 w-full h-full object-cover">
-                            </div>
-                            <div class="p-6 md:p-8 flex flex-col justify-center flex-1">
-                                <span class="text-xs font-black uppercase tracking-widest text-amber-500 mb-4 block">Privacy Lock</span>
-                                <p class="text-slate-300 leading-relaxed text-sm md:text-base mb-6">Youth Spotlights are protected. Please verify your access to view these images.</p>
-                                <button onclick="window.triggerSpotlightGate()" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition shadow-lg w-full md:w-auto self-start">Click to Unlock Youth Spotlights</button>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    onSnapshot(query(collection(db, "home_spotlights"), orderBy("sortOrder", "asc")), (spotSnap) => {
-                        let spotHTML = '';
-                        const spotDocs = spotSnap.docs;
-                        spotDocs.forEach((s, idx) => {
-                            try {
-                                const data = s.data() || {};
-                                let moveUpHTML = idx > 0 ? `<button onclick="window.swapSpot('${s.id}', '${spotDocs[idx - 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Up">↑</button>` : '';
-                                let moveDownHTML = idx < spotDocs.length - 1 ? `<button onclick="window.swapSpot('${s.id}', '${spotDocs[idx + 1].id}')" class="p-1 px-1.5 bg-slate-800 text-slate-400 hover:text-white rounded text-[10px]" title="Move Down">↓</button>` : '';
-
-                                const safeVideoUrl = (data.video_url || data.videoUrl || '');
-                                const safeImageUrl = data.image_url || '';
-                                const embedUrl = parseVideoEmbedUrl(safeVideoUrl);
-                                const activeEmbedUrl = embedUrl || safeVideoUrl;
-                                let thumbHTML = '';
-                                if (safeVideoUrl) {
-                                    if (safeImageUrl) {
-                                        thumbHTML = `<img src="${safeImageUrl}" class="absolute inset-0 w-full h-full object-cover">`;
-                                    } else {
-                                        const ytThumb = getYouTubeThumb(safeVideoUrl);
-                                        if (ytThumb) {
-                                            thumbHTML = `<img src="${ytThumb}" class="absolute inset-0 w-full h-full object-cover">`;
-                                        } else {
-                                            thumbHTML = `<div class="absolute inset-0 bg-slate-900 border border-slate-800"></div>`;
-                                        }
-                                    }
-                                }
-
-                                spotHTML += `
-                                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col md:flex-row relative">
-                                        ${isAdminMode ? `
-                                            <div class="absolute top-4 right-4 flex gap-1 z-10 items-center bg-slate-900/80 rounded p-1">
-                                                ${moveUpHTML}
-                                                ${moveDownHTML}
-                                                <button data-id="${s.id}" class="edit-spot-btn p-1.5 bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition shadow flex items-center justify-center shrink-0 ml-1" title="Edit">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                                </button>
-                                                <button data-id="${s.id}" class="del-spot-btn p-1.5 bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition shadow flex items-center justify-center shrink-0" title="Delete">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                                </button>
-                                            </div>
-                                        ` : ''}
-                                        <div class="w-full md:w-1/3 min-h-[250px] bg-slate-800 flex-shrink-0 relative overflow-hidden">
-                                            ${safeVideoUrl ? `
-                                                <div class="absolute inset-0 cursor-pointer group" onclick="this.parentElement.innerHTML='<iframe src=&quot;${activeEmbedUrl}&quot; class=&quot;absolute inset-0 w-full h-full&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen&quot; allowfullscreen></iframe>'">
-                                                    ${thumbHTML}
-                                                    <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition flex items-center justify-center">
-                                                        <div class="w-16 h-16 bg-blue-600/90 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition border border-white/20">
-                                                            <svg class="w-8 h-8 text-white ml-2 drop-shadow-md" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ` : (safeImageUrl ? `<img src="${safeImageUrl}" class="absolute inset-0 w-full h-full object-cover">` : `<div class="absolute inset-0 flex items-center justify-center text-slate-600"><svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`)}
-                                        </div>
-                                        <div class="p-6 md:p-8 flex flex-col justify-center flex-1">
-                                            <span class="text-xs font-black uppercase tracking-widest text-amber-500 mb-4 block flex items-center gap-3">
-                                                ${data.org || ''} ${data.spotDate ? `<span class="px-2 py-0.5 bg-slate-800 text-[9px] text-slate-400 rounded-lg whitespace-nowrap">${data.spotDate}</span>` : ''}
-                                            </span>
-                                            <p class="text-slate-300 leading-relaxed text-sm md:text-base">${(data.desc || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
-                                        </div>
-                                    </div>`;
-                            } catch (err) {
-                                console.error('Error rendering spotlight:', s.id, err);
-                            }
-                        });
-                        spotContainer.innerHTML = spotHTML || '<p class="italic opacity-30 text-xs pl-2">No active spotlights.</p>';
-
-                        if (isAdminMode) {
-                            document.querySelectorAll('.edit-spot-btn').forEach(btn => {
-                                btn.addEventListener('click', () => {
-                                    const tID = btn.getAttribute('data-id');
-                                    const tDoc = spotDocs.find(d => d.id === tID);
-                                    if (tDoc) {
-                                        const d = tDoc.data();
-                                        window.editSpot(tDoc.id, d.org, d.desc, d.image_url, d.spotDate || '', d.video_url || '');
-                                    }
-                                });
-                            });
-                            document.querySelectorAll('.del-spot-btn').forEach(btn => {
-                                btn.addEventListener('click', () => {
-                                    const tID = btn.getAttribute('data-id');
-                                    const tDoc = spotDocs.find(d => d.id === tID);
-                                    if (tDoc) {
-                                        window.delSpot(tDoc.id, tDoc.data().image_url);
-                                    }
-                                });
-                            });
-                        }
-                    });
-                } // End isUnlocked else
-            } catch (e) { console.error("Hub Load Error:", e); }
+            } catch (err) {
+                console.error("Hub initialization error:", err);
+            }
         }
 
-        // ADMIN LOGIC
-
-
-
-
-
-        window.editSpot = (id, org, desc, img, spotDate, vidUrl) => {
-            document.getElementById('saveSpotBtn').innerText = 'Update Spotlight';
-            document.getElementById('cancelSpotBtn').classList.remove('hidden');
-
-            document.getElementById('edit-spot-id').value = id;
-            document.getElementById('new-spot-org').value = org;
-            document.getElementById('new-spot-desc').value = desc;
-            document.getElementById('new-spot-date').value = spotDate || '';
-            document.getElementById('new-spot-video').value = vidUrl || '';
-
-            const preview = document.getElementById('spot-preview-img');
-            if (img) {
-                currentSpotlightImageData = img;
-                preview.src = img;
-                preview.classList.remove('hidden');
-            } else {
-                currentSpotlightImageData = null;
-                preview.src = '';
-                preview.classList.add('hidden');
-            }
-            document.getElementById('new-spot-upload').value = '';
-
-            // Scroll to form
-            document.getElementById('spotlights-admin-controls').scrollIntoView({ behavior: 'smooth' });
-        };
-
+        // Spotlight Gate Handlers
         window.triggerSpotlightGate = () => {
-            document.getElementById('spotlight-gate-modal').classList.remove('hidden');
-            document.getElementById('spotlight-gate-modal').classList.add('flex');
-            document.getElementById('gate-input-name').focus();
+            const modal = document.getElementById('spotlight-gate-modal');
+            const input = document.getElementById('gate-input-name');
+            const err = document.getElementById('gate-error-text');
+            if (err) err.classList.add('hidden');
+            if (input) input.value = '';
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                if (input) setTimeout(() => input.focus(), 150);
+            }
         };
 
         window.closeSpotlightGate = () => {
-            document.getElementById('spotlight-gate-modal').classList.add('hidden');
-            document.getElementById('spotlight-gate-modal').classList.remove('flex');
-            document.getElementById('gate-error-text').classList.add('hidden');
-            document.getElementById('gate-input-name').value = '';
+            const modal = document.getElementById('spotlight-gate-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
         };
-
-        async function hashInput(name) {
-            const normalized = name.trim().toLowerCase();
-            const encoder = new TextEncoder();
-            const data = encoder.encode(normalized);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
 
         window.confirmSpotlightUnlock = async () => {
-            const inputVal = document.getElementById('gate-input-name').value;
-            if (!inputVal) return;
+            const input = document.getElementById('gate-input-name');
+            const err = document.getElementById('gate-error-text');
+            const val = input ? input.value.trim().toLowerCase() : '';
 
-            const inputLower = inputVal.trim().toLowerCase();
             try {
-                const snap = await getDoc(doc(db, "site_settings", "privacy_config"));
-                if (snap.exists()) {
-                    console.log("Privacy Config Loaded:", snap.data().authorizedNames);
-                    if (snap.data().authorizedNames.includes(inputLower)) {
-                        sessionStorage.setItem('spotlightsUnlocked', 'true');
-                        window.closeSpotlightGate();
+                const privSnap = await getDoc(doc(db, "site_settings", "privacy_config"));
+                let validNames = ["harris", "ames", "mullis", "laverty", "walther", "wild", "sofoul", "white", "zahner", "mason", "carlson", "howell"];
+                if (privSnap.exists() && Array.isArray(privSnap.data().authorizedNames)) {
+                    validNames = privSnap.data().authorizedNames.map(n => n.toLowerCase().trim());
+                }
 
-
-                        initHub();
-                        return;
-                    }
+                if (validNames.includes(val)) {
+                    sessionStorage.setItem('spotlightsUnlocked', 'true');
+                    window.closeSpotlightGate();
+                    renderSpotlights();
+                } else {
+                    if (err) err.classList.remove('hidden');
                 }
             } catch (e) {
-                console.error("Security rules blocking data access.", e);
+                console.error("Validation error:", e);
+                if (err) err.classList.remove('hidden');
             }
-
-            document.getElementById('gate-error-text').classList.remove('hidden');
         };
 
-        window.swapSpot = async (id1, id2) => {
-            try {
-                const doc1 = await getDoc(doc(db, "home_spotlights", id1));
-                const doc2 = await getDoc(doc(db, "home_spotlights", id2));
-                if (doc1.exists() && doc2.exists()) {
-                    const batch = writeBatch(db);
-                    batch.update(doc(db, "home_spotlights", id1), { sortOrder: doc2.data().sortOrder });
-                    batch.update(doc(db, "home_spotlights", id2), { sortOrder: doc1.data().sortOrder });
-                    await batch.commit();
-                    initHub();
+        window.toggleSpotlightLock = () => {
+            const isUnlocked = sessionStorage.getItem('spotlightsUnlocked') === 'true' || isAdminMode;
+            if (isUnlocked) {
+                sessionStorage.removeItem('spotlightsUnlocked');
+                renderSpotlights();
+            } else {
+                window.triggerSpotlightGate();
+            }
+        };
+
+        function renderSpotlights() {
+            const spotContainer = document.getElementById('youth-spotlight-container');
+            const lockToggleBtn = document.getElementById('spotlightLockToggleBtn');
+            const lockIcon = document.getElementById('spotlightLockIcon');
+            const lockLabel = document.getElementById('spotlightLockLabel');
+            if (!spotContainer) return;
+            const isUnlocked = sessionStorage.getItem('spotlightsUnlocked') === 'true' || isAdminMode;
+
+            if (lockToggleBtn) {
+                if (isUnlocked) {
+                    lockToggleBtn.style.display = 'inline-flex';
+                    if (lockIcon) lockIcon.innerText = '🔒';
+                    if (lockLabel) lockLabel.innerText = 'Lock';
+                } else {
+                    lockToggleBtn.style.display = 'none';
                 }
-            } catch (err) { alert('Swap Error: ' + err.message); }
-        };
-
-        window.delSpot = async (id, imgUrl) => {
-            if (confirm("Remove this spotlight?")) {
-                try {
-                    await deleteDoc(doc(db, "home_spotlights", id));
-                    initHub();
-                } catch (err) { alert('Firebase Error: ' + err.message); }
             }
-        };
 
-        window.delAnn = async (id) => {
-            if (confirm("Delete this announcement?")) {
-                try {
-                    await deleteDoc(doc(db, "home_announcements", id));
-                    initHub();
-                } catch (err) { alert('Error: ' + err.message); }
+            if (!isUnlocked) {
+                spotContainer.innerHTML = `
+                    <div class="spotlights-banner">
+                        <div class="spotlights-banner-inner">
+                            <div class="spotlights-content">
+                                <div class="spotlights-lock-badge">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 26px; height: 26px;">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                        <circle cx="12" cy="16" r="1.5"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="spotlights-heading">Celebrating our youth</h3>
+                                    <p class="spotlights-subtext">Verify your access to view youth spotlights.</p>
+                                </div>
+                            </div>
+                            <button onclick="window.triggerSpotlightGate()" class="btn-unlock-spotlights">Unlock spotlights <span aria-hidden="true">→</span></button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                onSnapshot(query(collection(db, "home_spotlights"), orderBy("sortOrder", "asc")), (spotSnap) => {
+                    if (spotSnap.empty) {
+                        spotContainer.innerHTML = '<p class="text-sm italic opacity-50 py-4 pl-2">No spotlights posted yet.</p>';
+                        return;
+                    }
+
+                    let spotHTML = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">';
+                    spotSnap.docs.forEach((s) => {
+                        const data = s.data() || {};
+                        const safeVideoUrl = (data.video_url || data.videoUrl || '');
+                        const safeImageUrl = data.image_url || '';
+                        const embedUrl = parseVideoEmbedUrl(safeVideoUrl, false);
+
+                        let mediaBlock = '';
+                        if (embedUrl) {
+                            mediaBlock = `<div class="aspect-video w-full bg-slate-900 rounded-xl overflow-hidden mb-3"><iframe src="${embedUrl}" class="w-full h-full" frameborder="0" allow="fullscreen; picture-in-picture; encrypted-media" allowfullscreen></iframe></div>`;
+                        } else if (safeImageUrl) {
+                            mediaBlock = `<div class="aspect-video w-full bg-slate-100 rounded-xl overflow-hidden mb-3"><img src="${safeImageUrl}" class="w-full h-full object-cover" alt="Spotlight Image"></div>`;
+                        }
+
+                        const titleText = (data.title || data.name || '').trim();
+
+                        spotHTML += `
+                            <div class="bg-white border border-[#e9dece] rounded-2xl p-5 shadow-sm">
+                                ${mediaBlock}
+                                ${titleText ? `<h4 class="font-serif font-bold text-lg text-[#152548] mb-1.5">${titleText}</h4>` : ''}
+                                ${data.description ? `<p class="text-sm text-[#536484] leading-relaxed">${data.description}</p>` : ''}
+                            </div>
+                        `;
+                    });
+                    spotHTML += '</div>';
+                    spotContainer.innerHTML = spotHTML;
+                });
             }
-        };
+        }
 
-        window.swapAnn = async (id1, id2) => {
-            try {
-                const doc1 = await getDoc(doc(db, "home_announcements", id1));
-                const doc2 = await getDoc(doc(db, "home_announcements", id2));
-                if (doc1.exists() && doc2.exists()) {
-                    const batch = writeBatch(db);
-                    batch.update(doc(db, "home_announcements", id1), { timestamp: doc2.data().timestamp });
-                    batch.update(doc(db, "home_announcements", id2), { timestamp: doc1.data().timestamp });
-                    await batch.commit();
-                    initHub();
-                }
-            } catch (err) { alert('Swap Error: ' + err.message); }
-        };
-
-        window.editAnn = (id, text, linkText, linkUrl) => {
-            document.getElementById('edit-ann-id').value = id;
-            document.getElementById('new-ann-text').value = text;
-            document.getElementById('new-ann-link-text').value = linkText;
-            document.getElementById('new-ann-link-url').value = linkUrl;
-            document.getElementById('saveAnnBtn').innerText = 'Update Announcement';
-            document.getElementById('cancelAnnBtn').classList.remove('hidden');
-            document.getElementById('admin-controls').scrollIntoView({ behavior: 'smooth' });
-        };
-
-        window.resetAnnForm = () => {
-            document.getElementById('edit-ann-id').value = '';
-            document.getElementById('new-ann-text').value = '';
-            document.getElementById('new-ann-link-text').value = '';
-            document.getElementById('new-ann-link-url').value = '';
-            document.getElementById('saveAnnBtn').innerText = 'Post Announcement';
-            document.getElementById('cancelAnnBtn').classList.add('hidden');
-        };
-
+        // Video Lightbox Handlers
         window.openVideoModal = (event, embedUrl, encodedTitle) => {
-            if (event && event.preventDefault) event.preventDefault();
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             const modal = document.getElementById('videoModal');
             const container = document.getElementById('videoContainer');
             const titleEl = document.getElementById('videoModalTitle');
@@ -757,7 +752,12 @@
                 }
             }
 
-            container.innerHTML = `<iframe src="${embedUrl}" class="w-full h-full" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" allowfullscreen title="Embedded Video"></iframe>`;
+            let modalUrl = embedUrl;
+            if (!/[?&]autoplay=/i.test(modalUrl)) {
+                modalUrl += (modalUrl.includes('?') ? '&' : '?') + 'autoplay=1';
+            }
+
+            container.innerHTML = `<iframe src="${modalUrl}" class="w-full h-full" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" allowfullscreen title="Embedded Video"></iframe>`;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.body.classList.add('overflow-hidden');
@@ -773,12 +773,10 @@
             }
             document.body.classList.remove('overflow-hidden');
             if (window.history && window.history.replaceState && (window.location.search.includes('video') || window.location.search.includes('watch') || window.location.hash.includes('video'))) {
-                const cleanUrl = window.location.pathname;
-                window.history.replaceState(null, '', cleanUrl);
+                window.history.replaceState(null, '', window.location.pathname);
             }
         };
 
-        // Light dismiss on backdrop click
         const videoModalEl = document.getElementById('videoModal');
         if (videoModalEl) {
             videoModalEl.addEventListener('click', (e) => {
@@ -786,143 +784,72 @@
             });
         }
 
-        // Escape key dismiss
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                const modal = document.getElementById('videoModal');
-                if (modal && !modal.classList.contains('hidden')) {
-                    window.closeVideoModal();
-                }
+                const vModal = document.getElementById('videoModal');
+                if (vModal && !vModal.classList.contains('hidden')) window.closeVideoModal();
+                const fModal = document.getElementById('feedbackModal');
+                if (fModal && !fModal.classList.contains('hidden')) closeFeedback();
+                const sModal = document.getElementById('spotlight-gate-modal');
+                if (sModal && !sModal.classList.contains('hidden')) window.closeSpotlightGate();
             }
         });
 
-        initHub();
-    </script>
-
-
-    <!-- Password Modal -->
-
-
-    <!-- Video Player Modal -->
-    <div id="videoModal"
-        class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[150] items-center justify-center p-4 transition-opacity"
-        role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
-        <div
-            class="bg-slate-900 border border-blue-500/30 rounded-2xl w-full max-w-4xl shadow-2xl relative overflow-hidden flex flex-col">
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/60">
-                <div class="flex items-center gap-2 overflow-hidden pr-4">
-                    <span class="text-blue-400 text-sm shrink-0">▶</span>
-                    <h2 id="videoModalTitle"
-                        class="font-black text-xs md:text-sm text-white uppercase tracking-widest truncate">Video</h2>
-                </div>
-                <button id="closeVideoBtn" onclick="window.closeVideoModal()"
-                    class="text-slate-400 hover:text-white transition font-black text-xl w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-800 active:scale-95 shrink-0"
-                    aria-label="Close video player">✕</button>
-            </div>
-            <div class="relative w-full aspect-video bg-black flex items-center justify-center">
-                <div id="videoContainer" class="w-full h-full"></div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Global Feedback Modal -->
-    <div id="feedbackModal"
-        class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] items-center justify-center p-4">
-        <div
-            class="bg-slate-900 border border-slate-700/50 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden text-left">
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
-                <h2 class="font-black text-lg text-white uppercase tracking-widest">Feedback</h2>
-                <button id="closeFeedbackBtn"
-                    class="text-slate-400 hover:text-white transition font-black text-xl active:scale-95">✕</button>
-            </div>
-            <div class="p-6">
-                <div id="feedbackSuccess"
-                    class="hidden mb-4 p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-lg text-emerald-400 text-xs font-black text-center uppercase tracking-widest">
-                    Success! Your feedback has been sent.
-                </div>
-                <form id="feedbackForm" class="flex flex-col gap-4">
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Your
-                            Name</label>
-                        <input type="text" id="feedbackName" required
-                            class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm shadow-inner">
-                    </div>
-                    <div>
-                        <label
-                            class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Category</label>
-                        <select id="feedbackCategory" required
-                            class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm shadow-inner">
-                            <option value="Suggestion">💡 Suggestion</option>
-                            <option value="Help">🙋 Help / Question</option>
-                            <option value="Bug">🐛 Report a Bug</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label
-                            class="block text-[10px] font-black text-slate-300 uppercase tracking-widest mb-2">Message</label>
-                        <textarea id="feedbackMessage" rows="4" required
-                            class="w-full bg-slate-950 text-white rounded-lg px-4 py-3 border border-slate-700 focus:border-blue-500 outline-none text-sm resize-none shadow-inner"></textarea>
-                    </div>
-                    <button type="submit" id="feedbackSubmitBtn"
-                        class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-4 rounded-xl shadow-lg transition active:scale-95 uppercase tracking-widest">
-                        Send Message
-                    </button>
-                    <button type="button" id="feedbackCloseBtn"
-                        class="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold text-[10px] py-3 rounded-xl transition active:scale-95 uppercase tracking-widest">Close</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+        // Suggestions & Feedback Modal Handling
         const fModal = document.getElementById('feedbackModal');
         const fClose = document.getElementById('closeFeedbackBtn');
         const fClose2 = document.getElementById('feedbackCloseBtn');
+        const fBtnHeader = document.getElementById('headerFeedbackBtn');
         const fBtnFooter = document.getElementById('globalFeedbackBtn');
-        const fBtnSide = document.getElementById('feedbackBtnSidebar');
 
         const openFeedback = () => {
+            if (!fModal) return;
             fModal.classList.remove('hidden');
             fModal.classList.add('flex');
-            document.getElementById('feedbackSuccess').classList.add('hidden');
-            document.getElementById('feedbackForm').reset();
+            const success = document.getElementById('feedbackSuccess');
+            if (success) success.classList.add('hidden');
+            const form = document.getElementById('feedbackForm');
+            if (form) form.reset();
         };
 
-        if (fBtnFooter) fBtnFooter.addEventListener('click', openFeedback);
-        if (fBtnSide) fBtnSide.addEventListener('click', openFeedback);
-
-        const closeM = () => {
+        const closeFeedback = () => {
+            if (!fModal) return;
             fModal.classList.add('hidden');
             fModal.classList.remove('flex');
         };
-        if (fClose) fClose.addEventListener('click', closeM);
-        if (fClose2) fClose2.addEventListener('click', closeM);
 
-        document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('feedbackSubmitBtn');
-            btn.disabled = true;
-            btn.innerHTML = 'Sending...';
-            try {
-                const dbInstance = getFirestore();
-                await addDoc(collection(dbInstance, "site_feedback"), {
-                    Name: document.getElementById('feedbackName').value.trim(),
-                    Category: document.getElementById('feedbackCategory').value,
-                    Message: document.getElementById('feedbackMessage').value.trim(),
-                    timestamp: new Date().toISOString()
-                });
-                document.getElementById('feedbackForm').reset();
-                document.getElementById('feedbackSuccess').classList.remove('hidden');
-            } catch (err) {
-                alert('Permissions or Network Error: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Send Message';
-            }
-        });
+        if (fBtnHeader) fBtnHeader.addEventListener('click', openFeedback);
+        if (fBtnFooter) fBtnFooter.addEventListener('click', openFeedback);
+        if (fClose) fClose.addEventListener('click', closeFeedback);
+        if (fClose2) fClose2.addEventListener('click', closeFeedback);
+
+        const fForm = document.getElementById('feedbackForm');
+        if (fForm) {
+            fForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('feedbackSubmitBtn');
+                btn.disabled = true;
+                btn.innerHTML = 'Sending...';
+                try {
+                    const dbInstance = getFirestore();
+                    await addDoc(collection(dbInstance, "site_feedback"), {
+                        Name: document.getElementById('feedbackName').value.trim(),
+                        Category: document.getElementById('feedbackCategory').value,
+                        Message: document.getElementById('feedbackMessage').value.trim(),
+                        timestamp: new Date().toISOString()
+                    });
+                    fForm.reset();
+                    document.getElementById('feedbackSuccess').classList.remove('hidden');
+                } catch (err) {
+                    alert('Permissions or Network Error: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Send Message';
+                }
+            });
+        }
+
+        initHub();
     </script>
 </body>
 
