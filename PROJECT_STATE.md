@@ -1,10 +1,101 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.12.86
+**Version**: v7.15.3
 **Active Branch**: `beta-admin`
-**Hosting Target**: `test-blackstoneward` (Staging Environment)
-**DevOps**: The beta environment is now securely tracked and isolated on the beta-admin branch of the GitHub repository.
+**Hosting Target**: `test-blackstoneward` (Staging Environment), `youth-blackstoneward` (Production: `youth.blackstoneward.org`)
+**DevOps**: The beta environment is tracked on the `beta-admin` branch. Hosting targets are mapped in `.firebaserc` (`staging` -> `test-blackstoneward`, `youth` -> `youth-blackstoneward`).
+
+- **Youth Home Page Combined Card Harmonization**:
+  - Removed `.card-combined` highlighting from the Combined group card in `public/index.html` and removed specific `.card-combined` background overrides in `public/assets/youth-hub.css`.
+  - The Combined card now displays the clean white card background (`#ffffff`) and standard border identical to all other unselected group cards (Priests, Teachers, Deacons, Young Women, Primary).
+  - Synchronized global version `v7.15.3` and cache-busting query strings across all assets and footers.
+
+- **Youth Home Page Top Menu Refinement**:
+  - Removed the redundant "Announcements" link from the top navigation bar in `public/index.html`.
+  - Added an "Admin" link positioned cleanly between "Spotlights" and "Get help", navigating directly to the Admin Portal (`/admin/index.html`).
+  - Synchronized global version `v7.15.2` and cache-busting query strings across all assets and footers.
+
+- **Youth Home Page Footer Harmonization**:
+  - Replaced the legacy text-and-link footer on the Youth Home page (`public/index.html`) with the identical `.org-footer` used on the secondary organization pages.
+  - Features the transparent pine tree and mountain silhouette background (`footer-tree-silhouette.png`), flanking horizontal divider lines, centered Blackstone Ward Moroni logo (`ward-logo-moroni.png`) with link to `blackstoneward.org`, and dynamic italicized version tag.
+  - Added `.org-footer` responsive styles and set `html { background-color: var(--cream); }` in `public/assets/youth-hub.css` for a completely flush bottom baseline without white margins or gaps.
+  - Synchronized application version `v7.15.1` and cache-busting query strings across all assets and templates.
+
+- **Full Organization Pages Migration (Priests, Teachers, Deacons, Young Women, Primary)**:
+  - Migrated all five secondary organization pages (`public/Priests/index.html`, `public/Teachers/index.html`, `public/Deacons/index.html`, `public/YW/index.html`, `public/Primary/index.html`) from the legacy dark UI to the approved seasonal editorial design established in the Combined pilot.
+  - Implemented the user-specified group subtitle pattern: `"Activities, service, and time together for " & [Group Name] & "."` across all non-Combined pages (`Activities, service, and time together for Priests.`, `Activities, service, and time together for Teachers.`, `Activities, service, and time together for Deacons.`, `Activities, service, and time together for Young Women.`, `Activities, service, and time together for Primary.`).
+  - Active group switcher tab pill highlighting correctly tied to current organization page with vector icons and accessible `aria-current="page"`.
+  - Added dual Firestore real-time listeners on each quorum/class page listening to both quorum-specific events (e.g. `Priests_events`) and ward-wide `Combined_events` with category inheritance and deduplication.
+  - Added `.combined` category pill styling to `public/assets/org-page.css` (`.legend-dot.combined`, `.row-date-badge.combined`) and integrated into calendar legends.
+  - Wired organization-scoped feedback submissions to Firestore `site_feedback`.
+  - Upgraded global application version to `v7.15.0` with synchronized client cache-busters.
+- **Uniform Calendar Grid & 2-Line Text Wrapping**:
+  - Standardized `.cal-days-grid` with fixed `grid-auto-rows: 94px` (84px on mobile) and `.cal-day-cell` with `height: 94px; overflow: hidden; box-sizing: border-box;`, ensuring every single day cell in the calendar is strictly uniform in size across all weeks.
+  - Implemented 2-line event title wrapping (`.cal-pill-title`) utilizing `-webkit-line-clamp: 2` with graceful ellipsis truncation for long titles.
+  - Aligned `.cal-event-pill` with `align-items: flex-start;` and bullet dot `margin-top: 3px;` so category dots stay aligned with line 1 of multi-line titles.
+  - Synchronized cache-busters (`?v=7.14.4`) across stylesheet and scripts for immediate client refresh.
+- **Group Switcher Tab Bar Vertical Centering**:
+  - Balanced the spacing of `.group-tabs-container` by setting equal top and bottom margins (`margin-top: 24px; margin-bottom: 24px;`).
+  - Vertically centered the group pill switcher buttons symmetrically between the bottom edge of the top landscape hero banner and the top edge of the Activity Calendar card, resolving the flush top alignment.
+  - Added cache-busting query strings (`?v=7.14.3`) across stylesheet, images, and script tags for immediate client updates.
+- **Footer Transparent Flush Silhouette & Official Moroni Logo**:
+  - Re-rendered `footer-tree-silhouette.png` with a 100% transparent background, eliminating white bounding rectangles, white side borders, and visual contrast seams against the page container.
+  - Set `html { background-color: var(--cream); }` and `.org-footer { background-color: transparent; background-size: 100% 100%; background-position: center bottom; }`, ensuring the footer sits completely flush with the bottom edge of the page with zero white gaps.
+  - Replaced the extracted logo with the official high-resolution, transparent Blackstone Ward Youth Hub logo (`ward-logo-moroni.png`) provided by the user.
+  - Added cache-busting query strings (`?v=7.14.2`) to `footer-tree-silhouette.png`, `ward-logo-moroni.png`, and `org-page.css` for immediate cache refresh.
+- **Footer Panoramic Silhouette & Blackstone Ward Moroni Branding**:
+  - Added panoramic pine tree and rolling hill silhouette artwork (`public/assets/footer-tree-silhouette.png`) across the bottom of the footer, blended seamlessly into the warm page container tone with top feathered transparency.
+  - Implemented the centered Blackstone Ward Moroni statue logo (`public/assets/ward-logo-moroni.png`) with cyan-blue "YOUTH HUB" all-caps sub-label and back-link to `https://blackstoneward.org`.
+  - Flanked the brand block with subtle horizontal divider lines spanning the width of the main content layout.
+  - Formatted the footer version display strictly as `"Version " + [version #]` (e.g. `Version 7.14.1`) in italic blue typography matching the user mockup.
+  - Upgraded `public/cfm-config.js` `window.renderGlobalFooter` to detect short-format version elements (`data-format="short"`) for dynamic client-side rendering.
+- **Secondary Organization Pages Redesign (Pilot: Combined Group)**:
+  - Rebuilt `/Combined/index.html` from the legacy dark theme to the seasonal editorial aesthetic matching the approved GUI mockup.
+  - Linked the seasonal environment system (`seasons.css` and `org-page.css`) so background landscapes (`autumn-landscape.png`, `winter-landscape.png`, etc.) and warm color palettes automatically switch with the season.
+  - Implemented the official Blackstone Ward logo with back-link to `https://blackstoneward.org` and blue "Youth Hub" subtitle.
+  - Added clean breadcrumbs navigation (`Home / Activities / Combined`) and group subtitle (`Activities, service and time together for all youth.`).
+  - Added the horizontal group switcher pill bar with official vector symbols (`assets/symbols/`).
+  - Implemented the interactive 7-day Activity Calendar card with dynamic month navigation, day cells, today highlight, category pills, legend, and list view toggle.
+  - Added the dynamic "UP NEXT" card, "Good to know" card, and full-width "Coming up" upcoming activities list.
+  - Real-time synchronization powered by Firestore `onSnapshot` on `Combined_events`.
+- **Blackstone Ward Home Logo & Blue Youth Hub Subtitle**:
+  - Replaced the placeholder SVG emblem in the top-left header with the official Blackstone Ward horizontal logo (`ward-logo-horizontal-v1.0.6.png`) from the main homepage.
+  - Scaled and responsive-fitted the logo for the Youth Hub header, with "Youth Hub" prominently displayed below it in brand blue (`#2165a2`).
+  - Configured the top-left brand link to navigate back to `https://blackstoneward.org` seamlessly.
+- **Parallax Engine Repair & Asset Resolution**:
+  - Resolved 404 image load failures by placing landscape seasonal images in both `/public/` root and `/public/assets/`, and updating CSS variables in `seasons.css` and `youth-hub.css` to root-relative paths (`/assets/autumn-landscape.png`, etc.).
+  - Added explicit `body[data-season="fall"]` selector in `seasons.css` matching the NY timezone seasonal calculator.
+  - Upgraded `.welcome-scene` with `min-height: 560px` and enhanced `.parallax .scene-image` with `inset: -160px 0` to provide ample vertical buffer for continuous parallax translation.
+  - Aligned `.parallax .scene-wash` gradient transparency with the Ward Homepage (`rgba(var(--page-rgb), 0) 84%`), revealing the scenic landscape clearly behind the right-hand hero cards.
+  - Upgraded the JavaScript parallax engine to calculate fluid scroll-anchored offsets (`scrolled * speed`), eliminating early clamping and providing smooth, immediate parallax motion.
+  - Removed restrictive `transform: none !important;` overrides from reduced-motion media query on the parallax background image.
+  - Hid the header unlock button when the spotlight section is locked, preserving the prominent black "Unlock spotlights →" banner as the single clear call-to-action.
+  - Dynamically displays the `🔒 Lock` button beside the "Youth Spotlight" header only after the spotlight section is successfully unlocked, allowing users to re-lock the section on demand.
+- **Spotlight Video Autoplay Prevention on Unlock**:
+  - Parameterized `parseVideoEmbedUrl(url, autoplay = false)` to default `autoplay` to `false` for embedded cards.
+  - Stripped automatic `autoplay=1` parameter injection for Vimeo and YouTube embed links generated for spotlight cards.
+  - Updated the spotlight card `<iframe>` permissions to omit `allow="autoplay"`, preventing browsers and video players from starting playback automatically upon unlocking the spotlight section.
+  - Preserved explicit `autoplay=1` behavior and iframe permissions exclusively for the announcement video lightbox modal overlay.
+- **Youth Spotlight Header, Lock/Unlock Toggle & Bulk Reduction**:
+  - Added a dedicated "Youth Spotlight" section header above the spotlight cards.
+  - Placed an interactive Lock/Unlock toggle button next to the header, enabling immediate locking (clearing session unlock) or triggering the leader access gate when locked.
+  - Removed redundant "Youth" / "Spotlight" labels from each spotlight card to eliminate bulk, cleanly displaying only the media, title/name, and description.
+- **Admin Portal Youth Theme & Scripture Manager**:
+  - Added a dedicated "Theme" tab in the Admin Portal under **Settings & Privacy** (`#theme-section`).
+  - Allows Master Admins to view and edit both the **Theme Title** and **Scripture Reference** with real-time saving to Firestore (`home_content/general_info`), automatically updating the Youth Hub homepage.
+  - Enforced Tier 3 (Master Admin) RBAC visibility for the Theme tab.
+- **Official SVG Symbols Integration**:
+  - Replaced organization card icons with the official custom vector symbol suite located in `public/assets/symbols/`: `combined.svg`, `priests.svg`, `teachers.svg`, `deacons.svg`, `young-women.svg`, and `primary.svg`.
+- **Seasonal Parallax Redesign & Editorial GUI Overhaul**:
+  - Overhauled the Youth Hub frontend from the dark theme to the warm, editorial aesthetic of the Ward Home with Massachusetts seasonal palette switching and responsive parallax scrolling (`seasons.css`, `autumn-landscape.png`, `spring-landscape.png`, `summer-landscape.png`, `winter-landscape.png`).
+  - Implemented the custom vector icon suite matching the GUI design: dual-loop gradient emblem, 3-person team (`Combined`), priest in suit (`Priests`), scriptures (`Teachers`), armor shield (`Deacons`), lotus blossom (`Young Women`), and radiant sun (`Primary`).
+  - Added the floating **"UP NEXT"** hero card dynamically bound via real-time Firestore query to the next upcoming Combined youth event.
+  - Linked the Hero theme title and scripture dynamically to Firestore `home_content/general_info`.
+  - Upgraded the **"Coming up"** and **"Announcements"** cards with stacked date boxes (`OCT` / `14`), megaphone badges, and preserved on-site video player deep linking.
+  - Redesigned the protected **Youth Spotlights** banner with circular lock badge and smooth leader access gate integration.
+
+- **Youth Hub Subdomain Migration**: Successfully decoupled the Youth Hub from the apex domain `blackstoneward.org` to its dedicated custom subdomain `youth.blackstoneward.org` on Firebase Hosting multi-site target `youth-blackstoneward`. Updated `.firebaserc` and `firebase.json` hosting target definitions to `youth`. Main domain now serves the Ward Homepage with automated 301 redirects for legacy paths.
 
 - **Deterministic Video ID & Document ID Deep-Linking**: Restored and hardened the video modal auto-open engine in `public/index.html` to support querying by exact Vimeo or YouTube Video ID (e.g. `?video=1236419866`) or Firestore Announcement document ID (`?video=<DOC_ID>`). When visitors navigate to a targeted video link, the script scans all active announcements, matching the unique ID token across the URL, embed link, and document ID to reliably launch the intended video player modal even when multiple announcements feature videos. Retains `?video=true`, `?watch=true`, and `#video` as shortcuts to auto-play the newest video.
 

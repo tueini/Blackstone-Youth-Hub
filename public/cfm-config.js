@@ -59,11 +59,19 @@ const CFM_LOOKUP = {
     "2026-12-27": "CFM: Christmas"
 };
 
-window.APP_VERSION_GLOBAL = "7.12.86";
+window.APP_VERSION_GLOBAL = "7.15.3";
 window.renderGlobalFooter = function () {
     try {
         const footers = document.querySelectorAll('.app-version-display');
-        footers.forEach(el => el.innerText = 'Blackstone Ward Youth Hub V' + window.APP_VERSION_GLOBAL);
+        footers.forEach(el => {
+            if (el.dataset.format === 'short') {
+                el.innerText = 'Version ' + window.APP_VERSION_GLOBAL;
+            } else if (el.dataset.raw === 'true') {
+                el.innerText = window.APP_VERSION_GLOBAL;
+            } else {
+                el.innerText = 'Blackstone Ward Youth Hub V' + window.APP_VERSION_GLOBAL;
+            }
+        });
     } catch (e) {
         console.error('Footer render error:', e);
     }
