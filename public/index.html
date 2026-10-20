@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Blackstone Ward Youth Hub</title>
     <script src="security-config.js"></script>
-    <script src="/cfm-config.js?v=7.16.1"></script>
+    <script src="/cfm-config.js?v=7.17.0"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/seasons.css">
-    <link rel="stylesheet" href="assets/youth-hub.css?v=7.16.1">
+    <link rel="stylesheet" href="assets/youth-hub.css?v=7.17.0">
 </head>
 
 <body class="youth-hub-body">
@@ -256,12 +256,12 @@
         <div class="footer-divider-row">
             <span class="footer-divider-line" aria-hidden="true"></span>
             <a href="https://blackstoneward.org" class="footer-brand-link" aria-label="Blackstone Ward Main Site" title="Blackstone Ward">
-                <img src="/assets/ward-logo-moroni.png?v=7.16.1" alt="Blackstone Ward Youth Hub" class="footer-moroni-logo">
+                <img src="/assets/ward-logo-moroni.png?v=7.17.0" alt="Blackstone Ward Youth Hub" class="footer-moroni-logo">
             </a>
             <span class="footer-divider-line" aria-hidden="true"></span>
         </div>
         <div class="footer-version-row">
-            <span class="footer-version-text app-version-display" data-format="short">Version 7.16.1</span>
+            <span class="footer-version-text app-version-display" data-format="short">Version 7.17.0</span>
         </div>
     </footer>
 
@@ -281,6 +281,68 @@
             </div>
             <div class="relative w-full aspect-video bg-black flex items-center justify-center">
                 <div id="videoContainer" class="w-full h-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spotlight Detail Lightbox Modal (Two-Pane) -->
+    <div id="spotlightDetailModal"
+        class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[150] items-center justify-center p-3 sm:p-5 md:p-8 transition-opacity"
+        role="dialog" aria-modal="true" aria-label="Spotlight Detail View">
+        <div class="relative w-full max-w-5xl max-h-[92vh] flex flex-col">
+            <!-- Modal Close Button -->
+            <button id="closeSpotlightModalBtn" onclick="window.closeSpotlightModal()"
+                class="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 z-30 bg-[#152548] text-white hover:bg-[#0f1c38] hover:text-amber-300 w-10 h-10 rounded-full flex items-center justify-center shadow-2xl border border-white/20 transition-transform active:scale-95 text-lg font-bold"
+                aria-label="Close spotlight view">✕</button>
+
+            <!-- Two Cards Container -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 w-full items-stretch overflow-y-auto md:overflow-visible max-h-[88vh] md:max-h-none p-1">
+                <!-- Large Pane / Card: Larger Image -->
+                <div class="md:col-span-7 lg:col-span-8 bg-slate-950/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center min-h-[280px] md:min-h-[480px] max-h-[50vh] md:max-h-[78vh] relative p-3">
+                    <div id="spotlightModalMediaContainer" class="w-full h-full flex items-center justify-center"></div>
+                </div>
+
+                <!-- Smaller Pane / Card on Right: Metadata -->
+                <div class="md:col-span-5 lg:col-span-4 bg-white border border-[#e9dece] rounded-2xl p-6 sm:p-7 shadow-2xl flex flex-col justify-between text-left overflow-y-auto max-h-[420px] md:max-h-[78vh]">
+                    <div class="space-y-5">
+                        <!-- Group -->
+                        <div>
+                            <span class="text-[10px] uppercase font-black tracking-widest text-[#536484] block mb-1.5">Group</span>
+                            <div id="spotlightModalGroup" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#152548] text-white shadow-sm"></div>
+                        </div>
+
+                        <!-- Date -->
+                        <div>
+                            <span class="text-[10px] uppercase font-black tracking-widest text-[#536484] block mb-1">Date</span>
+                            <div class="flex items-center gap-2 text-sm font-semibold text-[#152548]">
+                                <svg class="w-4 h-4 text-[#007b91] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <span id="spotlightModalDate" class="text-slate-800"></span>
+                            </div>
+                        </div>
+
+                        <!-- Description & Title -->
+                        <div class="pt-3 border-t border-[#f0e6d8]">
+                            <h3 id="spotlightModalTitle" class="font-serif font-bold text-xl text-[#152548] mb-2 hidden"></h3>
+                            <span class="text-[10px] uppercase font-black tracking-widest text-[#536484] block mb-1.5">Description</span>
+                            <div id="spotlightModalDesc" class="text-sm text-[#334155] leading-relaxed whitespace-pre-line font-normal"></div>
+                        </div>
+
+                        <div id="spotlightModalVideoAction" class="hidden pt-3 border-t border-[#f0e6d8]"></div>
+                    </div>
+
+                    <!-- Close Button in Footer -->
+                    <div class="pt-5 mt-6 border-t border-[#f0e6d8] flex justify-end">
+                        <button type="button" onclick="window.closeSpotlightModal()"
+                            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition active:scale-95">
+                            Close
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -657,6 +719,23 @@
             }
         };
 
+        const spotlightDataMap = new Map();
+
+        function formatSpotlightDate(rawDate) {
+            if (!rawDate) return '';
+            try {
+                if (typeof rawDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawDate.trim())) {
+                    const [y, m, d] = rawDate.trim().split('-').map(Number);
+                    return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                }
+                const parsed = new Date(rawDate);
+                if (!isNaN(parsed.getTime())) {
+                    return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                }
+            } catch (e) {}
+            return String(rawDate);
+        }
+
         function renderSpotlights() {
             const spotContainer = document.getElementById('youth-spotlight-container');
             const lockToggleBtn = document.getElementById('spotlightLockToggleBtn');
@@ -703,27 +782,57 @@
                         return;
                     }
 
+                    spotlightDataMap.clear();
                     let spotHTML = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">';
                     spotSnap.docs.forEach((s) => {
                         const data = s.data() || {};
+                        spotlightDataMap.set(s.id, { id: s.id, ...data });
+
                         const safeVideoUrl = (data.video_url || data.videoUrl || '');
                         const safeImageUrl = data.image_url || '';
                         const embedUrl = parseVideoEmbedUrl(safeVideoUrl, false);
+                        const rawDate = data.spotDate || data.date || '';
+                        const formattedDate = formatSpotlightDate(rawDate);
+                        const titleText = (data.title || data.name || '').trim();
+                        const descText = (data.desc || data.description || '').trim();
+                        const orgText = (data.org || data.group || '').trim();
 
                         let mediaBlock = '';
-                        if (embedUrl) {
-                            mediaBlock = `<div class="aspect-video w-full bg-slate-900 rounded-xl overflow-hidden mb-3"><iframe src="${embedUrl}" class="w-full h-full" frameborder="0" allow="fullscreen; picture-in-picture; encrypted-media" allowfullscreen></iframe></div>`;
-                        } else if (safeImageUrl) {
-                            mediaBlock = `<div class="aspect-video w-full bg-slate-100 rounded-xl overflow-hidden mb-3"><img src="${safeImageUrl}" class="w-full h-full object-cover" alt="Spotlight Image"></div>`;
+                        if (safeImageUrl) {
+                            mediaBlock = `
+                                <div class="aspect-video w-full bg-slate-100 rounded-xl overflow-hidden mb-3 relative group/img">
+                                    <img src="${safeImageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Spotlight Image">
+                                    ${safeVideoUrl ? `<div class="absolute bottom-2 right-2 bg-slate-950/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 backdrop-blur-sm shadow">▶ Video</div>` : ''}
+                                </div>
+                            `;
+                        } else if (embedUrl) {
+                            mediaBlock = `
+                                <div class="aspect-video w-full bg-slate-900 rounded-xl overflow-hidden mb-3 relative flex items-center justify-center">
+                                    <iframe src="${embedUrl}" class="w-full h-full pointer-events-none" frameborder="0" tabindex="-1"></iframe>
+                                    <div class="absolute inset-0 bg-transparent"></div>
+                                </div>
+                            `;
                         }
 
-                        const titleText = (data.title || data.name || '').trim();
-
                         spotHTML += `
-                            <div class="bg-white border border-[#e9dece] rounded-2xl p-5 shadow-sm">
+                            <div onclick="window.openSpotlightModal('${s.id}')"
+                                onkeydown="if(event.key==='Enter'||event.key===' ') { window.openSpotlightModal('${s.id}'); event.preventDefault(); }"
+                                tabindex="0"
+                                role="button"
+                                aria-label="View spotlight details"
+                                class="spotlight-card bg-white border border-[#e9dece] rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-[#152548]/30 transition-all duration-200 cursor-pointer flex flex-col h-full group focus:outline-none focus:ring-2 focus:ring-[#152548]/40">
                                 ${mediaBlock}
-                                ${titleText ? `<h4 class="font-serif font-bold text-lg text-[#152548] mb-1.5">${titleText}</h4>` : ''}
-                                ${data.description ? `<p class="text-sm text-[#536484] leading-relaxed">${data.description}</p>` : ''}
+                                ${titleText ? `<h4 class="font-serif font-bold text-lg text-[#152548] mb-1.5 group-hover:text-[#007b91] transition-colors">${titleText}</h4>` : ''}
+                                ${descText ? `<p class="text-sm text-[#536484] leading-relaxed mb-4 line-clamp-3">${descText}</p>` : ''}
+                                <div class="mt-auto pt-3 border-t border-[#f0e6d8] flex items-center justify-between text-xs text-[#536484]">
+                                    <span class="inline-flex items-center gap-1.5 font-medium">
+                                        <svg class="w-3.5 h-3.5 text-[#536484]/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        ${formattedDate || 'Recent'}
+                                    </span>
+                                    <span class="text-[11px] font-semibold text-[#007b91] flex items-center gap-1 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">
+                                        View <span>→</span>
+                                    </span>
+                                </div>
                             </div>
                         `;
                     });
@@ -731,6 +840,101 @@
                     spotContainer.innerHTML = spotHTML;
                 });
             }
+        }
+
+        // Spotlight Detail Lightbox Handlers
+        window.openSpotlightModal = (id) => {
+            const item = spotlightDataMap.get(id);
+            if (!item) return;
+
+            const modal = document.getElementById('spotlightDetailModal');
+            const mediaContainer = document.getElementById('spotlightModalMediaContainer');
+            const groupEl = document.getElementById('spotlightModalGroup');
+            const dateEl = document.getElementById('spotlightModalDate');
+            const descEl = document.getElementById('spotlightModalDesc');
+            const titleEl = document.getElementById('spotlightModalTitle');
+            const videoActionEl = document.getElementById('spotlightModalVideoAction');
+            if (!modal) return;
+
+            const groupName = item.org || item.group || 'Universal';
+            const rawDate = item.spotDate || item.date || '';
+            const formattedDate = formatSpotlightDate(rawDate) || 'No date specified';
+            const descText = item.desc || item.description || '';
+            const titleText = (item.title || item.name || '').trim();
+
+            if (groupEl) groupEl.textContent = groupName;
+            if (dateEl) dateEl.textContent = formattedDate;
+            if (descEl) descEl.textContent = descText || 'No description provided.';
+
+            if (titleEl) {
+                if (titleText) {
+                    titleEl.textContent = titleText;
+                    titleEl.classList.remove('hidden');
+                } else {
+                    titleEl.textContent = '';
+                    titleEl.classList.add('hidden');
+                }
+            }
+
+            const safeImageUrl = item.image_url || '';
+            const safeVideoUrl = item.video_url || item.videoUrl || '';
+            const embedUrl = parseVideoEmbedUrl(safeVideoUrl, false);
+
+            if (mediaContainer) {
+                if (safeImageUrl) {
+                    mediaContainer.innerHTML = `<img src="${safeImageUrl}" alt="Spotlight Image" class="max-w-full max-h-[74vh] object-contain rounded-lg shadow-lg select-none">`;
+                } else if (embedUrl) {
+                    mediaContainer.innerHTML = `
+                        <div class="w-full aspect-video">
+                            <iframe src="${embedUrl}" class="w-full h-full rounded-lg" frameborder="0" allow="fullscreen; autoplay; picture-in-picture; encrypted-media" allowfullscreen></iframe>
+                        </div>
+                    `;
+                } else {
+                    mediaContainer.innerHTML = `
+                        <div class="text-slate-400 text-sm flex flex-col items-center justify-center p-8">
+                            <svg class="w-12 h-12 mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                            <span>No image preview available</span>
+                        </div>
+                    `;
+                }
+            }
+
+            if (videoActionEl) {
+                if (embedUrl && safeImageUrl) {
+                    videoActionEl.innerHTML = `
+                        <button onclick="window.openVideoModal(event, '${embedUrl}', '${encodeURIComponent(titleText || groupName + ' Spotlight')}')"
+                            class="w-full py-2.5 px-4 bg-[#152548] hover:bg-[#0f1c38] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-md active:scale-95">
+                            <span>▶ Watch Spotlight Video</span>
+                        </button>
+                    `;
+                    videoActionEl.classList.remove('hidden');
+                } else {
+                    videoActionEl.innerHTML = '';
+                    videoActionEl.classList.add('hidden');
+                }
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        };
+
+        window.closeSpotlightModal = () => {
+            const modal = document.getElementById('spotlightDetailModal');
+            const mediaContainer = document.getElementById('spotlightModalMediaContainer');
+            if (mediaContainer) mediaContainer.innerHTML = '';
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            document.body.classList.remove('overflow-hidden');
+        };
+
+        const spotlightModalEl = document.getElementById('spotlightDetailModal');
+        if (spotlightModalEl) {
+            spotlightModalEl.addEventListener('click', (e) => {
+                if (e.target === spotlightModalEl) window.closeSpotlightModal();
+            });
         }
 
         // Video Lightbox Handlers
@@ -786,6 +990,8 @@
 
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                const spModal = document.getElementById('spotlightDetailModal');
+                if (spModal && !spModal.classList.contains('hidden')) window.closeSpotlightModal();
                 const vModal = document.getElementById('videoModal');
                 if (vModal && !vModal.classList.contains('hidden')) window.closeVideoModal();
                 const fModal = document.getElementById('feedbackModal');

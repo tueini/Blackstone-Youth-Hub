@@ -1,10 +1,21 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.16.1
+**Version**: v7.17.0
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment), `youth-blackstoneward` (Production: `youth.blackstoneward.org`)
 **DevOps**: The beta environment is tracked on the `beta-admin` branch. Hosting targets are mapped in `.firebaserc` (`staging` -> `test-blackstoneward`, `youth` -> `youth-blackstoneward`).
+
+- **Youth Hub Spotlight Metadata Date & Two-Pane Detail Modal (v7.17.0)**:
+  - Added formatted spotlight date display at the bottom of each card in the Youth Spotlight grid (`public/index.html`). Dates are cleanly pinned to the bottom border using flex auto-margins, supporting ISO dates (`YYYY-MM-DD`) and text formats.
+  - Made every spotlight card interactive and clickable with hover elevations and focus accessibility (`tabindex="0"`, `role="button"`, `Enter`/`Space` key support).
+  - Built a responsive two-pane detail lightbox modal (`#spotlightDetailModal`) spawned upon clicking any spotlight card:
+    - **Large Left Pane**: High-contrast dark viewer showcasing a large, crisp version of the spotlight image (or embedded video).
+    - **Right Metadata Pane**: Editorial card displaying **Group** (styled badge), **Date** (calendar icon + formatted date), and **Description** (full readable text, scrollable for long stories).
+    - Included optional video action button if media contains an associated video URL.
+    - Wired backdrop click and `Escape` key listeners for smooth dismissibility.
+  - Added `.spotlight-card` and `.line-clamp-3` styling in `public/assets/youth-hub.css`.
+  - Bumped application version to `v7.17.0` across `cfm-config.js`, all templates, stylesheets, and footers.
 
 - **Official Moroni Logo Asset Update & Global Cache Sync**:
   - Deployed updated `public/assets/ward-logo-moroni.png` provided by the user.
