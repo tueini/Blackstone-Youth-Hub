@@ -1,5 +1,14 @@
-> **Note**: The current app version is v7.16.1 on beta-admin.
+> **Note**: The current app version is v7.17.0 on beta-admin.
  
+## [2026-10-20 09:55] - v7.17.0 Youth Hub Spotlight Date Metadata & Two-Pane Detail Modal
+- **Spotlight Date on Cards**: Formatted and rendered the spotlight date at the bottom border of every card in the Youth Spotlight grid, utilizing responsive auto-margin pinning.
+- **Interactive Clickable Cards**: Made each card interactive with cursor indicators, subtle elevation hover effects, and keyboard accessibility.
+- **Two-Pane Detail Lightbox Modal**: Clicking any card spawns a two-pane modal (`#spotlightDetailModal`):
+  - **Large Left Pane**: Displays a large-scale presentation of the spotlight image (or embedded video).
+  - **Right Metadata Pane**: Displays the spotlight's **Group** pill badge, formatted **Date**, and full **Description** with scrolling typography, plus an optional video action button when a video is attached.
+  - Full dismissibility with floating close button, modal backdrop click, and `Escape` key shortcut.
+- **Global Version Sync**: Bumped application version to `v7.17.0` across `cfm-config.js`, all templates, stylesheets, and footers.
+
 ## [2026-10-20 09:30] - v7.16.1 Official Moroni Logo Asset Update & Cache Sync
 - **Updated Moroni Logo Asset**: Updated `public/assets/ward-logo-moroni.png` provided by the operator.
 - **Cache-Busting & Global Sync**: Incremented asset query strings (`?v=7.16.1`) on all `ward-logo-moroni.png` instances across the home page, admin portal, and all 6 secondary organization pages.
