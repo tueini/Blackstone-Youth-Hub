@@ -1,10 +1,15 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.16.0
+**Version**: v7.16.1
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment), `youth-blackstoneward` (Production: `youth.blackstoneward.org`)
 **DevOps**: The beta environment is tracked on the `beta-admin` branch. Hosting targets are mapped in `.firebaserc` (`staging` -> `test-blackstoneward`, `youth` -> `youth-blackstoneward`).
+
+- **Official Moroni Logo Asset Update & Global Cache Sync**:
+  - Deployed updated `public/assets/ward-logo-moroni.png` provided by the user.
+  - Synchronized cache-busting query strings (`?v=7.16.1`) across all logo instances (`public/index.html`, `public/admin/index.html`, `public/Combined/index.html`, `public/Priests/index.html`, `public/Teachers/index.html`, `public/Deacons/index.html`, `public/YW/index.html`, `public/Primary/index.html`).
+  - Bumped application version to `v7.16.1` across `cfm-config.js`, all templates, stylesheets, and footers.
 
 - **Admin Portal Seasonal Parallax & Warm Cream Editorial Redesign**:
   - Overhauled the Admin Portal (`public/admin/index.html`) to align with the Warm Cream Editorial design system established across the Youth Hub and secondary organization pages.
