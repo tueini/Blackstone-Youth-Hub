@@ -1,5 +1,8 @@
 > **Note**: The current app version is v7.17.0 on beta-admin.
  
+## [2026-10-21 10:00] - Admin Portal Sidebar Logo Update
+- **Admin Sidebar Brand Consistency**: Replaced the horizontal logo in the Admin Portal sidebar (`public/admin/index.html`) with the official Blackstone Ward Moroni logo (`ward-logo-moroni.png?v=7.17.0`) matching the footer branding while preserving navigation link structure.
+
 ## [2026-10-20 09:55] - v7.17.0 Youth Hub Spotlight Date Metadata & Two-Pane Detail Modal
 - **Spotlight Date on Cards**: Formatted and rendered the spotlight date at the bottom border of every card in the Youth Spotlight grid, utilizing responsive auto-margin pinning.
 - **Interactive Clickable Cards**: Made each card interactive with cursor indicators, subtle elevation hover effects, and keyboard accessibility.
