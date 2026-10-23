@@ -1,20 +1,25 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.17.1
+**Version**: v7.18.0
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment), `youth-blackstoneward` (Production: `youth.blackstoneward.org`)
 **DevOps**: The beta environment is tracked on the `beta-admin` branch. Hosting targets are mapped in `.firebaserc` (`staging` -> `test-blackstoneward`, `youth` -> `youth-blackstoneward`).
 
-- **Youth Hub Navigation, Calendar Styling, and Hero Redesign (v7.17.1)**:
-  - **Calendar Event Pill Styling**: Updated `.cal-event-pill` and `.cal-pill-title` in `public/assets/org-page.css` to 9px font size with bold `700` font weight for optimal legibility.
-  - **Navigation Alignment**:
-    - Youth Hub top-right nav updated: "Home" links directly to Blackstone Ward homepage (`https://blackstoneward.org/`), and "Activities" replaced with "YHub" linking to `#home` with active teal underline indicator.
-    - Secondary organization pages (`Combined`, `Primary`, `Deacons`, `Teachers`, `Priests`, `YW`) updated: top-right nav "Home" changed to "YHub", and breadcrumbs bar updated to display `YHub / Activities / [Org]`.
-  - **Hero Section Polish**:
-    - Hero heading updated from 2026 Youth Theme to the primary title "Youth Hub" with "Blackstone Ward" eyebrow.
-    - Subtitle updated to display the annual youth theme in smaller editorial typography while preserving `#hero-theme-title` and `#hero-theme-scripture` dynamic Firestore bindings.
-  - **Global Version Sync**: Bumped application version to `v7.17.1` across `cfm-config.js`, all templates, stylesheets, and footers.
+- **Unified Firebase Auth, Centralized RBAC & Cross-Subdomain SSO Migration (v7.18.0)**:
+  - **Option A Implementation**: Migrated Youth Hub Admin from isolated passphrase hashing to the unified Firebase Authentication and Role-Based Access Control (RBAC) model shared with the Blackstone Ward portal (`BW_Home`).
+  - **Shared Leader Directory**: All leader identities, phone numbers, and role assignments are verified against the central Firestore `ward_leaders` collection (`blackstoneward-b861c`).
+  - **Cross-Subdomain SSO Cookie & Session Bridge**: Authenticated sessions set a secure `.blackstoneward.org` cookie (`ward_auth_session`) and synchronized `sessionStorage` (`wardAdminAuth`, `wardLeaderProfile`), granting immediate access across Ward and Youth Hub admin portals without re-login.
+  - **Multi-Factor Leader Authentication**:
+    - **SMS One-Time Passcode (OTP)**: Phone SMS verification powered by Firebase Auth (`signInWithPhoneNumber`) and reCAPTCHA.
+    - **Passkey / Biometrics Support**: TouchID / FaceID authentication via WebAuthn API.
+    - **Secure Password Fallback**: SHA-256 verification against master hashes and individual leader hashes stored in Firestore.
+  - **Automated RBAC Enforcement**:
+    - Ward Administrator (`admin`) and Bishopric (`bishopric`) automatically unlock all 6 organization tabs (`Combined`, `Priests`, `Teachers`, `Deacons`, `Young Women`, `Primary`), system settings, danger zone, spotlights, and announcements.
+    - Specific quorum/class leaders (`priests`, `teachers`, `deacons`, `young_women`/`yw`, `primary`) are scoped to their respective organization management tools.
+  - **Leader Identity Badge**: Displays logged-in leader's avatar initials, display name, and official role title in the Admin sidebar.
+  - **Clean Logout Flow**: Completely wipes session state, clears shared cookies, calls Firebase `signOut(auth)`, and resets the interface back to unauthenticated login card.
+  - **Global Version Sync**: Bumped application version to `v7.18.0` across `cfm-config.js`, all templates, stylesheets, and footers.
 
 - **Admin Portal Sidebar Logo Update**:
   - Replaced the horizontal header logo in the Admin Portal sidebar (`public/admin/index.html`) with the official Blackstone Ward Moroni logo (`ward-logo-moroni.png?v=7.17.0`) matching the footer branding.
