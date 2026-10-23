@@ -1,5 +1,11 @@
-> **Note**: The current app version is v7.17.0 on beta-admin.
+> **Note**: The current app version is v7.17.1 on beta-admin.
  
+## [2026-10-23 14:25] - v7.17.1 Youth Hub Navigation, Calendar Styling & Hero Redesign
+- **Calendar Pill Typography**: Increased font weight to `700` and set font size to `9px` for `.cal-event-pill` and `.cal-pill-title` across all organization calendars.
+- **Top Navigation Alignment**: Changed main navigation on Youth Hub homepage to `Home` (linking to `https://blackstoneward.org/`) and `YHub` (underlined/active, linking to `#home`).
+- **Secondary Pages Nav & Breadcrumbs**: Updated top-right nav "Home" to "YHub" and breadcrumbs bar to `YHub / Activities / [Org]` across all six organization pages (`Combined`, `Primary`, `Deacons`, `Teachers`, `Priests`, `YW`).
+- **Hero Section Polish**: Updated hero heading from youth theme to "Youth Hub" with "Blackstone Ward" eyebrow; moved annual youth theme to subtitle in smaller editorial typography while preserving `#hero-theme-title` and `#hero-theme-scripture` dynamic Firestore bindings.
+- **Global Version Sync**: Bumped application version to `v7.17.1` across `cfm-config.js`, all templates, stylesheets, and footers.
 ## [2026-10-21 10:00] - Admin Portal Sidebar Logo Update
 - **Admin Sidebar Brand Consistency**: Replaced the horizontal logo in the Admin Portal sidebar (`public/admin/index.html`) with the official Blackstone Ward Moroni logo (`ward-logo-moroni.png?v=7.17.0`) matching the footer branding while preserving navigation link structure.
 
