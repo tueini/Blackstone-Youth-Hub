@@ -49,29 +49,28 @@ All missions should follow this structure to ensure compliance:
 
 **Execution Checkpoint:** Do not launch a local server or browser subagent. Once the code is written locally, STOP and wait for my review. I will reply "Approved" when I am ready for you to run `firebase deploy`.
 
-## 8. The "Air Gap" GitHub Push Protocol (DevOps SOP)
-Due to GitHub deprecating standard password authentication for terminal operations, and to protect Personal Access Tokens (PAT) from being permanently stored in cloud-synced AI chat histories, all code pushes to GitHub must follow the "Air Gap" protocol.
+## 8. Automated GitHub Push Protocol (DevOps SOP)
+GitHub authentication is securely handled via the system-authenticated GitHub CLI (`gh`) and macOS Keychain on this machine. Automated pushes are enabled.
 
-This protocol splits the labor: the AG Agent prepares the package, and the Human Operator pushes it using native terminal tools.
+### Phase 1: Agent Preparation & Push (IDE)
+When instructed to push to GitHub (e.g., *"commit and push to GitHub"* or *"push to beta-admin"*), the agent stages, commits with the synchronized version number, and pushes directly to GitHub:
+```bash
+git add .
+git commit -m "[Insert descriptive message here]"
+git push origin beta-admin
+```
+No manual PAT tokens or external terminal commands are required from the human operator.
 
-### Phase 1: Agent Preparation (IDE)
-Feed the AG Agent a sanitized prompt to stage and commit the code locally. Do not include tokens in the prompt.
-**Prompt Template:**
-> `@Workspace` Stage and commit all recent changes to prepare for a GitHub push. 
-> Execute `git add .` and `git commit -m "[Insert descriptive message here]"`. 
-> STOP after committing. Do not attempt to push.
-
-### Phase 2: Human Execution (Native Mac Terminal)
-The Human Operator executes the push bypassing the headless IDE restrictions and the Mac Keychain entirely:
-1. Generate or retrieve your active GitHub PAT (Must have `repo` scope).
-2. Open the native Mac Terminal (`Cmd + Space` -> `Terminal`).
-3. Navigate to the active workspace:
-   `cd /Users/dharris/Documents/0Church/Blackstone_Ward/Youth/[Active-Workspace-Folder]/`
-4. Execute the "Direct Token Bypass" push command:
-   `git push https://tueini:[PASTE_PAT_HERE]@github.com/tueini/Blackstone-Youth-Hub.git [branch-name]`
-   *(Note: This method is highly secure as it holds the token in RAM for the transaction but does not write it to the local `.git/config` file).*
-
-### Phase 3: The Cloud Merge (GitHub.com)
-1. Log in to GitHub.com.
+### Phase 2: The Cloud Merge (GitHub.com)
+1. Log in to GitHub.com (or use `gh pr create`).
 2. Navigate to the repository and open a **Pull Request** to merge the newly pushed branch (e.g., `beta-admin`) into `main`.
 3. Review the code diff visually, then click **Merge pull request**.
+
+### Phase 4: Local Website Sync & Production Deploy (Two-Stage Approval Gate)
+After completing the Cloud Merge, inform the AG Agent with any of: *"merge completed"*, *"merge done"*, *"PR done"*, *"PR completed"*, or *"Merged to main"*.
+The agent will activate the `.agents/skills/production-release/` skill:
+1. **Gate 1 (Prompt to Sync)**: The agent explicitly asks for approval to update the local `Website/` repository from `origin/main`.
+2. **Execute Sync**: Upon approval, pulls latest `main` into local `Website/` and aligns branch pointers.
+3. **Gate 2 (Prompt to Deploy)**: The agent explicitly asks for approval to deploy to the live production site.
+4. **Execute Deploy**: Upon approval, runs `firebase deploy --only hosting:youth --public ../Website/public` (`youth.blackstoneward.org`).
+

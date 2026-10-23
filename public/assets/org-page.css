@@ -519,7 +519,7 @@ body.org-page-body {
   gap: 4px;
   padding: 3px 6px;
   border-radius: 6px;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   line-height: 1.25;
   cursor: pointer;
@@ -556,6 +556,8 @@ body.org-page-body {
   text-overflow: ellipsis;
   word-break: break-word;
   overflow-wrap: break-word;
+  font-size: 9px;
+  font-weight: 700;
   line-height: 1.25;
   flex: 1;
 }
@@ -909,7 +911,7 @@ body.org-page-body {
   min-height: 125px;
   padding: 24px 0 16px 0;
   background-color: transparent;
-  background-image: url('/assets/footer-tree-silhouette.png?v=7.17.0');
+  background-image: url('/assets/footer-tree-silhouette.png?v=7.17.1');
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: 100% 100%;

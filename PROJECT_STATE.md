@@ -1,10 +1,20 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.17.0
+**Version**: v7.17.1
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment), `youth-blackstoneward` (Production: `youth.blackstoneward.org`)
 **DevOps**: The beta environment is tracked on the `beta-admin` branch. Hosting targets are mapped in `.firebaserc` (`staging` -> `test-blackstoneward`, `youth` -> `youth-blackstoneward`).
+
+- **Youth Hub Navigation, Calendar Styling, and Hero Redesign (v7.17.1)**:
+  - **Calendar Event Pill Styling**: Updated `.cal-event-pill` and `.cal-pill-title` in `public/assets/org-page.css` to 9px font size with bold `700` font weight for optimal legibility.
+  - **Navigation Alignment**:
+    - Youth Hub top-right nav updated: "Home" links directly to Blackstone Ward homepage (`https://blackstoneward.org/`), and "Activities" replaced with "YHub" linking to `#home` with active teal underline indicator.
+    - Secondary organization pages (`Combined`, `Primary`, `Deacons`, `Teachers`, `Priests`, `YW`) updated: top-right nav "Home" changed to "YHub", and breadcrumbs bar updated to display `YHub / Activities / [Org]`.
+  - **Hero Section Polish**:
+    - Hero heading updated from 2026 Youth Theme to the primary title "Youth Hub" with "Blackstone Ward" eyebrow.
+    - Subtitle updated to display the annual youth theme in smaller editorial typography while preserving `#hero-theme-title` and `#hero-theme-scripture` dynamic Firestore bindings.
+  - **Global Version Sync**: Bumped application version to `v7.17.1` across `cfm-config.js`, all templates, stylesheets, and footers.
 
 - **Admin Portal Sidebar Logo Update**:
   - Replaced the horizontal header logo in the Admin Portal sidebar (`public/admin/index.html`) with the official Blackstone Ward Moroni logo (`ward-logo-moroni.png?v=7.17.0`) matching the footer branding.
