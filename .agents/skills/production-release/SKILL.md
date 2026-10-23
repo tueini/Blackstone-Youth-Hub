@@ -63,7 +63,7 @@ Stop and await the user's explicit reply.
 Once approved:
 1. Deploy specifically to the production hosting target (`youth`) referencing the production `public` directory:
    ```bash
-   firebase deploy --only hosting:youth --public ../Website/public
+   firebase deploy --only hosting:youth
    ```
 2. Verify output confirms:
    - `✔ Deploy complete!`
