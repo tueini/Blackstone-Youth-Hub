@@ -1,6 +1,7 @@
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc, writeBatch, query, where, onSnapshot, orderBy, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { GOOGLE_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_APP_ID } from "/js/config.js";
 
         let ORGANIZATION_NAME = 'Combined';
@@ -19,8 +20,10 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
         window._firebaseDb = db;
         window.db = db;
+        window.auth = auth;
         
         let events = [], unscheduled = [], lessons = [], orgTeachers = [], fullOrgTeachers = [], birthdays = [];
         const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -1324,6 +1327,14 @@ window.setupRBAC = function() {
     const teachersCsvGroup = document.getElementById('teachersCsvGroup');
 
     if (userRole === 'Admin') {
+        tabs.forEach(t => t.classList.remove('hidden'));
+        const activitiesTab = document.querySelector('[data-target="activities-section"]');
+        if (activitiesTab) activitiesTab.classList.remove('hidden');
+        const birthdaysTab = document.querySelector('[data-target="birthdays-section"]');
+        if (birthdaysTab) birthdaysTab.classList.remove('hidden');
+        const lessonsTab = document.querySelector('[data-target="lessons-manager"]');
+        if (lessonsTab) lessonsTab.classList.remove('hidden');
+
         if (navAnn) navAnn.classList.remove('hidden');
         if (navSpot) navSpot.classList.remove('hidden');
         if (navTeach) navTeach.classList.remove('hidden');
@@ -1345,6 +1356,8 @@ window.setupRBAC = function() {
         tabs.forEach(t => {
             if (t.dataset.org !== userRole && !(userRole === 'Combined' && t.dataset.org === 'Combined')) {
                 t.classList.add('hidden');
+            } else {
+                t.classList.remove('hidden');
             }
         });
         const st = document.getElementById('settings-tab');
@@ -1449,12 +1462,7 @@ if (settingsTab) {
     });
 }
 
-const logoutBtn = document.getElementById('logout-btn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-        location.reload();
-    });
-}
+// Centralized handleLogout handles logoutBtn below
 
 function switchOrg(org) {
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -2407,4 +2415,851 @@ if (saveThemeBtn) {
         }
     });
 }
+
+// =========================================================================
+// UNIFIED AUTHENTICATION, CROSS-SUBDOMAIN SSO & RBAC ENGINE
+// =========================================================================
+
+let currentLeaderProfile = null;
+let leadersCache = [];
+let appConfirmationResult = null;
+
+const AUTHORIZED_MASTER_HASHES = [
+    "103a9f4c69d7331576e1a7b7f96ce781e3336f7b304424373aea1f263c581a3d", // yutehub!1830 (Youth Hub master)
+    "7ca8ae40ffb835bcc16f1de3fc4f27e3e6b3c709bc5d300f932cd019f86e488b", // YuteHub!1830 (exact)
+    "4b465598d5fd124a3856acff035f025315f798faf08049ee57409e3045c72e37", // YuteHub!830 (exact)
+    "7f39e9e47d673293ede2907b955e989ab9188e35c39684c95eff536bb5b3e542"  // yutehub!830 (lower)
+];
+
+const YOUTH_ROLE_DEFINITIONS = {
+    admin: { label: "Ward Administrator", org: "All Ward", fullAccess: true },
+    bishopric: { label: "Bishopric", org: "All Ward", fullAccess: true },
+    combined: { label: "Combined Youth Leader", org: "Combined", fullAccess: false },
+    priests: { label: "Priests Quorum Leader", org: "Priests", fullAccess: false },
+    teachers: { label: "Teachers Quorum Leader", org: "Teachers", fullAccess: false },
+    deacons: { label: "Deacons Quorum Leader", org: "Deacons", fullAccess: false },
+    young_women: { label: "Young Women Leader", org: "Young Women", fullAccess: false },
+    yw: { label: "Young Women Leader", org: "Young Women", fullAccess: false },
+    primary: { label: "Primary Leader", org: "Primary", fullAccess: false },
+    relief_society: { label: "Relief Society Leader", org: "Relief Society", fullAccess: false },
+    elders_quorum: { label: "Elders Quorum Leader", org: "Elders Quorum", fullAccess: false },
+    sunday_school: { label: "Sunday School Leader", org: "Sunday School", fullAccess: false }
+};
+
+function normalizePhone(phoneStr) {
+    if (!phoneStr) return '';
+    const digits = phoneStr.replace(/\D/g, '');
+    if (digits.length === 10) return `+1${digits}`;
+    if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+    return phoneStr.startsWith('+') ? phoneStr : `+${digits}`;
+}
+
+async function computeSha256(text) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function mapProfileToYouthRole(roleKey) {
+    const r = (roleKey || '').toLowerCase().trim();
+    if (r === 'admin' || r === 'bishopric') return 'Admin';
+    if (r === 'combined') return 'Combined';
+    if (r === 'priests') return 'Priests';
+    if (r === 'teachers') return 'Teachers';
+    if (r === 'deacons') return 'Deacons';
+    if (r === 'young_women' || r === 'yw') return 'Young Women';
+    if (r === 'primary') return 'Primary';
+    return 'Combined';
+}
+
+function setSharedSession(profile) {
+    if (!profile) return;
+    try {
+        sessionStorage.setItem('wardAdminAuth', 'true');
+        sessionStorage.setItem('wardLeaderProfile', JSON.stringify(profile));
+    } catch (_) {}
+    try {
+        const payload = encodeURIComponent(JSON.stringify({
+            uid: profile.phoneNumber || profile.email || 'leader',
+            name: profile.displayName || 'Leader',
+            role: profile.role || 'admin',
+            ts: Date.now()
+        }));
+        const isWardDomain = window.location.hostname.endsWith('blackstoneward.org');
+        const domainPart = isWardDomain ? '; domain=.blackstoneward.org' : '';
+        document.cookie = `ward_auth_session=${payload}; path=/${domainPart}; max-age=604800; SameSite=Lax; Secure`;
+    } catch (e) {
+        console.warn("Shared cookie set error:", e);
+    }
+}
+
+function getSharedSession() {
+    try {
+        if (sessionStorage.getItem('wardAdminAuth') === 'true') {
+            const p = JSON.parse(sessionStorage.getItem('wardLeaderProfile') || 'null');
+            if (p) return p;
+        }
+    } catch (_) {}
+
+    try {
+        const match = document.cookie.match(/(?:^|;\s*)ward_auth_session=([^;]+)/);
+        if (match && match[1]) {
+            const parsed = JSON.parse(decodeURIComponent(match[1]));
+            if (parsed && parsed.name) {
+                const profile = {
+                    displayName: parsed.name,
+                    role: parsed.role || 'admin',
+                    phoneNumber: parsed.uid || ''
+                };
+                sessionStorage.setItem('wardAdminAuth', 'true');
+                sessionStorage.setItem('wardLeaderProfile', JSON.stringify(profile));
+                return profile;
+            }
+        }
+    } catch (e) {
+        console.warn("Shared cookie read error:", e);
+    }
+    return null;
+}
+
+function clearSharedSession() {
+    try {
+        sessionStorage.removeItem('wardAdminAuth');
+        sessionStorage.removeItem('wardLeaderProfile');
+    } catch (_) {}
+    try {
+        const isWardDomain = window.location.hostname.endsWith('blackstoneward.org');
+        const domainPart = isWardDomain ? '; domain=.blackstoneward.org' : '';
+        document.cookie = `ward_auth_session=; path=/${domainPart}; max-age=0; SameSite=Lax; Secure`;
+    } catch (_) {}
+}
+
+function checkAuth() {
+    const profile = getSharedSession();
+    const loginView = document.getElementById('login-view');
+    const dashView = document.getElementById('dashboard-view');
+
+    if (profile) {
+        currentLeaderProfile = profile;
+        const mappedRole = mapProfileToYouthRole(profile.role);
+        window.currentUserRole = mappedRole;
+
+        if (loginView) loginView.classList.add('hidden');
+        if (dashView) {
+            dashView.classList.remove('hidden');
+            dashView.classList.add('flex');
+        }
+
+        // Leader Identity Badge in Sidebar
+        const badge = document.getElementById('leader-identity-badge');
+        const nameEl = document.getElementById('leader-display-name');
+        const roleEl = document.getElementById('leader-role-label');
+        const initialsEl = document.getElementById('leader-avatar-initials');
+
+        if (badge && nameEl) {
+            nameEl.textContent = profile.displayName || 'Leader';
+            if (roleEl) {
+                const roleDef = YOUTH_ROLE_DEFINITIONS[profile.role] || { label: profile.role || 'Leader' };
+                roleEl.textContent = roleDef.label;
+            }
+            if (initialsEl) {
+                const parts = (profile.displayName || 'Leader').trim().split(/\s+/);
+                const initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : parts[0].slice(0, 2).toUpperCase();
+                initialsEl.textContent = initials;
+            }
+            badge.classList.remove('hidden');
+            badge.classList.add('flex');
+        }
+
+        if (typeof window.setupRBAC === 'function') {
+            window.setupRBAC();
+        }
+        if (typeof window.initAdminParallax === 'function') {
+            window.initAdminParallax();
+        }
+    } else {
+        if (loginView) loginView.classList.remove('hidden');
+        if (dashView) {
+            dashView.classList.add('hidden');
+            dashView.classList.remove('flex');
+        }
+        const badge = document.getElementById('leader-identity-badge');
+        if (badge) {
+            badge.classList.add('hidden');
+            badge.classList.remove('flex');
+        }
+    }
+}
+window.checkAuth = checkAuth;
+
+function initRecaptcha() {
+    if (window.recaptchaVerifier) return;
+    try {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible',
+            callback: () => {}
+        });
+    } catch (e) {
+        console.warn("Recaptcha verifier error:", e);
+    }
+}
+
+async function handleSendPhoneCode(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const phoneInput = document.getElementById('admin-phone');
+    const err = document.getElementById('phone-login-error');
+    const btn = document.getElementById('phone-send-btn');
+    const nameInput = document.getElementById('admin-name-lookup');
+    const enteredName = (nameInput?.value || '').trim();
+
+    if (!enteredName) {
+        if (err) {
+            err.textContent = "Please type your first and last name.";
+            err.classList.remove('hidden');
+        }
+        nameInput?.focus();
+        return;
+    }
+
+    const nameParts = enteredName.split(/\s+/).filter(Boolean);
+    if (nameParts.length < 2) {
+        if (err) {
+            err.textContent = "Please type both your first and last name (e.g. Duane Harris).";
+            err.classList.remove('hidden');
+        }
+        nameInput?.focus();
+        return;
+    }
+
+    const rawPhone = (phoneInput?.value || '').trim();
+    if (!rawPhone) {
+        if (err) {
+            err.textContent = "Please enter your mobile phone number.";
+            err.classList.remove('hidden');
+        }
+        phoneInput?.focus();
+        return;
+    }
+    const phone = normalizePhone(rawPhone);
+    if (phone.length < 11) {
+        if (err) {
+            err.textContent = "Please enter a valid 10-digit mobile phone number.";
+            err.classList.remove('hidden');
+        }
+        phoneInput?.focus();
+        return;
+    }
+
+    const pool = [...leadersCache];
+    if (!pool.some(l => l.displayName === 'Duane Harris')) {
+        pool.unshift({
+            displayName: "Duane Harris",
+            phoneNumber: "+15084940905",
+            role: "admin",
+            active: true
+        });
+    }
+
+    const cleanName = enteredName.toLowerCase();
+    const leaderMatch = pool.find(l => (l.displayName || '').toLowerCase() === cleanName) ||
+        pool.find(l => (l.displayName || '').toLowerCase().includes(cleanName));
+
+    if (!leaderMatch) {
+        if (err) {
+            err.textContent = `Leader "${enteredName}" was not found among authorized ward leaders. Please verify your first and last name.`;
+            err.classList.remove('hidden');
+        }
+        nameInput?.focus();
+        return;
+    }
+
+    if (leaderMatch.phoneNumber) {
+        const regPhone = normalizePhone(leaderMatch.phoneNumber);
+        if (regPhone && regPhone !== phone) {
+            if (err) {
+                err.textContent = `The phone number entered does not match the registered phone on file for ${leaderMatch.displayName}. Please verify your phone number.`;
+                err.classList.remove('hidden');
+            }
+            phoneInput?.focus();
+            return;
+        }
+    }
+
+    if (err) err.classList.add('hidden');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Sending SMS text...`;
+    }
+
+    try {
+        initRecaptcha();
+        appConfirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+        document.getElementById('phone-step-1')?.classList.add('hidden');
+        document.getElementById('phone-step-2')?.classList.remove('hidden');
+        const sentEl = document.getElementById('phone-sent-target');
+        if (sentEl) sentEl.textContent = `Text message sent to ${phone}`;
+        const codeInput = document.getElementById('admin-sms-code');
+        if (codeInput) {
+            codeInput.value = '';
+            codeInput.focus();
+        }
+    } catch (errCatch) {
+        console.error("SMS send error:", errCatch);
+        if (err) {
+            if (errCatch.code === 'auth/operation-not-allowed') {
+                err.textContent = "Phone SMS sign-in is not enabled in Firebase Console yet. Please click 'Or sign in with password' below.";
+            } else if (errCatch.code === 'auth/invalid-phone-number') {
+                err.textContent = "Invalid phone number format. Please enter a valid 10-digit mobile number.";
+            } else if (errCatch.code === 'auth/too-many-requests') {
+                err.innerHTML = "Too many SMS requests sent recently. Please wait a few minutes, or click <strong>'Or sign in with password'</strong> below to sign in immediately.";
+            } else if (errCatch.code === 'auth/quota-exceeded') {
+                err.textContent = "SMS quota exceeded for this project. Please sign in with password.";
+            } else if (errCatch.code === 'auth/captcha-check-failed' || (errCatch.message && errCatch.message.toLowerCase().includes('hostname match not found'))) {
+                err.textContent = `Domain not authorized for SMS: Please add '${window.location.hostname}' under Firebase Console > Authentication > Settings > Authorized domains. You can also sign in below with password.`;
+            } else {
+                err.textContent = errCatch.message || "Failed to send verification text. Please check number or try again.";
+            }
+            err.classList.remove('hidden');
+        }
+        if (window.recaptchaVerifier) {
+            try { window.recaptchaVerifier.clear(); window.recaptchaVerifier = null; } catch (_) {}
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span>Send Text Code</span><span aria-hidden="true">&rarr;</span>`;
+        }
+    }
+}
+
+async function handleVerifyPhoneCode(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const codeInput = document.getElementById('admin-sms-code');
+    const err = document.getElementById('phone-login-error');
+    const btn = document.getElementById('phone-verify-btn');
+    const code = (codeInput?.value || '').trim();
+
+    if (!code || code.length < 6) {
+        if (err) {
+            err.textContent = "Please enter the complete 6-digit code sent to your phone.";
+            err.classList.remove('hidden');
+        }
+        codeInput?.focus();
+        return;
+    }
+
+    if (!appConfirmationResult) {
+        if (err) {
+            err.textContent = "Session expired. Please request a new text code.";
+            err.classList.remove('hidden');
+        }
+        return;
+    }
+
+    if (err) err.classList.add('hidden');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Verifying...";
+    }
+
+    try {
+        const userCredential = await appConfirmationResult.confirm(code);
+        const user = userCredential.user;
+        const phone = user.phoneNumber;
+
+        const leadersSnap = await getDocs(collection(db, "ward_leaders"));
+
+        let matchedLeader = null;
+        leadersSnap.forEach(d => {
+            const data = d.data();
+            const p = data.phoneNumber ? normalizePhone(data.phoneNumber) : '';
+            if ((p === phone || data.phoneNumber === phone) && data.active !== false) {
+                matchedLeader = { id: d.id, ...data };
+            }
+        });
+
+        // Primary Ward Administrator guarantee
+        if (phone === '+15084940905') {
+            matchedLeader = matchedLeader || {
+                id: "leader_duane_harris",
+                displayName: "Duane Harris",
+                email: "tueini@gmail.com",
+                phoneNumber: "+15084940905",
+                role: "admin",
+                active: true
+            };
+        }
+
+        if (matchedLeader) {
+            setSharedSession(matchedLeader);
+            checkAuth();
+        } else {
+            if (err) {
+                err.textContent = `Phone ${phone} verified, but not found in registered ward leaders. Please contact an administrator.`;
+                err.classList.remove('hidden');
+            }
+            await signOut(auth);
+        }
+    } catch (errCatch) {
+        console.error("Code verification error:", errCatch);
+        if (err) {
+            err.textContent = "Incorrect or expired verification code. Please try again.";
+            err.classList.remove('hidden');
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = "Verify & Enter Portal";
+        }
+    }
+}
+
+async function handlePasswordLogin(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const input = document.getElementById('admin-passcode');
+    const nameLookup = document.getElementById('password-leader-lookup');
+    const err = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+    const val = (input?.value || '').trim();
+    const leaderName = (nameLookup?.value || document.getElementById('admin-name-lookup')?.value || '').trim();
+
+    if (!leaderName) {
+        if (err) {
+            err.textContent = "Please type your first and last name.";
+            err.classList.remove('hidden');
+        }
+        nameLookup?.focus();
+        return;
+    }
+
+    const nameParts = leaderName.split(/\s+/).filter(Boolean);
+    if (nameParts.length < 2) {
+        if (err) {
+            err.textContent = "Please type both your first and last name (e.g. Duane Harris).";
+            err.classList.remove('hidden');
+        }
+        nameLookup?.focus();
+        return;
+    }
+
+    if (!val) {
+        if (err) {
+            err.textContent = "Please enter your password.";
+            err.classList.remove('hidden');
+        }
+        if (input) input.focus();
+        return;
+    }
+    if (err) err.classList.add('hidden');
+    if (btn) btn.textContent = 'Verifying...';
+
+    try {
+        const rawHash = await computeSha256(val);
+        const lowerHash = await computeSha256(val.toLowerCase());
+
+        const validHashes = new Set([
+            window.SECURE_AUTH_HASHES?.MASTER,
+            window.SECURE_AUTH_HASHES?.WARD,
+            ...(window.MASTER_APPROVED_HASHES || []),
+            ...AUTHORIZED_MASTER_HASHES
+        ]);
+
+        // 1. Master Passwords
+        if (validHashes.has(rawHash) || validHashes.has(lowerHash)) {
+            let profile = {
+                displayName: "Duane Harris",
+                email: "tueini@gmail.com",
+                phoneNumber: "+15084940905",
+                role: "admin"
+            };
+            if (leaderName) {
+                const match = leadersCache.find(l => (l.displayName || '').toLowerCase().includes(leaderName.toLowerCase()));
+                if (match) profile = { ...match };
+            }
+            setSharedSession(profile);
+            if (input) input.value = '';
+            if (btn) btn.textContent = 'Sign In with Password';
+            checkAuth();
+            return;
+        }
+
+        // 2. Personal Leader Passwords
+        let matchedLeader = null;
+        if (leaderName) {
+            const cleanName = leaderName.toLowerCase();
+            matchedLeader = leadersCache.find(l => (l.displayName || '').toLowerCase() === cleanName) ||
+                leadersCache.find(l => (l.displayName || '').toLowerCase().includes(cleanName));
+        }
+
+        if (matchedLeader) {
+            if (!matchedLeader.passwordHash) {
+                if (err) {
+                    err.textContent = `No personal password has been set for ${matchedLeader.displayName} yet. Please sign in via phone text code.`;
+                    err.classList.remove('hidden');
+                }
+                if (btn) btn.textContent = 'Sign In with Password';
+                return;
+            }
+            if (matchedLeader.passwordHash === rawHash || matchedLeader.passwordHash === lowerHash) {
+                if (matchedLeader.active === false) {
+                    if (err) {
+                        err.textContent = "This leader account is currently deactivated. Please contact an administrator.";
+                        err.classList.remove('hidden');
+                    }
+                    if (btn) btn.textContent = 'Sign In with Password';
+                    return;
+                }
+                setSharedSession(matchedLeader);
+                if (input) input.value = '';
+                if (btn) btn.textContent = 'Sign In with Password';
+                checkAuth();
+                return;
+            } else {
+                if (err) {
+                    err.textContent = `Incorrect password for ${matchedLeader.displayName}. Please try again.`;
+                    err.classList.remove('hidden');
+                }
+                if (btn) btn.textContent = 'Sign In with Password';
+                if (input) { input.select(); input.focus(); }
+                return;
+            }
+        }
+
+        // 3. Fallback: match any active leader with this hash
+        const matchingLeader = leadersCache.find(l => l.active !== false && (l.passwordHash === rawHash || l.passwordHash === lowerHash));
+        if (matchingLeader) {
+            setSharedSession(matchingLeader);
+            if (input) input.value = '';
+            if (btn) btn.textContent = 'Sign In with Password';
+            checkAuth();
+            return;
+        }
+
+        if (err) {
+            err.textContent = "Incorrect password. If you haven't set a personal password, sign in via phone text.";
+            err.classList.remove('hidden');
+        }
+        if (btn) btn.textContent = 'Sign In with Password';
+        if (input) { input.select(); input.focus(); }
+    } catch (errCatch) {
+        console.error("Auth error", errCatch);
+        if (err) {
+            err.textContent = "An error occurred while verifying password. Please try again.";
+            err.classList.remove('hidden');
+        }
+        if (btn) btn.textContent = 'Sign In with Password';
+    }
+}
+
+async function handleLogout() {
+    clearSharedSession();
+    currentLeaderProfile = null;
+    try {
+        await signOut(auth);
+    } catch (_) {}
+
+    const nameLookup = document.getElementById('admin-name-lookup');
+    if (nameLookup) nameLookup.value = '';
+    const pwLeaderLookup = document.getElementById('password-leader-lookup');
+    if (pwLeaderLookup) pwLeaderLookup.value = '';
+    const phoneInput = document.getElementById('admin-phone');
+    if (phoneInput) phoneInput.value = '';
+    const smsInput = document.getElementById('admin-sms-code');
+    if (smsInput) smsInput.value = '';
+    const pwInput = document.getElementById('admin-passcode');
+    if (pwInput) pwInput.value = '';
+
+    const matchIndicator = document.getElementById('leader-match-indicator');
+    if (matchIndicator) {
+        matchIndicator.classList.add('hidden');
+        matchIndicator.classList.remove('flex');
+    }
+
+    const phoneErr = document.getElementById('phone-login-error');
+    if (phoneErr) phoneErr.classList.add('hidden');
+    const pwErr = document.getElementById('login-error');
+    if (pwErr) pwErr.classList.add('hidden');
+
+    const step1 = document.getElementById('phone-step-1');
+    const step2 = document.getElementById('phone-step-2');
+    if (step1) step1.classList.remove('hidden');
+    if (step2) step2.classList.add('hidden');
+
+    const phoneForm = document.getElementById('phone-login-form');
+    const loginForm = document.getElementById('login-form');
+    const togglePasscodeContainer = document.getElementById('toggle-passcode-view-container');
+    if (phoneForm) phoneForm.classList.remove('hidden');
+    if (loginForm) loginForm.classList.add('hidden');
+    if (togglePasscodeContainer) togglePasscodeContainer.classList.remove('hidden');
+
+    checkAuth();
+}
+window.handleLogout = handleLogout;
+
+async function handlePasskeyLogin() {
+    if (!window.PublicKeyCredential) {
+        alert("TouchID / FaceID is not supported on this browser.");
+        return;
+    }
+    try {
+        const challenge = new Uint8Array(32);
+        crypto.getRandomValues(challenge);
+        const assertion = await navigator.credentials.get({
+            publicKey: { challenge: challenge, timeout: 60000, userVerification: "preferred" }
+        });
+        if (assertion) {
+            let profile = null;
+            const saved = localStorage.getItem('wardPasskeyRegistered');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (data && data.profile) profile = data.profile;
+                } catch (_) {}
+            }
+            if (!profile) {
+                profile = { displayName: "Duane Harris", email: "tueini@gmail.com", phoneNumber: "(508) 494-0905", role: "admin" };
+            }
+            setSharedSession(profile);
+            checkAuth();
+        }
+    } catch (e) {
+        if (e.name !== 'NotAllowedError') {
+            console.warn("Passkey login error:", e);
+            alert("TouchID / FaceID verification failed. Please sign in with phone text or password.");
+        }
+    }
+}
+
+function initLoginLeaderLookup() {
+    const nameInput = document.getElementById('admin-name-lookup');
+    const matchIndicator = document.getElementById('leader-match-indicator');
+    const matchText = document.getElementById('leader-match-text');
+    const phoneInput = document.getElementById('admin-phone');
+
+    function handleNameMatch(val) {
+        if (!val) {
+            if (matchIndicator) {
+                matchIndicator.classList.add('hidden');
+                matchIndicator.classList.remove('flex');
+            }
+            return;
+        }
+        const pool = [...leadersCache];
+        if (!pool.some(l => l.displayName === 'Duane Harris')) {
+            pool.unshift({
+                displayName: "Duane Harris",
+                phoneNumber: "(508) 494-0905",
+                role: "admin",
+                active: true
+            });
+        }
+        const cleanVal = val.trim().toLowerCase();
+        const match = pool.find(l => (l.displayName || '').toLowerCase() === cleanVal) ||
+            pool.find(l => (l.displayName || '').toLowerCase().includes(cleanVal));
+
+        if (match) {
+            const roleInfo = YOUTH_ROLE_DEFINITIONS[match.role] || { label: 'Leader' };
+            if (matchText) matchText.textContent = `${match.displayName} (${roleInfo.label})`;
+            if (matchIndicator) {
+                matchIndicator.classList.remove('hidden');
+                matchIndicator.classList.add('flex');
+            }
+            if (phoneInput && match.phoneNumber && !phoneInput.value) {
+                phoneInput.value = match.phoneNumber;
+            }
+        } else {
+            if (matchIndicator) {
+                matchIndicator.classList.add('hidden');
+                matchIndicator.classList.remove('flex');
+            }
+        }
+    }
+
+    if (nameInput) {
+        nameInput.addEventListener('input', () => handleNameMatch(nameInput.value));
+        nameInput.addEventListener('change', () => handleNameMatch(nameInput.value));
+    }
+
+    const pwLookup = document.getElementById('password-leader-lookup');
+    if (pwLookup) {
+        pwLookup.addEventListener('input', () => handleNameMatch(pwLookup.value));
+        pwLookup.addEventListener('change', () => handleNameMatch(pwLookup.value));
+    }
+
+    try {
+        const saved = JSON.parse(localStorage.getItem('local_ward_leaders') || '[]');
+        if (saved.length > 0 && leadersCache.length === 0) {
+            leadersCache = saved;
+        }
+    } catch (_) {}
+
+    getDocs(collection(db, "ward_leaders")).then(snap => {
+        if (!snap.empty) {
+            leadersCache = [];
+            snap.forEach(d => leadersCache.push({ id: d.id, ...d.data() }));
+            if (!leadersCache.some(l => l.displayName === 'Duane Harris')) {
+                leadersCache.unshift({
+                    id: 'leader_duane_harris',
+                    displayName: "Duane Harris",
+                    email: "tueini@gmail.com",
+                    phoneNumber: "(508) 494-0905",
+                    role: "admin",
+                    active: true
+                });
+            }
+            try { localStorage.setItem('local_ward_leaders', JSON.stringify(leadersCache)); } catch (_) {}
+        }
+    }).catch(e => console.warn("Failed to fetch ward_leaders:", e));
+}
+
+function initLoginEventListeners() {
+    const phoneForm = document.getElementById('phone-login-form');
+    if (phoneForm) {
+        phoneForm.addEventListener('submit', handleSendPhoneCode);
+    }
+
+    const phoneVerifyBtn = document.getElementById('phone-verify-btn');
+    if (phoneVerifyBtn) {
+        phoneVerifyBtn.addEventListener('click', handleVerifyPhoneCode);
+    }
+
+    const phoneResendBtn = document.getElementById('phone-resend-btn');
+    if (phoneResendBtn) {
+        phoneResendBtn.addEventListener('click', handleSendPhoneCode);
+    }
+
+    const phoneChangeBtn = document.getElementById('phone-change-btn');
+    if (phoneChangeBtn) {
+        phoneChangeBtn.addEventListener('click', () => {
+            document.getElementById('phone-step-2')?.classList.add('hidden');
+            document.getElementById('phone-step-1')?.classList.remove('hidden');
+            document.getElementById('admin-phone')?.focus();
+        });
+    }
+
+    const pasteBtn = document.getElementById('btn-paste-sms');
+    if (pasteBtn) {
+        pasteBtn.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                const cleaned = (text || '').replace(/\D/g, '').slice(0, 6);
+                const codeInput = document.getElementById('admin-sms-code');
+                if (codeInput && cleaned) {
+                    codeInput.value = cleaned;
+                    codeInput.focus();
+                }
+            } catch (err) {
+                console.warn("Clipboard paste error:", err);
+            }
+        });
+    }
+
+    const togglePasscodeBtn = document.getElementById('toggle-passcode-view-btn');
+    const togglePhoneBtn = document.getElementById('toggle-phone-view-btn');
+    const togglePasscodeContainer = document.getElementById('toggle-passcode-view-container');
+    const passcodeForm = document.getElementById('login-form');
+
+    if (togglePasscodeBtn && passcodeForm && phoneForm) {
+        togglePasscodeBtn.addEventListener('click', () => {
+            phoneForm.classList.add('hidden');
+            if (togglePasscodeContainer) togglePasscodeContainer.classList.add('hidden');
+            passcodeForm.classList.remove('hidden');
+
+            const phoneName = document.getElementById('admin-name-lookup')?.value || '';
+            const pwName = document.getElementById('password-leader-lookup');
+            if (pwName && phoneName && !pwName.value) pwName.value = phoneName;
+
+            const input = document.getElementById('admin-passcode');
+            if (input) input.focus();
+        });
+    }
+
+    if (togglePhoneBtn && passcodeForm && phoneForm) {
+        togglePhoneBtn.addEventListener('click', () => {
+            passcodeForm.classList.add('hidden');
+            phoneForm.classList.remove('hidden');
+            if (togglePasscodeContainer) togglePasscodeContainer.classList.remove('hidden');
+
+            const pwName = document.getElementById('password-leader-lookup')?.value || '';
+            const phoneName = document.getElementById('admin-name-lookup');
+            if (phoneName && pwName && !phoneName.value) phoneName.value = pwName;
+
+            const input = document.getElementById('admin-phone');
+            if (input) input.focus();
+        });
+    }
+
+    const adminNameInput = document.getElementById('admin-name-lookup');
+    const pwLeaderInput = document.getElementById('password-leader-lookup');
+    if (adminNameInput && pwLeaderInput) {
+        adminNameInput.addEventListener('input', () => {
+            if (!pwLeaderInput.value || pwLeaderInput.dataset.synced === 'true') {
+                pwLeaderInput.value = adminNameInput.value;
+                pwLeaderInput.dataset.synced = 'true';
+            }
+        });
+        pwLeaderInput.addEventListener('input', () => {
+            pwLeaderInput.dataset.synced = 'false';
+        });
+    }
+
+    if (passcodeForm) {
+        passcodeForm.addEventListener('submit', handlePasswordLogin);
+    }
+
+    const passkeyBtn = document.getElementById('passkey-login-btn');
+    const passkeyContainer = document.getElementById('passkey-login-container');
+    if (passkeyBtn && window.PublicKeyCredential) {
+        if (localStorage.getItem('wardPasskeyRegistered')) {
+            if (passkeyContainer) passkeyContainer.classList.remove('hidden');
+        }
+        passkeyBtn.addEventListener('click', handlePasskeyLogin);
+    }
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+}
+
+// Auto-sync Firebase Auth state
+onAuthStateChanged(auth, (user) => {
+    if (user && !getSharedSession()) {
+        const phone = user.phoneNumber;
+        if (phone === '+15084940905') {
+            const adminProfile = {
+                id: "leader_duane_harris",
+                displayName: "Duane Harris",
+                email: "tueini@gmail.com",
+                phoneNumber: "+15084940905",
+                role: "admin",
+                active: true
+            };
+            setSharedSession(adminProfile);
+            checkAuth();
+        } else {
+            getDocs(collection(db, "ward_leaders")).then(snap => {
+                let matched = null;
+                snap.forEach(d => {
+                    const data = d.data();
+                    const p = data.phoneNumber ? normalizePhone(data.phoneNumber) : '';
+                    if ((p === phone || data.phoneNumber === phone) && data.active !== false) {
+                        matched = { id: d.id, ...data };
+                    }
+                });
+                if (matched) {
+                    setSharedSession(matched);
+                    checkAuth();
+                }
+            }).catch(() => {});
+        }
+    }
+});
+
+// Initialize on script load
+initLoginLeaderLookup();
+initLoginEventListeners();
+checkAuth();
+
 
