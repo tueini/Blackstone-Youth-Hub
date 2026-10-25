@@ -1,10 +1,19 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.18.0
+**Version**: v7.18.1
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment), `youth-blackstoneward` (Production: `youth.blackstoneward.org`)
 **DevOps**: The beta environment is tracked on the `beta-admin` branch. Hosting targets are mapped in `.firebaserc` (`staging` -> `test-blackstoneward`, `youth` -> `youth-blackstoneward`).
+
+- **Sunday Lessons Real-Time Synchronization & Calendar Integration (v7.18.1)**:
+  - **Priests Lessons Pipeline**: Wired a real-time Firestore listener on `public/Priests/index.html` subscribing to the `Priests_lessons` collection (`qOrgLessons`), populating the active calendar events cache with Sunday curriculum.
+  - **Calendar Grid & Pill Presentation**: Sunday lessons render cleanly on the monthly calendar grid as spiritual category pills (`Lesson: [Topic]`), utilizing purple dot indicators and styling aligned with the editorial category legend.
+  - **List View & Sidebar Cards Integration**:
+    - **Agenda List View**: Sunday lessons display the topic title, teacher attribution (`Teacher: [Teacher]`), notes/curriculum, and distinct `● Lesson` badge.
+    - **UP NEXT & Coming Up Sidebar**: Upcoming Sunday lessons appear chronologically alongside combined and quorum activities with teacher attribution and Sunday Meeting time metadata.
+  - **Two-Way Lesson Detail Modal**: Clicking any lesson pill or list row opens the detail modal displaying the topic title, date, teacher name, notes/curriculum, and a pre-configured "Add to Calendar" link for Google Calendar.
+  - **Global Version Sync**: Bumped application version to `v7.18.1` across `cfm-config.js`, all templates, stylesheets, and footers.
 
 - **Unified Firebase Auth, Centralized RBAC & Cross-Subdomain SSO Migration (v7.18.0)**:
   - **Option A Implementation**: Migrated Youth Hub Admin from isolated passphrase hashing to the unified Firebase Authentication and Role-Based Access Control (RBAC) model shared with the Blackstone Ward portal (`BW_Home`).
