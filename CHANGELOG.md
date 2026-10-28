@@ -1,5 +1,15 @@
-> **Note**: The current app version is v7.18.0 on beta-admin.
+> **Note**: The current app version is v7.18.1 on beta-admin.
  
+## [2026-10-25 13:20] - v7.18.1 Sunday Lessons Public Calendar Real-Time Synchronization
+- **Priests Lessons Listener**: Added real-time Firestore listener `qOrgLessons` on `public/Priests/index.html` subscribing to the `Priests_lessons` collection.
+- **Calendar Grid & Pill Integration**: Lessons render onto their scheduled Sunday day cells as spiritual category pills (`Lesson: [Topic]`) with purple bullet dot indicator and responsive 2-line title wrapping.
+- **List View & Sidebar Meta**:
+  - Rendered teacher attribution (`Teacher: [Teacher]`) and lesson notes in the monthly agenda list view.
+  - Formatted category badge specifically as `● Lesson` on lesson rows.
+  - Linked lessons into the "UP NEXT" hero card and "Coming Up" sidebar list with meeting time metadata.
+- **Interactive Detail Modal**: Modal displays full lesson curriculum, teacher name, notes, and a direct Google Calendar template export link.
+- **Global Version Sync**: Bumped application version to `v7.18.1` across `cfm-config.js`, all templates, stylesheets, and footers.
+
 ## [2026-10-23 14:55] - v7.18.0 Unified Firebase Auth, Centralized RBAC & Cross-Subdomain SSO Migration
 - **Option A Implementation**: Transitioned Youth Hub Admin to the unified Firebase Authentication and Role-Based Access Control (RBAC) model shared with the Ward site (`BW_Home`).
 - **Unified Firestore Leaders Schema**: Replaced client-side static passwords with real-time verification against the central `ward_leaders` collection in Firestore.

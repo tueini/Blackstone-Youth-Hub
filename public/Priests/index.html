@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Priests | Blackstone Ward Youth Hub</title>
     <script src="/security-config.js"></script>
-    <script src="/cfm-config.js?v=7.17.1"></script>
+    <script src="/cfm-config.js?v=7.18.1"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/seasons.css">
-    <link rel="stylesheet" href="/assets/org-page.css?v=7.17.1">
+    <link rel="stylesheet" href="/assets/org-page.css?v=7.18.1">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="org-page-body">
@@ -212,12 +212,12 @@
         <div class="footer-divider-row">
             <span class="footer-divider-line" aria-hidden="true"></span>
             <a href="https://blackstoneward.org" class="footer-brand-link" aria-label="Blackstone Ward Main Site" title="Blackstone Ward">
-                <img src="/assets/ward-logo-moroni.png?v=7.17.1" alt="Blackstone Ward Youth Hub" class="footer-moroni-logo">
+                <img src="/assets/ward-logo-moroni.png?v=7.18.1" alt="Blackstone Ward Youth Hub" class="footer-moroni-logo">
             </a>
             <span class="footer-divider-line" aria-hidden="true"></span>
         </div>
         <div class="footer-version-row">
-            <span class="footer-version-text app-version-display" data-format="short">Version 7.17.1</span>
+            <span class="footer-version-text app-version-display" data-format="short">Version 7.18.1</span>
         </div>
     </footer>
 
@@ -526,6 +526,9 @@
                 const safeTitle = (ev.title || ev.name || 'Activity').trim();
                 const locStr = ev.location ? ` • ${ev.location}` : '';
                 const timeStr = ev.time ? ev.time : '';
+                const metaText = ev.isLesson 
+                    ? (ev.teacher ? `Teacher: ${ev.teacher}${ev.notes ? ' • ' + ev.notes : ''}` : (ev.notes || 'Sunday Lesson'))
+                    : (timeStr + locStr);
 
                 html += `
                     <div class="coming-up-row" onclick="window.openEventModal('${ev.id}')">
@@ -536,11 +539,11 @@
                             </div>
                             <div class="row-info">
                                 <h4 class="row-title">${safeTitle}</h4>
-                                <p class="row-meta">${timeStr}${locStr}</p>
+                                <p class="row-meta">${metaText}</p>
                             </div>
                         </div>
                         <div class="coming-up-right">
-                            <span class="row-cat-pill ${catClass}">● ${catClass.charAt(0).toUpperCase() + catClass.slice(1)}</span>
+                            <span class="row-cat-pill ${catClass}">● ${ev.isLesson ? 'Lesson' : (catClass.charAt(0).toUpperCase() + catClass.slice(1))}</span>
                             <span class="row-chevron">›</span>
                         </div>
                     </div>
@@ -575,7 +578,7 @@
                 if (upDayEl) upDayEl.innerText = dayNum;
                 if (upTitleEl) upTitleEl.innerText = nextEv.title || nextEv.name || 'Upcoming Activity';
                 if (upLocEl) upLocEl.innerText = nextEv.location || 'Meetinghouse';
-                if (upTimeEl) upTimeEl.innerText = nextEv.time || '7:00 PM';
+                if (upTimeEl) upTimeEl.innerText = nextEv.time || (nextEv.isLesson ? 'Sunday Meeting' : '7:00 PM');
                 if (upBtn) upBtn.onclick = () => window.openEventModal(nextEv.id);
             }
 
@@ -596,6 +599,9 @@
                     const safeTitle = (ev.title || ev.name || 'Activity').trim();
                     const loc = ev.location ? ` • ${ev.location}` : '';
                     const time = ev.time ? ev.time : '';
+                    const metaRow = ev.isLesson 
+                        ? (ev.teacher ? `Teacher: ${ev.teacher}` : 'Sunday Lesson') 
+                        : (time + loc);
 
                     listHTML += `
                         <div class="coming-up-row" onclick="window.openEventModal('${ev.id}')">
@@ -606,11 +612,11 @@
                                 </div>
                                 <div class="row-info">
                                     <h4 class="row-title">${safeTitle}</h4>
-                                    <p class="row-meta">${time}${loc}</p>
+                                    <p class="row-meta">${metaRow}</p>
                                 </div>
                             </div>
                             <div class="coming-up-right">
-                                <span class="row-cat-pill ${catClass}">● ${catClass.charAt(0).toUpperCase() + catClass.slice(1)}</span>
+                                <span class="row-cat-pill ${catClass}">● ${ev.isLesson ? 'Lesson' : (catClass.charAt(0).toUpperCase() + catClass.slice(1))}</span>
                                 <span class="row-chevron">›</span>
                             </div>
                         </div>
@@ -646,11 +652,18 @@
                 const dObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
                 dateEl.innerText = dObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
             }
-            if (timeEl) timeEl.innerText = ev.time || 'Time to be announced';
+            if (timeEl) timeEl.innerText = ev.time || (ev.isLesson ? 'Sunday Meeting' : 'Time to be announced');
             if (locEl) locEl.innerText = ev.location || 'Blackstone Ward Building';
 
             if (descEl && descContainer) {
-                const desc = (ev.description || ev.desc || '').trim();
+                let desc = '';
+                if (ev.isLesson) {
+                    desc = `Sunday Quorum Lesson: ${ev.topic || safeTitle}`;
+                    if (ev.teacher) desc += `\nTeacher: ${ev.teacher}`;
+                    if (ev.notes) desc += `\nCurriculum / Notes: ${ev.notes}`;
+                } else {
+                    desc = (ev.description || ev.desc || ev.details || '').trim();
+                }
                 if (desc) {
                     descEl.innerText = desc;
                     descContainer.classList.remove('hidden');
@@ -661,12 +674,15 @@
 
             if (catBadge) {
                 catBadge.className = `row-cat-pill ${catClass}`;
-                catBadge.innerText = `● ${catClass.charAt(0).toUpperCase() + catClass.slice(1)}`;
+                catBadge.innerText = `● ${ev.isLesson ? 'Lesson' : (catClass.charAt(0).toUpperCase() + catClass.slice(1))}`;
             }
 
             if (calLink && ev.date) {
                 const cleanDate = ev.date.replace(/-/g, '');
-                const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(safeTitle)}&dates=${cleanDate}/${cleanDate}&details=${encodeURIComponent(ev.description || '')}&location=${encodeURIComponent(ev.location || '')}`;
+                const descStr = ev.isLesson
+                    ? `Sunday Lesson: ${ev.topic || safeTitle}${ev.teacher ? ' (Teacher: ' + ev.teacher + ')' : ''}${ev.notes ? '\n' + ev.notes : ''}`
+                    : (ev.description || ev.desc || ev.details || '');
+                const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(safeTitle)}&dates=${cleanDate}/${cleanDate}&details=${encodeURIComponent(descStr)}&location=${encodeURIComponent(ev.location || 'Blackstone Ward Building')}`;
                 calLink.href = gCalUrl;
             }
 
@@ -690,14 +706,16 @@
             window.print();
         };
 
-        // Real-Time Firestore Synchronization (Priests_events & Combined_events)
+        // Real-Time Firestore Synchronization (Priests_events, Priests_lessons & Combined_events)
         let orgEventsCache = [];
+        let orgLessonsCache = [];
         let combinedEventsCache = [];
 
         function updateEventsAndRefresh() {
             const eventMap = new Map();
             combinedEventsCache.forEach(ev => eventMap.set(ev.id, ev));
             orgEventsCache.forEach(ev => eventMap.set(ev.id, ev));
+            orgLessonsCache.forEach(ev => eventMap.set(ev.id, ev));
             activeEvents = Array.from(eventMap.values()).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
             if (viewMode === 'calendar') renderCalendarView();
             else renderListView();
@@ -709,6 +727,30 @@
             orgEventsCache = [];
             snap.forEach(docSnap => {
                 orgEventsCache.push({ ...docSnap.data(), id: docSnap.id, sourceOrg: 'Priests' });
+            });
+            updateEventsAndRefresh();
+        });
+
+        const qOrgLessons = query(collection(db, "Priests_lessons"), orderBy("date", "asc"));
+        onSnapshot(qOrgLessons, (snap) => {
+            orgLessonsCache = [];
+            snap.forEach(docSnap => {
+                const data = docSnap.data();
+                if (!data.date) return;
+                const lessonTopic = (data.topic || 'Sunday Lesson').trim();
+                orgLessonsCache.push({
+                    ...data,
+                    id: docSnap.id,
+                    isLesson: true,
+                    name: `Lesson: ${lessonTopic}`,
+                    title: `Lesson: ${lessonTopic}`,
+                    category: 'spiritual',
+                    cat: 'spiritual',
+                    sourceOrg: 'Priests',
+                    location: 'Meetinghouse',
+                    time: 'Sunday Meeting',
+                    details: data.teacher ? `Teacher: ${data.teacher}${data.notes ? ' • ' + data.notes : ''}` : (data.notes || '')
+                });
             });
             updateEventsAndRefresh();
         });
