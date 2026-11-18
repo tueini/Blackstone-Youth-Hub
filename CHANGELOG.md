@@ -1,4 +1,11 @@
-> **Note**: The current app version is v7.18.1 on beta-admin.
+> **Note**: The current app version is v7.19.0 on beta-admin.
+
+## [2026-11-18 11:10] - v7.19.0 Cloud Passkey (WebAuthn) Authentication & Enrollment Upgrade
+- **Cloud Passkey Client (`public/js/passkey-client.js`)**: Implemented `enrollCloudPasskey` and `loginWithCloudPasskey` against `https://us-central1-blackstoneward-b861c.cloudfunctions.net/passkeyApi` (`/register/options`, `/register/verify`, `/login/options`, `/login/verify`) with `rpId: 'blackstoneward.org'` and `PublicKeyCredential.signalUnknownCredential` using server-provided `rpId`.
+- **Passkey Login & Conditional UI Autofill**: Upgraded `handlePasskeyLogin` and wired `initConditionalPasskeyAutofill` in `public/admin/admin-app.js` using `PublicKeyCredential.getClientCapabilities()` and `AbortController` coordination.
+- **Role Enforcement & Firebase Custom Token**: Validated `result.profile` against authorized Youth Hub roles (`admin`, `bishopric`, `combined`, `priests`, `teachers`, `deacons`, `young_women`, `yw`, `primary`), authenticated Firebase Auth with `signInWithCustomToken(auth, result.customToken)`, and preserved `.blackstoneward.org` `ward_auth_session` SSO cookie and session storage.
+- **Passkey Enrollment UI**: Added post-login `#passkey-onboarding-modal` prompt after SMS/password sign-in and `#enable-passkey-btn` ("Enable Touch ID / Face ID") in the signed-in sidebar (`public/admin/index.html`).
+- **Global Version Sync**: Bumped application version to `v7.19.0` across `cfm-config.js`, templates, and footers.
  
 ## [2026-10-25 13:20] - v7.18.1 Sunday Lessons Public Calendar Real-Time Synchronization
 - **Priests Lessons Listener**: Added real-time Firestore listener `qOrgLessons` on `public/Priests/index.html` subscribing to the `Priests_lessons` collection.

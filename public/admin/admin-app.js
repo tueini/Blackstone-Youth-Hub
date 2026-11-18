@@ -1,8 +1,9 @@
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc, writeBatch, query, where, onSnapshot, orderBy, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { GOOGLE_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_APP_ID } from "/js/config.js";
+        import { enrollCloudPasskey, loginWithCloudPasskey } from "/js/passkey-client.js?v=7.19.0";
 
         let ORGANIZATION_NAME = 'Combined';
         let isCombinedPage = ORGANIZATION_NAME.toLowerCase() === 'combined';
@@ -2423,6 +2424,74 @@ if (saveThemeBtn) {
 let currentLeaderProfile = null;
 let leadersCache = [];
 let appConfirmationResult = null;
+let conditionalPasskeyAbortController = null;
+let passkeyOnboardingDismissed = false;
+
+const AUTHORIZED_YOUTH_HUB_ROLES = new Set([
+    'admin',
+    'bishopric',
+    'combined',
+    'priests',
+    'teachers',
+    'deacons',
+    'young_women',
+    'yw',
+    'primary'
+]);
+
+function isAuthorizedYouthHubProfile(profile) {
+    if (!profile || profile.active === false) return false;
+    const roleKey = (profile.role || '').toLowerCase().trim();
+    return AUTHORIZED_YOUTH_HUB_ROLES.has(roleKey);
+}
+
+function abortConditionalPasskeyAutofill() {
+    if (conditionalPasskeyAbortController) {
+        try { conditionalPasskeyAbortController.abort(); } catch (_) {}
+        conditionalPasskeyAbortController = null;
+    }
+}
+
+function markPasskeyEnrolledLocally(profile) {
+    try {
+        localStorage.setItem('wardPasskeyRegistered', JSON.stringify({
+            leaderId: profile?.id || profile?.phoneNumber || profile?.email || profile?.displayName || 'leader',
+            displayName: profile?.displayName || '',
+            ts: Date.now()
+        }));
+    } catch (_) {}
+}
+
+function isPasskeyEnrolledLocally(profile) {
+    try {
+        const raw = localStorage.getItem('wardPasskeyRegistered');
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        if (!parsed) return false;
+        if (!profile) return true;
+        const targetId = profile.id || profile.phoneNumber || profile.email || profile.displayName;
+        if (!parsed.leaderId || !targetId) return true;
+        return parsed.leaderId === targetId || parsed.displayName === profile.displayName;
+    } catch (_) {
+        return false;
+    }
+}
+
+function updatePasskeyUiState(profile) {
+    const enableBtn = document.getElementById('enable-passkey-btn');
+    const enableLabel = document.getElementById('enable-passkey-btn-label');
+    if (!enableBtn) return;
+    if (profile && window.PublicKeyCredential) {
+        enableBtn.classList.remove('hidden');
+        if (enableLabel) {
+            enableLabel.textContent = isPasskeyEnrolledLocally(profile)
+                ? 'Touch ID / Face ID Enabled ✓'
+                : 'Enable Touch ID / Face ID';
+        }
+    } else {
+        enableBtn.classList.add('hidden');
+    }
+}
 
 const AUTHORIZED_MASTER_HASHES = [
     "103a9f4c69d7331576e1a7b7f96ce781e3336f7b304424373aea1f263c581a3d", // yutehub!1830 (Youth Hub master)
@@ -2578,7 +2647,9 @@ function checkAuth() {
         if (typeof window.initAdminParallax === 'function') {
             window.initAdminParallax();
         }
+        updatePasskeyUiState(profile);
     } else {
+        updatePasskeyUiState(null);
         if (loginView) loginView.classList.remove('hidden');
         if (dashView) {
             dashView.classList.add('hidden');
@@ -2792,8 +2863,18 @@ async function handleVerifyPhoneCode(e) {
         }
 
         if (matchedLeader) {
+            if (!isAuthorizedYouthHubProfile(matchedLeader)) {
+                if (err) {
+                    err.textContent = `Your role (${matchedLeader.role || 'Leader'}) is not authorized for Youth Hub Admin access.`;
+                    err.classList.remove('hidden');
+                }
+                await signOut(auth);
+                return;
+            }
+            abortConditionalPasskeyAutofill();
             setSharedSession(matchedLeader);
             checkAuth();
+            maybePromptPasskeyOnboarding(matchedLeader);
         } else {
             if (err) {
                 err.textContent = `Phone ${phone} verified, but not found in registered ward leaders. Please contact an administrator.`;
@@ -2877,10 +2958,12 @@ async function handlePasswordLogin(e) {
                 const match = leadersCache.find(l => (l.displayName || '').toLowerCase().includes(leaderName.toLowerCase()));
                 if (match) profile = { ...match };
             }
+            abortConditionalPasskeyAutofill();
             setSharedSession(profile);
             if (input) input.value = '';
             if (btn) btn.textContent = 'Sign In with Password';
             checkAuth();
+            maybePromptPasskeyOnboarding(profile);
             return;
         }
 
@@ -2910,10 +2993,20 @@ async function handlePasswordLogin(e) {
                     if (btn) btn.textContent = 'Sign In with Password';
                     return;
                 }
+                if (!isAuthorizedYouthHubProfile(matchedLeader)) {
+                    if (err) {
+                        err.textContent = `Your role (${matchedLeader.role || 'Leader'}) is not authorized for Youth Hub Admin access.`;
+                        err.classList.remove('hidden');
+                    }
+                    if (btn) btn.textContent = 'Sign In with Password';
+                    return;
+                }
+                abortConditionalPasskeyAutofill();
                 setSharedSession(matchedLeader);
                 if (input) input.value = '';
                 if (btn) btn.textContent = 'Sign In with Password';
                 checkAuth();
+                maybePromptPasskeyOnboarding(matchedLeader);
                 return;
             } else {
                 if (err) {
@@ -2929,10 +3022,20 @@ async function handlePasswordLogin(e) {
         // 3. Fallback: match any active leader with this hash
         const matchingLeader = leadersCache.find(l => l.active !== false && (l.passwordHash === rawHash || l.passwordHash === lowerHash));
         if (matchingLeader) {
+            if (!isAuthorizedYouthHubProfile(matchingLeader)) {
+                if (err) {
+                    err.textContent = `Your role (${matchingLeader.role || 'Leader'}) is not authorized for Youth Hub Admin access.`;
+                    err.classList.remove('hidden');
+                }
+                if (btn) btn.textContent = 'Sign In with Password';
+                return;
+            }
+            abortConditionalPasskeyAutofill();
             setSharedSession(matchingLeader);
             if (input) input.value = '';
             if (btn) btn.textContent = 'Sign In with Password';
             checkAuth();
+            maybePromptPasskeyOnboarding(matchingLeader);
             return;
         }
 
@@ -2993,42 +3096,190 @@ async function handleLogout() {
     if (loginForm) loginForm.classList.add('hidden');
     if (togglePasscodeContainer) togglePasscodeContainer.classList.remove('hidden');
 
+    const onboardingModal = document.getElementById('passkey-onboarding-modal');
+    if (onboardingModal) onboardingModal.classList.add('hidden');
+    passkeyOnboardingDismissed = false;
+
     checkAuth();
+    initConditionalPasskeyAutofill();
 }
 window.handleLogout = handleLogout;
+
+async function completeCloudPasskeyLogin(result) {
+    const profile = result?.profile;
+    if (!isAuthorizedYouthHubProfile(profile)) {
+        const roleLabel = profile?.role ? ` (${profile.role})` : '';
+        throw new Error(`Your leader profile${roleLabel} is not authorized for Youth Hub Admin access.`);
+    }
+    if (result?.customToken) {
+        await signInWithCustomToken(auth, result.customToken);
+    }
+    setSharedSession(profile);
+    markPasskeyEnrolledLocally(profile);
+    checkAuth();
+}
+
+async function initConditionalPasskeyAutofill() {
+    if (getSharedSession() || !window.PublicKeyCredential) return;
+    try {
+        let supportsConditional = false;
+        if (typeof PublicKeyCredential.getClientCapabilities === 'function') {
+            const caps = await PublicKeyCredential.getClientCapabilities();
+            supportsConditional = caps?.conditionalGet === true;
+        } else if (typeof PublicKeyCredential.isConditionalMediationAvailable === 'function') {
+            supportsConditional = await PublicKeyCredential.isConditionalMediationAvailable();
+        }
+        if (!supportsConditional) return;
+
+        abortConditionalPasskeyAutofill();
+        conditionalPasskeyAbortController = new AbortController();
+
+        const result = await loginWithCloudPasskey({
+            leaderName: '',
+            signal: conditionalPasskeyAbortController.signal,
+            mediation: 'conditional'
+        });
+        await completeCloudPasskeyLogin(result);
+    } catch (e) {
+        if (e && (e.name === 'AbortError' || e.name === 'NotAllowedError')) {
+            return;
+        }
+        console.warn("Conditional passkey autofill error:", e);
+    }
+}
 
 async function handlePasskeyLogin() {
     if (!window.PublicKeyCredential) {
         alert("TouchID / FaceID is not supported on this browser.");
         return;
     }
+
+    const passkeyBtn = document.getElementById('passkey-login-btn');
+    const phoneErr = document.getElementById('phone-login-error');
+    const pwErr = document.getElementById('login-error');
+    if (phoneErr) phoneErr.classList.add('hidden');
+    if (pwErr) pwErr.classList.add('hidden');
+
+    const leaderName = (
+        document.getElementById('admin-name-lookup')?.value ||
+        document.getElementById('password-leader-lookup')?.value ||
+        ''
+    ).trim();
+
+    abortConditionalPasskeyAutofill();
+
+    const originalHtml = passkeyBtn ? passkeyBtn.innerHTML : '';
+    if (passkeyBtn) {
+        passkeyBtn.disabled = true;
+        passkeyBtn.textContent = 'Verifying TouchID / FaceID...';
+    }
+
     try {
-        const challenge = new Uint8Array(32);
-        crypto.getRandomValues(challenge);
-        const assertion = await navigator.credentials.get({
-            publicKey: { challenge: challenge, timeout: 60000, userVerification: "preferred" }
-        });
-        if (assertion) {
-            let profile = null;
-            const saved = localStorage.getItem('wardPasskeyRegistered');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    if (data && data.profile) profile = data.profile;
-                } catch (_) {}
-            }
-            if (!profile) {
-                profile = { displayName: "Duane Harris", email: "tueini@gmail.com", phoneNumber: "(508) 494-0905", role: "admin" };
-            }
-            setSharedSession(profile);
-            checkAuth();
-        }
+        const result = await loginWithCloudPasskey({ leaderName });
+        await completeCloudPasskeyLogin(result);
     } catch (e) {
-        if (e.name !== 'NotAllowedError') {
-            console.warn("Passkey login error:", e);
-            alert("TouchID / FaceID verification failed. Please sign in with phone text or password.");
+        if (e && (e.name === 'NotAllowedError' || e.name === 'AbortError')) {
+            initConditionalPasskeyAutofill();
+            return;
+        }
+        console.warn("Passkey login error:", e);
+        const msg = e?.message || "TouchID / FaceID verification failed. Please sign in with phone text or password.";
+        if (phoneErr) {
+            phoneErr.textContent = msg;
+            phoneErr.classList.remove('hidden');
+        } else if (pwErr) {
+            pwErr.textContent = msg;
+            pwErr.classList.remove('hidden');
+        } else {
+            alert(msg);
+        }
+        initConditionalPasskeyAutofill();
+    } finally {
+        if (passkeyBtn) {
+            passkeyBtn.disabled = false;
+            passkeyBtn.innerHTML = originalHtml;
         }
     }
+}
+
+async function handleEnrollPasskey({ fromOnboarding = false } = {}) {
+    if (!window.PublicKeyCredential) {
+        alert("Touch ID / Face ID passkeys are not supported on this browser.");
+        return;
+    }
+    const profile = currentLeaderProfile || getSharedSession();
+    if (!profile) {
+        alert("Please sign in first before enrolling a passkey.");
+        return;
+    }
+
+    const sidebarBtn = document.getElementById('enable-passkey-btn');
+    const sidebarLabel = document.getElementById('enable-passkey-btn-label');
+    const modal = document.getElementById('passkey-onboarding-modal');
+    const modalBtn = document.getElementById('passkey-onboard-enable-btn');
+    const modalErr = document.getElementById('passkey-onboard-error');
+
+    if (modalErr) modalErr.classList.add('hidden');
+    if (fromOnboarding && modalBtn) {
+        modalBtn.disabled = true;
+        modalBtn.textContent = 'Enabling...';
+    } else if (sidebarBtn && sidebarLabel) {
+        sidebarBtn.disabled = true;
+        sidebarLabel.textContent = 'Enabling...';
+    }
+
+    abortConditionalPasskeyAutofill();
+
+    try {
+        await enrollCloudPasskey(profile);
+        markPasskeyEnrolledLocally(profile);
+        updatePasskeyUiState(profile);
+        if (modal) modal.classList.add('hidden');
+    } catch (e) {
+        if (e?.name === 'NotAllowedError' || e?.name === 'AbortError') {
+            return;
+        }
+        if (e?.name === 'InvalidStateError') {
+            markPasskeyEnrolledLocally(profile);
+            updatePasskeyUiState(profile);
+            if (modal) modal.classList.add('hidden');
+            alert("A passkey is already registered on this device.");
+            return;
+        }
+        console.warn("Passkey enrollment error:", e);
+        const msg = e?.message || "Failed to enable Touch ID / Face ID. Please try again.";
+        if (fromOnboarding && modalErr) {
+            modalErr.textContent = msg;
+            modalErr.classList.remove('hidden');
+        } else {
+            alert(msg);
+        }
+    } finally {
+        if (fromOnboarding && modalBtn) {
+            modalBtn.disabled = false;
+            modalBtn.textContent = 'Enable Touch ID / Face ID';
+        }
+        if (sidebarBtn) {
+            sidebarBtn.disabled = false;
+            updatePasskeyUiState(profile);
+        }
+    }
+}
+
+async function maybePromptPasskeyOnboarding(profile) {
+    if (passkeyOnboardingDismissed || !window.PublicKeyCredential || !profile) return;
+    if (isPasskeyEnrolledLocally(profile)) return;
+    try {
+        if (typeof PublicKeyCredential.getClientCapabilities === 'function') {
+            const caps = await PublicKeyCredential.getClientCapabilities();
+            if (caps && caps.passkeyPlatformAuthenticator === false) return;
+        }
+    } catch (_) {}
+
+    const modal = document.getElementById('passkey-onboarding-modal');
+    const modalErr = document.getElementById('passkey-onboard-error');
+    if (modalErr) modalErr.classList.add('hidden');
+    if (modal) modal.classList.remove('hidden');
 }
 
 function initLoginLeaderLookup() {
@@ -3211,10 +3462,27 @@ function initLoginEventListeners() {
     const passkeyBtn = document.getElementById('passkey-login-btn');
     const passkeyContainer = document.getElementById('passkey-login-container');
     if (passkeyBtn && window.PublicKeyCredential) {
-        if (localStorage.getItem('wardPasskeyRegistered')) {
-            if (passkeyContainer) passkeyContainer.classList.remove('hidden');
-        }
+        if (passkeyContainer) passkeyContainer.classList.remove('hidden');
         passkeyBtn.addEventListener('click', handlePasskeyLogin);
+        initConditionalPasskeyAutofill();
+    }
+
+    const enablePasskeyBtn = document.getElementById('enable-passkey-btn');
+    if (enablePasskeyBtn) {
+        enablePasskeyBtn.addEventListener('click', () => handleEnrollPasskey({ fromOnboarding: false }));
+    }
+
+    const onboardEnableBtn = document.getElementById('passkey-onboard-enable-btn');
+    if (onboardEnableBtn) {
+        onboardEnableBtn.addEventListener('click', () => handleEnrollPasskey({ fromOnboarding: true }));
+    }
+
+    const onboardDismissBtn = document.getElementById('passkey-onboard-dismiss-btn');
+    if (onboardDismissBtn) {
+        onboardDismissBtn.addEventListener('click', () => {
+            passkeyOnboardingDismissed = true;
+            document.getElementById('passkey-onboarding-modal')?.classList.add('hidden');
+        });
     }
 
     const logoutBtn = document.getElementById('logout-btn');

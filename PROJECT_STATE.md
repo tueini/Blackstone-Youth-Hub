@@ -1,10 +1,17 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.18.1
+**Version**: v7.19.0
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment), `youth-blackstoneward` (Production: `youth.blackstoneward.org`)
 **DevOps**: The beta environment is tracked on the `beta-admin` branch. Hosting targets are mapped in `.firebaserc` (`staging` -> `test-blackstoneward`, `youth` -> `youth-blackstoneward`).
+
+- **Cloud Passkey Authentication, Conditional UI & Enrollment (v7.19.0)**:
+  - **Shared Cloud Passkey Client (`public/js/passkey-client.js`)**: Added `enrollCloudPasskey` and `loginWithCloudPasskey` targeting the shared Firebase Cloud Function `passkeyApi` (`https://us-central1-blackstoneward-b861c.cloudfunctions.net/passkeyApi`) with `rpId: 'blackstoneward.org'` and WebAuthn Signal API (`PublicKeyCredential.signalUnknownCredential`) cleanup using the server-provided `rpId`.
+  - **Cloud Passkey Login & Conditional UI Autofill**: Upgraded `handlePasskeyLogin()` and added `initConditionalPasskeyAutofill()` (`mediation: 'conditional'` with `AbortController` coordination) in `public/admin/admin-app.js` to authenticate against `/login/options` and `/login/verify`.
+  - **Youth Hub Role Verification & Firebase Custom Token Auth**: Verified returned `result.profile` against authorized Youth Hub roles (`admin`, `bishopric`, `combined`, `priests`, `teachers`, `deacons`, `young_women`, `yw`, `primary`), signed into Firebase Auth via `signInWithCustomToken(auth, result.customToken)`, and preserved `.blackstoneward.org` `ward_auth_session` SSO cookie and `sessionStorage` state.
+  - **Post-Login Onboarding & Sidebar Enrollment UI**: Added `#passkey-onboarding-modal` after SMS/password sign-in when not yet enrolled on the device, plus an "Enable Touch ID / Face ID" button (`#enable-passkey-btn`) in the signed-in admin sidebar calling `enrollCloudPasskey(leaderProfile)`.
+  - **Global Version Sync**: Bumped application version to `v7.19.0` across `cfm-config.js`, templates, stylesheets, and footers.
 
 - **Sunday Lessons Real-Time Synchronization & Calendar Integration (v7.18.1)**:
   - **Priests Lessons Pipeline**: Wired a real-time Firestore listener on `public/Priests/index.html` subscribing to the `Priests_lessons` collection (`qOrgLessons`), populating the active calendar events cache with Sunday curriculum.
