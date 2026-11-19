@@ -1,10 +1,24 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.19.0
+**Version**: v7.19.3
 **Active Branch**: `beta-admin`
 **Hosting Target**: `test-blackstoneward` (Staging Environment), `youth-blackstoneward` (Production: `youth.blackstoneward.org`)
 **DevOps**: The beta environment is tracked on the `beta-admin` branch. Hosting targets are mapped in `.firebaserc` (`staging` -> `test-blackstoneward`, `youth` -> `youth-blackstoneward`).
+
+- **Teacher Deletion Fix for Duplicate Firestore Records (v7.19.3)**:
+  - **Batch Delete All Matching Teacher Docs**: Updated `window.deleteTeacher(id)` in `public/admin/admin-app.js` to delete all matching `home_teachers` documents for that teacher's normalized name via `writeBatch`, update local `fullOrgTeachers` immediately, re-render `renderTeacherList()` and `renderLessonManager()`, handle unsaved `temp_` rows cleanly, and surface errors via `alert()`.
+  - **Global Version Sync**: Bumped application version to `v7.19.3` across `cfm-config.js`, templates, and footers.
+
+- **Settings & Privacy Teacher Roster Deduplication & Firestore Cleanup (v7.19.2)**:
+  - **Shared Teacher Deduplication**: Unified deduplication into `getDeduplicatedTeachers()` in `public/admin/admin-app.js` across the Settings & Privacy Teacher Roster (`renderTeacherList()`), CSV export (`generateSymmetricCSV('teachers')`), and Lessons manager (`renderLessonManager()`).
+  - **Admin Duplicate Purge Action**: Added `#dedupeTeachersBtn` ("Clean Up Duplicates (N)") in `public/admin/index.html` (visible to Ward Admins when duplicate `home_teachers` records exist) to batch-delete redundant Firestore documents while keeping one record per teacher.
+  - **Global Version Sync**: Bumped application version to `v7.19.2` across `cfm-config.js`, templates, and footers.
+
+- **Admin Lessons Tab Teacher Deduplication & Listener Cleanup (v7.19.1)**:
+  - **Teacher Dropdown Deduplication**: Added `getDeduplicatedLessonTeachers()` in `public/admin/admin-app.js` and updated `renderLessonManager()` so each teacher appears once (case-insensitively by name, preferring the active organization's assignment over `General`/`Universal`), while preserving any currently assigned teacher not in the list.
+  - **Firestore Listener Cleanup**: Tracked `unsubscribeTeachers` in `initApp()` so switching organizations unsubscribes the previous `home_teachers` `onSnapshot` listener before attaching a new one.
+  - **Global Version Sync**: Bumped application version to `v7.19.1` across `cfm-config.js`, templates, and footers.
 
 - **Cloud Passkey Authentication, Conditional UI & Enrollment (v7.19.0)**:
   - **Shared Cloud Passkey Client (`public/js/passkey-client.js`)**: Added `enrollCloudPasskey` and `loginWithCloudPasskey` targeting the shared Firebase Cloud Function `passkeyApi` (`https://us-central1-blackstoneward-b861c.cloudfunctions.net/passkeyApi`) with `rpId: 'blackstoneward.org'` and WebAuthn Signal API (`PublicKeyCredential.signalUnknownCredential`) cleanup using the server-provided `rpId`.

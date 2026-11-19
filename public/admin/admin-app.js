@@ -27,11 +27,16 @@
         window.auth = auth;
         
         let events = [], unscheduled = [], lessons = [], orgTeachers = [], fullOrgTeachers = [], birthdays = [];
+        let unsubscribeTeachers = null;
         const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
         const today = new Date();
 
         async function initApp() {
             try {
+                if (unsubscribeTeachers) {
+                    unsubscribeTeachers();
+                    unsubscribeTeachers = null;
+                }
                 let currentOrg = ORGANIZATION_NAME;
                 if (currentOrg === 'YW') currentOrg = 'Young Women';
                 
@@ -39,7 +44,7 @@
                     ? query(collection(db, "home_teachers"))
                     : query(collection(db, "home_teachers"), where("org", "in", [currentOrg, "General", "Universal"]));
                     
-                onSnapshot(q, (snapshot) => {
+                unsubscribeTeachers = onSnapshot(q, (snapshot) => {
                     orgTeachers.length = 0;
                     fullOrgTeachers.length = 0;
                     snapshot.forEach(d => {
@@ -740,6 +745,33 @@
             });
         }
 
+        function getDeduplicatedTeachers() {
+            const currentOrg = ORGANIZATION_NAME === 'YW' ? 'Young Women' : ORGANIZATION_NAME;
+            const byName = new Map();
+            for (const t of fullOrgTeachers) {
+                if (String(t.id || '').startsWith('temp_')) continue;
+                const cleanName = (t.name || '').trim();
+                if (!cleanName) continue;
+                const key = cleanName.toLowerCase();
+                const existing = byName.get(key);
+                const isCurrentSpecific = t.org === currentOrg;
+                const isExistingSpecific = existing && existing.org === currentOrg;
+                const isCurrentNonGeneral = t.org && t.org !== 'General' && t.org !== 'Universal';
+                const isExistingNonGeneral = existing && existing.org && existing.org !== 'General' && existing.org !== 'Universal';
+                if (!existing || (!isExistingSpecific && isCurrentSpecific) || (!isExistingNonGeneral && isCurrentNonGeneral)) {
+                    byName.set(key, { ...t, name: cleanName });
+                }
+            }
+            return Array.from(byName.values()).sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        function getTeacherDuplicateIds() {
+            const keptIds = new Set(getDeduplicatedTeachers().map(t => t.id));
+            return fullOrgTeachers
+                .filter(t => !String(t.id || '').startsWith('temp_') && (t.name || '').trim() && !keptIds.has(t.id))
+                .map(t => t.id);
+        }
+
         function renderLessonManager() {
             const list = document.getElementById('lesson-schedule-data');
             if (!list) return;
@@ -773,6 +805,9 @@
                 const isWriting = currentlyEditingLessonId === item.id;
                 
                 if (isWriting) {
+                    const uniqueTeachers = getDeduplicatedTeachers();
+                    const assignedTeacher = (item.teacher || '').trim();
+                    const hasAssignedInList = !assignedTeacher || uniqueTeachers.some(t => t.name.toLowerCase() === assignedTeacher.toLowerCase());
                     tr.className = "bg-slate-800/80 p-4 border-b border-slate-800/50 w-full";
                     tr.innerHTML = `
                         <div class="w-full">
@@ -781,7 +816,8 @@
                                 <input type="text" class="bg-slate-900 text-white rounded-lg px-3 py-2 border border-blue-500 focus:ring-2 focus:ring-blue-500/50 outline-none h-[45px] max-h-[45px] l-topic-input text-xs font-bold md:col-span-2" placeholder="Lesson Topic" value="${String(item.topic||'').replace(/"/g, '&quot;')}">
                                 <select class="bg-slate-900 text-slate-300 rounded-lg px-3 py-2 border border-blue-500 focus:ring-2 focus:ring-blue-500/50 outline-none h-[45px] max-h-[45px] l-teacher-input text-[10px] uppercase font-bold tracking-wider cursor-pointer">
                                     <option value="">Teacher Name</option>
-                                    ${fullOrgTeachers.map(t => `<option value="${t.name}" ${item.teacher === t.name ? 'selected' : ''}>${t.name} (${t.org})</option>`).join('')}
+                                    ${!hasAssignedInList ? `<option value="${assignedTeacher.replace(/"/g, '&quot;')}" selected>${assignedTeacher}</option>` : ''}
+                                    ${uniqueTeachers.map(t => `<option value="${t.name.replace(/"/g, '&quot;')}" ${assignedTeacher.toLowerCase() === t.name.toLowerCase() ? 'selected' : ''}>${t.name} (${t.org})</option>`).join('')}
                                 </select>
                             </div>
                             <div class="flex gap-3 items-start">
@@ -1198,7 +1234,7 @@
             } else if (type === 'teachers') {
                 csvContent = "Name,Organization\n";
                 filename = `2026_${ORGANIZATION_NAME}_Teachers.csv`;
-                fullOrgTeachers.forEach(t => {
+                getDeduplicatedTeachers().forEach(t => {
                     const safeName = `"${(t.name||'').replace(/"/g, '""')}"`;
                     const safeOrg = `"${(t.org||'').replace(/"/g, '""')}"`;
                     csvContent += `${safeName},${safeOrg}\n`;
@@ -2226,7 +2262,20 @@ function renderTeacherList() {
     const list = document.getElementById('teacher-roster-data');
     if (!list) return;
     
-    const orgTeachers = window.fullOrgTeachers;
+    const userRole = window.currentUserRole || 'Admin';
+    const dupIds = getTeacherDuplicateIds();
+    const dedupeBtn = document.getElementById('dedupeTeachersBtn');
+    if (dedupeBtn) {
+        if (userRole === 'Admin' && dupIds.length > 0) {
+            dedupeBtn.textContent = `Clean Up Duplicates (${dupIds.length})`;
+            dedupeBtn.classList.remove('hidden');
+        } else {
+            dedupeBtn.classList.add('hidden');
+        }
+    }
+
+    const tempRows = (window.fullOrgTeachers || []).filter(t => String(t.id || '').startsWith('temp_'));
+    const orgTeachers = [...tempRows, ...getDeduplicatedTeachers()];
     
     if (!orgTeachers || orgTeachers.length === 0) {
         list.innerHTML = '<p class="text-slate-500 text-sm italic text-center p-4">No teachers found.</p>';
@@ -2234,7 +2283,6 @@ function renderTeacherList() {
     }
     
     let html = '';
-    const userRole = window.currentUserRole || 'Admin';
     orgTeachers.forEach(t => {
         const isUniversal = t.org === 'General';
         const isReadOnly = userRole !== 'Admin' && isUniversal;
@@ -2370,11 +2418,74 @@ if (addTeacherBtn) {
     });
 }
 
-window.deleteTeacher = async (id) => {
-    if (confirm("Remove this teacher? This will not delete their past lessons.")) {
+const dedupeTeachersBtn = document.getElementById('dedupeTeachersBtn');
+if (dedupeTeachersBtn) {
+    dedupeTeachersBtn.addEventListener('click', async () => {
+        const dupIds = getTeacherDuplicateIds();
+        if (dupIds.length === 0) return;
+        if (!confirm(`Remove ${dupIds.length} duplicate teacher record(s) from Firestore? One record per teacher will be kept.`)) {
+            return;
+        }
+        dedupeTeachersBtn.disabled = true;
+        dedupeTeachersBtn.textContent = 'Cleaning up...';
         try {
-            await deleteDoc(doc(db, "home_teachers", id));
-        } catch(e) { console.error("Del err", e); }
+            for (let i = 0; i < dupIds.length; i += 450) {
+                const batch = writeBatch(db);
+                dupIds.slice(i, i + 450).forEach(id => {
+                    batch.delete(doc(db, "home_teachers", id));
+                });
+                await batch.commit();
+            }
+            renderTeacherList();
+        } catch (e) {
+            alert("Error cleaning up duplicate teachers: " + e.message);
+        } finally {
+            dedupeTeachersBtn.disabled = false;
+        }
+    });
+}
+
+window.deleteTeacher = async (id) => {
+    if (String(id || '').startsWith('temp_')) {
+        fullOrgTeachers = fullOrgTeachers.filter(t => t.id !== id);
+        window.fullOrgTeachers = fullOrgTeachers;
+        currentlyEditingTeacherId = null;
+        renderTeacherList();
+        return;
+    }
+
+    const target = (window.fullOrgTeachers || []).find(t => t.id === id);
+    const targetNameKey = (target?.name || '').trim().toLowerCase();
+    const userRole = window.currentUserRole || 'Admin';
+    const matchingIds = targetNameKey
+        ? (window.fullOrgTeachers || [])
+            .filter(t => !String(t.id || '').startsWith('temp_') && (t.name || '').trim().toLowerCase() === targetNameKey && (userRole === 'Admin' || t.org !== 'General'))
+            .map(t => t.id)
+        : [id];
+    const idsToDelete = matchingIds.length > 0 ? matchingIds : [id];
+
+    const confirmMsg = idsToDelete.length > 1
+        ? `Remove ${target.name} (${idsToDelete.length} matching records)? This will not delete their past lessons.`
+        : "Remove this teacher? This will not delete their past lessons.";
+
+    if (confirm(confirmMsg)) {
+        try {
+            for (let i = 0; i < idsToDelete.length; i += 450) {
+                const batch = writeBatch(db);
+                idsToDelete.slice(i, i + 450).forEach(docId => {
+                    batch.delete(doc(db, "home_teachers", docId));
+                });
+                await batch.commit();
+            }
+            const deletedSet = new Set(idsToDelete);
+            fullOrgTeachers = fullOrgTeachers.filter(t => !deletedSet.has(t.id));
+            window.fullOrgTeachers = fullOrgTeachers;
+            renderTeacherList();
+            if (typeof window.renderLessonManager === 'function') window.renderLessonManager();
+        } catch(e) {
+            console.error("Del err", e);
+            alert("Error deleting teacher: " + (e?.message || e));
+        }
     }
 };
 
