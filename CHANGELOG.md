@@ -1,4 +1,18 @@
-> **Note**: The current app version is v7.19.0 on beta-admin.
+> **Note**: The current app version is v7.19.3 on beta-admin.
+
+## [2026-11-18 18:35] - v7.19.3 Teacher Deletion Fix for Duplicate Records
+- **Teacher Delete Fix (`public/admin/admin-app.js`)**: Updated `window.deleteTeacher(id)` to batch-delete all matching `home_teachers` records for the selected teacher (so underlying duplicate docs don't keep the teacher visible), handle unsaved `temp_` rows, refresh both the Teacher Roster and Lessons dropdown immediately, and alert on any Firestore errors.
+- **Global Version Sync**: Bumped application version to `v7.19.3` across `cfm-config.js`, templates, and footers.
+
+## [2026-11-18 18:32] - v7.19.2 Settings & Privacy Teacher Roster Deduplication & Cleanup
+- **Teacher Roster & CSV Deduplication (`public/admin/admin-app.js`)**: Unified `getDeduplicatedTeachers()` across `renderTeacherList()`, `renderLessonManager()`, and `generateSymmetricCSV('teachers')` so duplicate `home_teachers` rows are deduplicated in Settings & Privacy, CSV exports, and Lessons.
+- **One-Click Firestore Duplicate Cleanup (`public/admin/index.html`, `public/admin/admin-app.js`)**: Added `#dedupeTeachersBtn` ("Clean Up Duplicates (N)") in Settings & Privacy > Teachers for Ward Admins to batch-delete redundant `home_teachers` documents in Firestore.
+- **Global Version Sync**: Bumped application version to `v7.19.2` across `cfm-config.js`, templates, and footers.
+
+## [2026-11-18 18:28] - v7.19.1 Admin Lessons Tab Teacher Deduplication
+- **Teacher Dropdown Deduplication (`public/admin/admin-app.js`)**: Added `getDeduplicatedLessonTeachers()` and updated `renderLessonManager()` to deduplicate `fullOrgTeachers` by normalized teacher name (preferring the active organization over `General`/`Universal`) so duplicate teacher rows no longer appear in the Lessons teacher `<select>`.
+- **Listener Cleanup (`public/admin/admin-app.js`)**: Added `unsubscribeTeachers` cleanup in `initApp()` before attaching each `home_teachers` `onSnapshot` listener.
+- **Global Version Sync**: Bumped application version to `v7.19.1` across `cfm-config.js`, templates, and footers.
 
 ## [2026-11-18 11:10] - v7.19.0 Cloud Passkey (WebAuthn) Authentication & Enrollment Upgrade
 - **Cloud Passkey Client (`public/js/passkey-client.js`)**: Implemented `enrollCloudPasskey` and `loginWithCloudPasskey` against `https://us-central1-blackstoneward-b861c.cloudfunctions.net/passkeyApi` (`/register/options`, `/register/verify`, `/login/options`, `/login/verify`) with `rpId: 'blackstoneward.org'` and `PublicKeyCredential.signalUnknownCredential` using server-provided `rpId`.
