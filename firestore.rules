@@ -1,4 +1,8 @@
 rules_version = '2';
+// DRAFT 2026-11-24 (Chuck, member directory phase 4) - NOT DEPLOYED. Base: live BW_Youth/firestore.rules (sha256 b918092e, memberdir).
+// Adds: other_names (leaders read/create/update, no client delete); change_requests status update by RC5 or role bishopric/admin;
+// optional requesterEmail on create. households/members stay read-only. mail create rule is NOT changed (tighten after auction season).
+// Deploying this is a LIVE production change for every hub.
 // DRAFT 2026-11-24 (Chuck, member directory phase 3) - NOT DEPLOYED. Base: BW_Youth/firestore.rules (live, sha256 28d6e23e...).
 // Only change: new households/{H...}, members/{M...} (LCR-derived names-only directory, strictly read-only for every client)
 // and change_requests/{id} (phase 4 'Request a change': leaders create only). Deploying this is a LIVE production change.
@@ -238,18 +242,59 @@ service cloud.firestore {
     // change_requests (phase 4 'Request a change'): a leader proposes a correction; the Ward Clerk makes it in LCR.
     // Create only, by a signed-in leader, as themselves, status 'open', fixed fields. No client update/delete yet
     // (clerk status workflow and notification TBD in phase 4). No subcollections.
+    function bwCanCloseChangeRequest() {
+      return bwPlatformAdmin() || (bwLeaderSession() && (
+        bwSessionLeaderData().get('role', '') in ['bishopric', 'admin']
+        || (bwSessionLeaderData().get('rcCodes', []) is list && 'RC5' in bwSessionLeaderData().get('rcCodes', []))
+      ));
+    }
     match /change_requests/{requestId} {
       allow read: if request.auth != null && bwContentEditor();
       allow create: if request.auth != null && bwContentEditor()
-        && request.resource.data.keys().hasOnly(['targetType', 'targetId', 'proposedChange', 'requesterUid', 'requesterName', 'createdAt', 'status'])
+        && request.resource.data.keys().hasOnly(['targetType', 'targetId', 'proposedChange', 'requesterUid', 'requesterName', 'requesterEmail', 'createdAt', 'status'])
         && request.resource.data.keys().hasAll(['targetType', 'targetId', 'proposedChange', 'requesterUid', 'createdAt', 'status'])
         && request.resource.data.targetType in ['household', 'member']
         && request.resource.data.targetId is string && request.resource.data.targetId.matches('^(H[0-9]{4}|M[0-9]{5})$')
         && request.resource.data.proposedChange is string && request.resource.data.proposedChange.size() > 0 && request.resource.data.proposedChange.size() <= 2000
         && request.resource.data.requesterUid == request.auth.uid
         && request.resource.data.createdAt == request.time
-        && request.resource.data.status == 'open';
-      allow update, delete: if false;
+        && request.resource.data.status == 'open'
+        && (!request.resource.data.keys().hasAny(['requesterEmail']) || (request.resource.data.requesterEmail is string && request.resource.data.requesterEmail.size() < 200));
+      allow update: if request.auth != null && bwCanCloseChangeRequest()
+        && resource.data.status == 'open'
+        && request.resource.data.status in ['done_lcr', 'declined']
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'resolutionNote', 'resolvedBy', 'resolvedAt'])
+        && request.resource.data.resolvedBy == request.auth.uid;
+      allow delete: if false;
+    }
+    // other_names: free-typed outside names. Leaders may create and update; no client deletes.
+    // {sub=**} also matches the parent doc itself (zero segments), so the same grants are repeated there.
+    match /other_names/{nameKey} {
+      allow read: if request.auth != null && bwContentEditor();
+      allow create: if request.auth != null && bwContentEditor()
+        && nameKey == request.resource.data.nameKey
+        && request.resource.data.keys().hasOnly(['name', 'nameKey', 'note', 'firstUsedAt', 'lastUsedAt', 'useCount', 'usedIn', 'linkedMemberId', 'createdBy', 'updatedBy'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 120
+        && request.resource.data.nameKey is string && request.resource.data.nameKey.size() > 0
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.useCount is int && request.resource.data.useCount == 1
+        && request.resource.data.linkedMemberId == null;
+      allow update: if request.auth != null && bwContentEditor()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastUsedAt', 'useCount', 'usedIn', 'note', 'updatedBy', 'linkedMemberId'])
+        && request.resource.data.name == resource.data.name
+        && request.resource.data.nameKey == resource.data.nameKey
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.useCount is int && request.resource.data.useCount >= resource.data.useCount
+        && (request.resource.data.linkedMemberId == resource.data.linkedMemberId
+          || (bwPlatformAdmin() && (request.resource.data.linkedMemberId == null || request.resource.data.linkedMemberId is string)));
+      allow delete: if false;
+      match /{sub=**} {
+        // {sub=**} also matches the other_names doc itself (zero segments). Writes are decided on the parent match
+        // so a loose create here cannot bypass the nameKey == doc id guard. Subcollections: no client writes.
+        allow read: if request.auth != null && bwContentEditor();
+        allow write: if false;
+      }
     }
    match /site_settings/{document=**} { 
       allow read: if true;
