@@ -1,7 +1,8 @@
 # Project State & Documentation
 
 **Environment**: Beta Testing Environment (Staging)
-**Version**: v7.19.15 (Code Complete 2026-11-23 ~9:45 PM ET, Duane approved test + production (t449u): admin hard-coded owner entries removed from the sign-in name check and pre-sign-in list; static badge name blanked; owner lockout safety kept.)
+**Version**: v7.19.15 (hub version unchanged). **Rules LIVE 2026-11-24 3:13:04 PM ET** (Duane t478u): phase-4 `firestore.rules` sha256 dce95130, ruleset fdef1057-c66e-45c4-89c6-681f5f0fe8ea (`other_names` + change_requests close). Rollback: BW_Platform/prod-rules/firestore.rules.prelive-phase4-20261124 (b918092e).
+**Previous (hub):** v7.19.15 (Code Complete 2026-11-23 ~9:45 PM ET, Duane approved test + production (t449u): admin hard-coded owner entries removed from the sign-in name check and pre-sign-in list; static badge name blanked; owner lockout safety kept.)
 **Previous**: v7.19.14 (PRODUCTION 2026-11-23 9:41 PM ET; Code Complete ~9:40 PM ET, Duane approved test + production (t449u): admin Password Sign-In tab hidden; it signed no one in after the master password was retired.)
 **Previous**: v7.19.13 (PRODUCTION 2026-11-23 4:37 PM ET; Code Complete ~3:37 PM ET: #7 admin first-and-last-name error strings now say "e.g. Mahonri Moriancumer" instead of "e.g. Duane Harris" in `public/admin/admin-app.js` L2853 and L3091. Not staged or deployed. Production v7.19.12.)
 **Previous**: v7.19.12 (PRODUCTION per HUBS_NOTES 2026-11-23 ~3:36 PM ET: #3 temporary master password retired; hash removed from security-config.js; admin import gate and password sign-in no longer accept it; no browser-side password hash compare. Staged to test then promoted to youth.blackstoneward.org. Includes prior 7.19.11 passkey enrollment work.)

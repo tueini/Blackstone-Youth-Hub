@@ -1,5 +1,8 @@
 > **Note**: The current app version is v7.19.15 on beta-admin (Code Complete ~9:45 PM ET; Duane approved test + production in chat t449u).
 
+## [2026-11-24] - LIVE firestore.rules phase 4 (other_names + change_requests close)
+- Youth hub version unchanged (still v7.19.15). `firestore.rules` (sha256 dce95130) deployed `--only firestore:rules` at 3:13:04 PM ET (Duane t478u). Released ruleset fdef1057-c66e-45c4-89c6-681f5f0fe8ea. Rollback: `BW_Platform/prod-rules/firestore.rules.prelive-phase4-20261124` (b918092e).
+
 ## [2026-11-23] - v7.19.15 Hard-coded Owner Fallbacks Removed (Code Complete ~9:45 PM ET)
 - **Cleanup item 2:** `public/admin/admin-app.js` L2879 text-sign-in name pre-check and L3377 pre-sign-in leader list no longer add a hard-coded owner entry (name, email, phone); `public/admin/index.html` L222 static owner name in the sidebar badge is now empty (JS fills it).
 - **Kept on purpose (owner lockout safety, asserted by BW_Platform test 06):** the verified-phone owner profile after text sign-in (L3016-3023) and in the auth-state listener (L3517-3524).
