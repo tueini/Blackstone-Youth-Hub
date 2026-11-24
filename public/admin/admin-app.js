@@ -3,7 +3,7 @@
         import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc, writeBatch, query, where, onSnapshot, orderBy, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { GOOGLE_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_APP_ID } from "/js/config.js";
-        import { enrollCloudPasskey, loginWithCloudPasskey } from "/js/passkey-client.js?v=7.19.0";
+        import { enrollCloudPasskey, loginWithCloudPasskey, PASSKEY_SIGNIN_REQUIRED_MSG } from "/js/passkey-client.js?v=7.19.15";
 
         let ORGANIZATION_NAME = 'Combined';
         let isCombinedPage = ORGANIZATION_NAME.toLowerCase() === 'combined';
@@ -78,8 +78,11 @@
                     combinedL.forEach(d => lessons.push({...d.data(), id: d.id, sourceOrg: 'Combined'}));
                 }
                 
-                const bdaySnap = await getDocs(collection(db, "birthdays"));
-                bdaySnap.forEach(d => birthdays.push({...d.data(), id: d.id}));
+                // v7.19.10: birthdays need a leader session under the tightened rules; a password session still loads events and lessons.
+                try {
+                    const bdaySnap = await getDocs(collection(db, "birthdays"));
+                    bdaySnap.forEach(d => birthdays.push({...d.data(), id: d.id}));
+                } catch (bdayErr) { console.info("Birthdays not loaded with this sign-in:", bdayErr && bdayErr.code); }
                 
                 refreshUI();
             } catch (e) { console.error("Initial load failed:", e); }
@@ -355,7 +358,7 @@
                         };
                         if (dD) events.push(newItem); else unscheduled.push(newItem);
                         count++;
-                    } catch (err) { console.error(err); }
+                    } catch (err) { console.error(err); alertIfContentDenied(err); }
                 }
             } else if (currentUploadTarget === 'lessons') {
                 if (shouldWipe) {
@@ -372,7 +375,7 @@
                             teacher: (cols[2] || '').trim(), notes: (cols[3] || '').trim(), sourceOrg: ORGANIZATION_NAME
                         });
                         count++;
-                    } catch (err) { console.error(err); }
+                    } catch (err) { console.error(err); alertIfContentDenied(err); }
                 }
             } else if (currentUploadTarget === 'birthdays') {
                 if (shouldWipe) {
@@ -392,7 +395,7 @@
                             id: newId, date: finalDate, name: bName, org: ORGANIZATION_NAME
                         });
                         count++;
-                    } catch (err) { console.error(err); }
+                    } catch (err) { console.error(err); alertIfContentDenied(err); }
                 }
             } else if (currentUploadTarget === 'teachers') {
                 const tBatch = writeBatch(db);
@@ -414,7 +417,7 @@
                         const newId = 'teacher_' + sanitizeId(tName) + "_" + Math.floor(Math.random()*10000);
                         tBatch.set(doc(db, "home_teachers", newId), { name: tName, org: tOrg });
                         count++;
-                    } catch (err) { console.error(err); }
+                    } catch (err) { console.error(err); alertIfContentDenied(err); }
                 }
                 await tBatch.commit();
             }
@@ -1149,7 +1152,7 @@
                         if (toast) toast.classList.add('hidden');
                     }, 3000);
                 } catch(e) { 
-                    console.error("Batch error", e); 
+                    console.error("Batch error", e); alertIfContentDenied(e);
                     syncFirebaseBtns.forEach(b => {
                         b.innerText = "ERROR"; 
                         b.disabled = false; 
@@ -1297,7 +1300,7 @@
                 
                 const suppliedPass = await hashInput(p);
                 const pageKey = ORGANIZATION_NAME.toUpperCase();
-                if (suppliedPass === SECURE_AUTH_HASHES.MASTER || suppliedPass === SECURE_AUTH_HASHES[pageKey]) {
+                if (suppliedPass === SECURE_AUTH_HASHES[pageKey]) { // v7.19.12 (#3): master password retired
                     isAdminMode = true;
                     const importGate = document.getElementById('import-gate');
                     if (importGate) importGate.classList.add('hidden');
@@ -1715,7 +1718,7 @@ window.saveEditedLeader = async (id) => {
         loadLeaders();
         syncPrivacyGate();
     } catch(e) {
-        alert("Error updating leader: " + e.message);
+        alert("Error updating leader: " + contentErrText(e));
     }
 };
 
@@ -1747,7 +1750,7 @@ window.delLeader = async (id) => {
             await deleteDoc(doc(db, "home_leaders", id));
             loadLeaders();
             syncPrivacyGate();
-        } catch(e) { alert("Error: " + e.message); }
+        } catch(e) { alert("Error: " + contentErrText(e)); }
     }
 };
 
@@ -1914,7 +1917,7 @@ window.saveEditedSpotlight = async (id) => {
         currentlyEditingSpotlightId = null;
         loadSpotlights();
     } catch(e) {
-        alert("Error updating spotlight: " + e.message);
+        alert("Error updating spotlight: " + contentErrText(e));
     }
 };
 
@@ -1941,7 +1944,7 @@ window.delSpotlight = async (id) => {
         try {
             await deleteDoc(doc(db, "home_spotlights", id));
             loadSpotlights();
-        } catch(e) { alert("Error: " + e.message); }
+        } catch(e) { alert("Error: " + contentErrText(e)); }
     }
 };
 
@@ -1969,7 +1972,7 @@ window.moveSpotlightUp = async (id) => {
     try {
         await updateDoc(doc(db, "home_spotlights", curr.id), { sortOrder: curr.sortOrder });
         await updateDoc(doc(db, "home_spotlights", prev.id), { sortOrder: prev.sortOrder });
-    } catch(e) { alert("Error updating order: " + e.message); }
+    } catch(e) { alert("Error updating order: " + contentErrText(e)); }
 };
 
 window.moveSpotlightDown = async (id) => {
@@ -1996,7 +1999,7 @@ window.moveSpotlightDown = async (id) => {
     try {
         await updateDoc(doc(db, "home_spotlights", curr.id), { sortOrder: curr.sortOrder });
         await updateDoc(doc(db, "home_spotlights", next.id), { sortOrder: next.sortOrder });
-    } catch(e) { alert("Error updating order: " + e.message); }
+    } catch(e) { alert("Error updating order: " + contentErrText(e)); }
 };
 
 // Announcements Logic
@@ -2130,7 +2133,7 @@ window.moveAnnouncementUp = async (id) => {
             await batch.commit();
         }
     } catch(e) {
-        alert("Error updating order: " + e.message);
+        alert("Error updating order: " + contentErrText(e));
         loadAnnouncements();
     }
 };
@@ -2172,7 +2175,7 @@ window.moveAnnouncementDown = async (id) => {
             await batch.commit();
         }
     } catch(e) {
-        alert("Error updating order: " + e.message);
+        alert("Error updating order: " + contentErrText(e));
         loadAnnouncements();
     }
 };
@@ -2228,7 +2231,7 @@ window.saveEditedAnn = async (id) => {
         currentlyEditingAnnId = null;
         loadAnnouncements();
     } catch(e) {
-        alert("Error saving announcement: " + e.message);
+        alert("Error saving announcement: " + contentErrText(e));
     }
 };
 
@@ -2237,7 +2240,7 @@ window.delAnn = async (id) => {
         try {
             await deleteDoc(doc(db, "home_announcements", id));
             loadAnnouncements();
-        } catch(e) { alert("Error deleting: " + e.message); }
+        } catch(e) { alert("Error deleting: " + contentErrText(e)); }
     }
 };
 
@@ -2392,7 +2395,7 @@ window.saveEditedTeacher = async (id) => {
         currentlyEditingTeacherId = null;
         renderTeacherList();
     } catch(e) {
-        alert("Error updating teacher: " + e.message);
+        alert("Error updating teacher: " + contentErrText(e));
         if (saveBtn) {
             saveBtn.disabled = false;
             saveBtn.style.opacity = '1';
@@ -2438,7 +2441,7 @@ if (dedupeTeachersBtn) {
             }
             renderTeacherList();
         } catch (e) {
-            alert("Error cleaning up duplicate teachers: " + e.message);
+            alert("Error cleaning up duplicate teachers: " + contentErrText(e));
         } finally {
             dedupeTeachersBtn.disabled = false;
         }
@@ -2484,7 +2487,7 @@ window.deleteTeacher = async (id) => {
             if (typeof window.renderLessonManager === 'function') window.renderLessonManager();
         } catch(e) {
             console.error("Del err", e);
-            alert("Error deleting teacher: " + (e?.message || e));
+            alert("Error deleting teacher: " + contentErrText(e));
         }
     }
 };
@@ -2520,7 +2523,7 @@ if (saveThemeBtn) {
                 setTimeout(() => statusEl.classList.add('hidden'), 4000);
             }
         } catch (err) {
-            alert('Failed to save theme: ' + err.message);
+            alert('Failed to save theme: ' + contentErrText(err));
         } finally {
             saveThemeBtn.disabled = false;
             saveThemeBtn.innerText = 'Save Theme to Database';
@@ -2604,12 +2607,7 @@ function updatePasskeyUiState(profile) {
     }
 }
 
-const AUTHORIZED_MASTER_HASHES = [
-    "103a9f4c69d7331576e1a7b7f96ce781e3336f7b304424373aea1f263c581a3d", // yutehub!1830 (Youth Hub master)
-    "7ca8ae40ffb835bcc16f1de3fc4f27e3e6b3c709bc5d300f932cd019f86e488b", // YuteHub!1830 (exact)
-    "4b465598d5fd124a3856acff035f025315f798faf08049ee57409e3045c72e37", // YuteHub!830 (exact)
-    "7f39e9e47d673293ede2907b955e989ab9188e35c39684c95eff536bb5b3e542"  // yutehub!830 (lower)
-];
+// v7.19.12 (Duane 2026-11-23, #3): the temporary master password is retired; its hash and check are removed.
 
 const YOUTH_ROLE_DEFINITIONS = {
     admin: { label: "Ward Administrator", org: "All Ward", fullAccess: true },
@@ -2632,6 +2630,51 @@ function normalizePhone(phoneStr) {
     if (digits.length === 10) return `+1${digits}`;
     if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
     return phoneStr.startsWith('+') ? phoneStr : `+${digits}`;
+}
+
+// 2026-11-20 (Duane): personal leader passwords (ward_leaders.passwordHash) are disabled for now.
+// v7.19.12 (#3): the master password is retired, so the Password tab signs no one in; use Touch ID or a text code.
+const PERSONAL_LEADER_PASSWORDS_DISABLED = true;
+
+// 2026-11-20 (Duane, v7.19.7): friendly message for the CANDIDATE ward_leaders rules
+// (BW_Platform/prod-rules/firestore.rules.candidate, NOT deployed). With the current open
+// live rules this never triggers.
+// v7.19.8 (Duane, 2026-11-21): shown if the leader list can't be read AFTER phone sign-in; the user is signed out.
+const LEADERS_POSTAUTH_CHECK_FAILED_MSG = "Your phone was verified, but the leader list couldn't be checked, so you weren't signed in. Please try again or use your passkey.";
+let leadersPreAuthFailed = false; // pre-sign-in leader-list read failed (denied/unavailable): skip the SMS name pre-check
+// v7.19.10 (2026-11-22): content saves need a passkey or a text-message sign-in once the tightened rules are live.
+const CONTENT_WRITE_DENIED_MSG = "Not saved: saving to the website now needs a passkey (Touch ID) or text-message sign-in by a registered leader. Password sign-ins can't save. Please sign in again with your passkey or a text code.";
+function contentErrText(e) { return (e && e.code === 'permission-denied') ? CONTENT_WRITE_DENIED_MSG : (e && e.message ? e.message : String(e)); }
+let contentDeniedAlertAt = 0;
+function alertIfContentDenied(e) { if (!e || e.code !== 'permission-denied') return; const now = Date.now(); if (now - contentDeniedAlertAt < 5000) return; contentDeniedAlertAt = now; alert(CONTENT_WRITE_DENIED_MSG); }
+// v7.19.10 (2026-11-22): tightened rules draft (BW_Platform prod-rules/firestore.rules.draft-20261122-tighten) let an
+// SMS session read only ward_leaders records whose phoneNumber is its verified number, and treat it as a leader only
+// after it binds leader_sessions/{uid}. Also works under the live rules (the bind is simply refused there).
+function leaderPhoneVariants(e164) {
+    const m = /^\+1(\d{3})(\d{3})(\d{4})$/.exec(String(e164 || ''));
+    if (!m) return e164 ? [String(e164)] : [];
+    const [, a, b, c] = m;
+    const d = a + b + c;
+    return [`+1${d}`, d, `1${d}`, `(${a}) ${b}-${c}`, `(${a})${b}-${c}`, `${a}-${b}-${c}`, `${a}.${b}.${c}`, `${a} ${b} ${c}`,
+        `+1 ${a} ${b} ${c}`, `+1 (${a}) ${b}-${c}`, `+1-${a}-${b}-${c}`, `+1 ${a}-${b}-${c}`, `1-${a}-${b}-${c}`, `1 (${a}) ${b}-${c}`];
+}
+async function findLeadersByVerifiedPhone(e164) {
+    if (!leaderPhoneVariants(e164).length) return [];
+    const snap = await getDocs(query(collection(db, "ward_leaders"), where("phoneNumber", "in", leaderPhoneVariants(e164))));
+    const list = [];
+    snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+    return list;
+}
+async function bindLeaderSession(leaderId, hub) {
+    const user = auth.currentUser;
+    if (!user || !leaderId) return false;
+    try {
+        await setDoc(doc(db, "leader_sessions", user.uid), { leaderId: String(leaderId), boundAt: new Date().toISOString(), hub });
+        return true;
+    } catch (e) {
+        console.info("leader_sessions bind not saved:", e && e.code ? e.code : e);
+        return false;
+    }
 }
 
 async function computeSha256(text) {
@@ -2807,7 +2850,7 @@ async function handleSendPhoneCode(e) {
     const nameParts = enteredName.split(/\s+/).filter(Boolean);
     if (nameParts.length < 2) {
         if (err) {
-            err.textContent = "Please type both your first and last name (e.g. Duane Harris).";
+            err.textContent = "Please type both your first and last name (e.g. Mahonri Moriancumer).";
             err.classList.remove('hidden');
         }
         nameInput?.focus();
@@ -2833,21 +2876,16 @@ async function handleSendPhoneCode(e) {
         return;
     }
 
-    const pool = [...leadersCache];
-    if (!pool.some(l => l.displayName === 'Duane Harris')) {
-        pool.unshift({
-            displayName: "Duane Harris",
-            phoneNumber: "+15084940905",
-            role: "admin",
-            active: true
-        });
-    }
+    const pool = [...leadersCache]; // v7.19.15 (cleanup item 2): no hard-coded owner entry; the owner's real ward_leaders record is in the list
 
+    // v7.19.8: if the leader list couldn't be read before sign-in (candidate rules or offline), skip this
+    // name pre-check and send the code; access is decided after sign-in from the verified phone only.
+    const skipPreCheck = leadersPreAuthFailed;
     const cleanName = enteredName.toLowerCase();
-    const leaderMatch = pool.find(l => (l.displayName || '').toLowerCase() === cleanName) ||
-        pool.find(l => (l.displayName || '').toLowerCase().includes(cleanName));
+    const leaderMatch = skipPreCheck ? null : (pool.find(l => (l.displayName || '').toLowerCase() === cleanName) ||
+        pool.find(l => (l.displayName || '').toLowerCase().includes(cleanName)));
 
-    if (!leaderMatch) {
+    if (!leaderMatch && !skipPreCheck) {
         if (err) {
             err.textContent = `Leader "${enteredName}" was not found among authorized ward leaders. Please verify your first and last name.`;
             err.classList.remove('hidden');
@@ -2856,7 +2894,7 @@ async function handleSendPhoneCode(e) {
         return;
     }
 
-    if (leaderMatch.phoneNumber) {
+    if (leaderMatch && leaderMatch.phoneNumber) {
         const regPhone = normalizePhone(leaderMatch.phoneNumber);
         if (regPhone && regPhone !== phone) {
             if (err) {
@@ -2890,15 +2928,15 @@ async function handleSendPhoneCode(e) {
         console.error("SMS send error:", errCatch);
         if (err) {
             if (errCatch.code === 'auth/operation-not-allowed') {
-                err.textContent = "Phone SMS sign-in is not enabled in Firebase Console yet. Please click 'Or sign in with password' below.";
+                err.textContent = "Phone SMS sign-in is not enabled in Firebase Console yet. Please use Touch ID / Face ID above.";
             } else if (errCatch.code === 'auth/invalid-phone-number') {
                 err.textContent = "Invalid phone number format. Please enter a valid 10-digit mobile number.";
             } else if (errCatch.code === 'auth/too-many-requests') {
-                err.innerHTML = "Too many SMS requests sent recently. Please wait a few minutes, or click <strong>'Or sign in with password'</strong> below to sign in immediately.";
+                err.innerHTML = "Too many SMS requests sent recently. Please wait a few minutes, or use Touch ID / Face ID above.";
             } else if (errCatch.code === 'auth/quota-exceeded') {
-                err.textContent = "SMS quota exceeded for this project. Please sign in with password.";
+                err.textContent = "SMS quota exceeded for this project. Please use Touch ID / Face ID.";
             } else if (errCatch.code === 'auth/captcha-check-failed' || (errCatch.message && errCatch.message.toLowerCase().includes('hostname match not found'))) {
-                err.textContent = `Domain not authorized for SMS: Please add '${window.location.hostname}' under Firebase Console > Authentication > Settings > Authorized domains. You can also sign in below with password.`;
+                err.textContent = `Domain not authorized for SMS: Please add '${window.location.hostname}' under Firebase Console > Authentication > Settings > Authorized domains. You can also use Touch ID / Face ID.`;
             } else {
                 err.textContent = errCatch.message || "Failed to send verification text. Please check number or try again.";
             }
@@ -2950,7 +2988,20 @@ async function handleVerifyPhoneCode(e) {
         const user = userCredential.user;
         const phone = user.phoneNumber;
 
-        const leadersSnap = await getDocs(collection(db, "ward_leaders"));
+        // v7.19.8: if this check can't run, never grant access: sign out and say so.
+        // v7.19.10: read only this phone's own record(s) (phone-scoped query), never the whole roster.
+        let leadersSnap;
+        try {
+            leadersSnap = (await findLeadersByVerifiedPhone(phone)).map(x => ({ id: x.id, data: () => x }));
+        } catch (listErr) {
+            console.error("Leader check after phone sign-in failed:", listErr);
+            try { await signOut(auth); } catch (_) {}
+            if (err) {
+                err.textContent = LEADERS_POSTAUTH_CHECK_FAILED_MSG;
+                err.classList.remove('hidden');
+            }
+            return;
+        }
 
         let matchedLeader = null;
         leadersSnap.forEach(d => {
@@ -2983,6 +3034,7 @@ async function handleVerifyPhoneCode(e) {
                 return;
             }
             abortConditionalPasskeyAutofill();
+            await bindLeaderSession(matchedLeader.id, 'youth'); // v7.19.10: tightened rules recognise this SMS session as this leader
             setSharedSession(matchedLeader);
             checkAuth();
             maybePromptPasskeyOnboarding(matchedLeader);
@@ -3028,7 +3080,7 @@ async function handlePasswordLogin(e) {
     const nameParts = leaderName.split(/\s+/).filter(Boolean);
     if (nameParts.length < 2) {
         if (err) {
-            err.textContent = "Please type both your first and last name (e.g. Duane Harris).";
+            err.textContent = "Please type both your first and last name (e.g. Mahonri Moriancumer).";
             err.classList.remove('hidden');
         }
         nameLookup?.focus();
@@ -3047,111 +3099,11 @@ async function handlePasswordLogin(e) {
     if (btn) btn.textContent = 'Verifying...';
 
     try {
-        const rawHash = await computeSha256(val);
-        const lowerHash = await computeSha256(val.toLowerCase());
-
-        const validHashes = new Set([
-            window.SECURE_AUTH_HASHES?.MASTER,
-            window.SECURE_AUTH_HASHES?.WARD,
-            ...(window.MASTER_APPROVED_HASHES || []),
-            ...AUTHORIZED_MASTER_HASHES
-        ]);
-
-        // 1. Master Passwords
-        if (validHashes.has(rawHash) || validHashes.has(lowerHash)) {
-            let profile = {
-                displayName: "Duane Harris",
-                email: "tueini@gmail.com",
-                phoneNumber: "+15084940905",
-                role: "admin"
-            };
-            if (leaderName) {
-                const match = leadersCache.find(l => (l.displayName || '').toLowerCase().includes(leaderName.toLowerCase()));
-                if (match) profile = { ...match };
-            }
-            abortConditionalPasskeyAutofill();
-            setSharedSession(profile);
-            if (input) input.value = '';
-            if (btn) btn.textContent = 'Sign In with Password';
-            checkAuth();
-            maybePromptPasskeyOnboarding(profile);
-            return;
-        }
-
-        // 2. Personal Leader Passwords
-        let matchedLeader = null;
-        if (leaderName) {
-            const cleanName = leaderName.toLowerCase();
-            matchedLeader = leadersCache.find(l => (l.displayName || '').toLowerCase() === cleanName) ||
-                leadersCache.find(l => (l.displayName || '').toLowerCase().includes(cleanName));
-        }
-
-        if (matchedLeader) {
-            if (!matchedLeader.passwordHash) {
-                if (err) {
-                    err.textContent = `No personal password has been set for ${matchedLeader.displayName} yet. Please sign in via phone text code.`;
-                    err.classList.remove('hidden');
-                }
-                if (btn) btn.textContent = 'Sign In with Password';
-                return;
-            }
-            if (matchedLeader.passwordHash === rawHash || matchedLeader.passwordHash === lowerHash) {
-                if (matchedLeader.active === false) {
-                    if (err) {
-                        err.textContent = "This leader account is currently deactivated. Please contact an administrator.";
-                        err.classList.remove('hidden');
-                    }
-                    if (btn) btn.textContent = 'Sign In with Password';
-                    return;
-                }
-                if (!isAuthorizedYouthHubProfile(matchedLeader)) {
-                    if (err) {
-                        err.textContent = `Your role (${matchedLeader.role || 'Leader'}) is not authorized for Youth Hub Admin access.`;
-                        err.classList.remove('hidden');
-                    }
-                    if (btn) btn.textContent = 'Sign In with Password';
-                    return;
-                }
-                abortConditionalPasskeyAutofill();
-                setSharedSession(matchedLeader);
-                if (input) input.value = '';
-                if (btn) btn.textContent = 'Sign In with Password';
-                checkAuth();
-                maybePromptPasskeyOnboarding(matchedLeader);
-                return;
-            } else {
-                if (err) {
-                    err.textContent = `Incorrect password for ${matchedLeader.displayName}. Please try again.`;
-                    err.classList.remove('hidden');
-                }
-                if (btn) btn.textContent = 'Sign In with Password';
-                if (input) { input.select(); input.focus(); }
-                return;
-            }
-        }
-
-        // 3. Fallback: match any active leader with this hash
-        const matchingLeader = leadersCache.find(l => l.active !== false && (l.passwordHash === rawHash || l.passwordHash === lowerHash));
-        if (matchingLeader) {
-            if (!isAuthorizedYouthHubProfile(matchingLeader)) {
-                if (err) {
-                    err.textContent = `Your role (${matchingLeader.role || 'Leader'}) is not authorized for Youth Hub Admin access.`;
-                    err.classList.remove('hidden');
-                }
-                if (btn) btn.textContent = 'Sign In with Password';
-                return;
-            }
-            abortConditionalPasskeyAutofill();
-            setSharedSession(matchingLeader);
-            if (input) input.value = '';
-            if (btn) btn.textContent = 'Sign In with Password';
-            checkAuth();
-            maybePromptPasskeyOnboarding(matchingLeader);
-            return;
-        }
+        // v7.19.12 (Duane 2026-11-23, #2/#3): no master password, and the browser never hashes or compares passwords.
+        // Personal passwords are not enabled on Youth admin (PERSONAL_LEADER_PASSWORDS_DISABLED).
 
         if (err) {
-            err.textContent = "Incorrect password. If you haven't set a personal password, sign in via phone text.";
+            err.textContent = "Incorrect password. Please try again, or sign in with a phone text code.";
             err.classList.remove('hidden');
         }
         if (btn) btn.textContent = 'Sign In with Password';
@@ -3231,6 +3183,9 @@ async function completeCloudPasskeyLogin(result) {
 }
 
 async function initConditionalPasskeyAutofill() {
+    // v7.19.9 (Duane, 2026-11-21): match Home 1.2.63 — passkeys stay on the Sign In button only.
+    // Do not start conditional mediation (autocomplete=webauthn) on the name field.
+    return;
     if (getSharedSession() || !window.PublicKeyCredential) return;
     try {
         let supportsConditional = false;
@@ -3294,7 +3249,7 @@ async function handlePasskeyLogin() {
             return;
         }
         console.warn("Passkey login error:", e);
-        const msg = e?.message || "TouchID / FaceID verification failed. Please sign in with phone text or password.";
+        const msg = e?.message || "TouchID / FaceID verification failed. Please sign in with a phone text code.";
         if (phoneErr) {
             phoneErr.textContent = msg;
             phoneErr.classList.remove('hidden');
@@ -3331,6 +3286,16 @@ async function handleEnrollPasskey({ fromOnboarding = false } = {}) {
     const modalErr = document.getElementById('passkey-onboard-error');
 
     if (modalErr) modalErr.classList.add('hidden');
+    // v7.19.11: the passkey server (passkeyApi 1.1.0) needs this browser's Firebase sign-in (text code or passkey) for this leader.
+    if (!auth.currentUser) {
+        if (fromOnboarding && modalErr) {
+            modalErr.textContent = PASSKEY_SIGNIN_REQUIRED_MSG;
+            modalErr.classList.remove('hidden');
+        } else {
+            alert(PASSKEY_SIGNIN_REQUIRED_MSG);
+        }
+        return;
+    }
     if (fromOnboarding && modalBtn) {
         modalBtn.disabled = true;
         modalBtn.textContent = 'Enabling...';
@@ -3342,7 +3307,7 @@ async function handleEnrollPasskey({ fromOnboarding = false } = {}) {
     abortConditionalPasskeyAutofill();
 
     try {
-        await enrollCloudPasskey(profile);
+        await enrollCloudPasskey(profile, { idToken: await auth.currentUser.getIdToken() });
         markPasskeyEnrolledLocally(profile);
         updatePasskeyUiState(profile);
         if (modal) modal.classList.add('hidden');
@@ -3394,60 +3359,9 @@ async function maybePromptPasskeyOnboarding(profile) {
 }
 
 function initLoginLeaderLookup() {
-    const nameInput = document.getElementById('admin-name-lookup');
-    const matchIndicator = document.getElementById('leader-match-indicator');
-    const matchText = document.getElementById('leader-match-text');
-    const phoneInput = document.getElementById('admin-phone');
-
-    function handleNameMatch(val) {
-        if (!val) {
-            if (matchIndicator) {
-                matchIndicator.classList.add('hidden');
-                matchIndicator.classList.remove('flex');
-            }
-            return;
-        }
-        const pool = [...leadersCache];
-        if (!pool.some(l => l.displayName === 'Duane Harris')) {
-            pool.unshift({
-                displayName: "Duane Harris",
-                phoneNumber: "(508) 494-0905",
-                role: "admin",
-                active: true
-            });
-        }
-        const cleanVal = val.trim().toLowerCase();
-        const match = pool.find(l => (l.displayName || '').toLowerCase() === cleanVal) ||
-            pool.find(l => (l.displayName || '').toLowerCase().includes(cleanVal));
-
-        if (match) {
-            const roleInfo = YOUTH_ROLE_DEFINITIONS[match.role] || { label: 'Leader' };
-            if (matchText) matchText.textContent = `${match.displayName} (${roleInfo.label})`;
-            if (matchIndicator) {
-                matchIndicator.classList.remove('hidden');
-                matchIndicator.classList.add('flex');
-            }
-            if (phoneInput && match.phoneNumber && !phoneInput.value) {
-                phoneInput.value = match.phoneNumber;
-            }
-        } else {
-            if (matchIndicator) {
-                matchIndicator.classList.add('hidden');
-                matchIndicator.classList.remove('flex');
-            }
-        }
-    }
-
-    if (nameInput) {
-        nameInput.addEventListener('input', () => handleNameMatch(nameInput.value));
-        nameInput.addEventListener('change', () => handleNameMatch(nameInput.value));
-    }
-
-    const pwLookup = document.getElementById('password-leader-lookup');
-    if (pwLookup) {
-        pwLookup.addEventListener('input', () => handleNameMatch(pwLookup.value));
-        pwLookup.addEventListener('change', () => handleNameMatch(pwLookup.value));
-    }
+    // v7.19.9 (Duane, 2026-11-21): match Home 1.2.63 — no live name lookup, verified badge, or datalist.
+    // Matching runs only at submit (and after SMS sign-in via the 7.19.8 phone/role check).
+    // Do not pre-fill the name or phone from a leader match.
 
     try {
         const saved = JSON.parse(localStorage.getItem('local_ward_leaders') || '[]');
@@ -3460,19 +3374,13 @@ function initLoginLeaderLookup() {
         if (!snap.empty) {
             leadersCache = [];
             snap.forEach(d => leadersCache.push({ id: d.id, ...d.data() }));
-            if (!leadersCache.some(l => l.displayName === 'Duane Harris')) {
-                leadersCache.unshift({
-                    id: 'leader_duane_harris',
-                    displayName: "Duane Harris",
-                    email: "tueini@gmail.com",
-                    phoneNumber: "(508) 494-0905",
-                    role: "admin",
-                    active: true
-                });
-            }
+            // v7.19.15 (cleanup item 2): no hard-coded owner entry added to the pre-sign-in list.
             try { localStorage.setItem('local_ward_leaders', JSON.stringify(leadersCache)); } catch (_) {}
         }
-    }).catch(e => console.warn("Failed to fetch ward_leaders:", e));
+    }).catch(e => {
+        console.warn("Failed to fetch ward_leaders:", e);
+        leadersPreAuthFailed = true;
+    });
 }
 
 function initLoginEventListeners() {
@@ -3615,10 +3523,12 @@ onAuthStateChanged(auth, (user) => {
                 role: "admin",
                 active: true
             };
+            bindLeaderSession(adminProfile.id, 'youth'); // v7.19.10
             setSharedSession(adminProfile);
             checkAuth();
         } else {
-            getDocs(collection(db, "ward_leaders")).then(snap => {
+            // v7.19.10: phone-scoped lookup (own record only) instead of the whole roster.
+            findLeadersByVerifiedPhone(phone).then(list => list.map(x => ({ id: x.id, data: () => x }))).then(snap => {
                 let matched = null;
                 snap.forEach(d => {
                     const data = d.data();
@@ -3628,6 +3538,7 @@ onAuthStateChanged(auth, (user) => {
                     }
                 });
                 if (matched) {
+                    bindLeaderSession(matched.id, 'youth'); // v7.19.10
                     setSharedSession(matched);
                     checkAuth();
                 }
@@ -3642,3 +3553,47 @@ initLoginEventListeners();
 checkAuth();
 
 
+// 2026-11-20: Bishopric Hub-style sign-in tabs (Phone Text (SMS) | Password Sign-In).
+// Wiring only: each tab clicks the existing phone/password toggle button, and the active tab
+// follows whichever form is visible (logout and password-reset flows also switch forms).
+function initLoginTabs() {
+  const tabBtns = Array.from(document.querySelectorAll('[data-login-tab]:not([hidden])')); // v7.19.14: hidden Password tab is skipped
+  const phoneFormEl = document.getElementById('phone-login-form');
+  const passcodeFormEl = document.getElementById('login-form');
+  const toPasswordBtn = document.getElementById('toggle-passcode-view-btn');
+  const toPhoneBtn = document.getElementById('toggle-phone-view-btn');
+  if (!tabBtns.length || !phoneFormEl || !passcodeFormEl || !toPasswordBtn || !toPhoneBtn) return;
+  const syncTabs = () => {
+    const pwActive = !passcodeFormEl.classList.contains('hidden');
+    tabBtns.forEach(btn => {
+      const active = (btn.dataset.loginTab === 'password') === pwActive;
+      btn.classList.toggle('active-tab', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      btn.tabIndex = active ? 0 : -1;
+    });
+  };
+  const selectTab = (mode) => {
+    const pwActive = !passcodeFormEl.classList.contains('hidden');
+    if (mode === 'password' && !pwActive) toPasswordBtn.click();
+    if (mode !== 'password' && pwActive) toPhoneBtn.click();
+    syncTabs();
+  };
+  tabBtns.forEach((btn, idx) => {
+    btn.addEventListener('click', () => selectTab(btn.dataset.loginTab));
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const nextBtn = tabBtns[(idx + 1) % tabBtns.length];
+        nextBtn.focus();
+        selectTab(nextBtn.dataset.loginTab);
+      }
+    });
+  });
+  new MutationObserver(syncTabs).observe(passcodeFormEl, { attributes: true, attributeFilter: ['class'] });
+  syncTabs();
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initLoginTabs);
+} else {
+  initLoginTabs();
+}

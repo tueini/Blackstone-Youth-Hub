@@ -1,7 +1,66 @@
 rules_version = '2';
+// DRAFT 2026-11-23 (Chuck, #2) — NOT DEPLOYED. Base: BW_Youth/firestore.rules (sha256 cc81695b234d…). Only change: browsers can no
+// longer write ward_leaders.passwordHash or hasPassword (passkeyApi 1.4.0 owns them). ward_leader_credentials needs no rule:
+// with no match block every client read/write is denied. Deploying this is a LIVE production change for every hub.
+// DRAFT — NOT DEPLOYED. firestore.rules.draft-20261122-tighten (BW_Platform 0.3.0, built 2026-11-22 ET).
+// Base: firestore.rules.release-20261121-2241 (= live ruleset 005abacc, sha256 7388c572…e8e3).
+// Changes vs base (Duane voice approval to draft, 12:19 AM ET; deploy needs a separate "Approved"):
+//  (1) ward_leaders read is scoped: phone (SMS) sessions read only records whose phoneNumber is their
+//      verified number; the full roster is limited to roster readers (RC1-RC6 / admin / bishopric seat,
+//      on a passkey session or a bound SMS session) and the BW_Platform admin claim.
+//  (2) Home content collections are no longer world-writable: writes need a leader session.
+//  (3) New leader_sessions/{uid}: an SMS session binds itself to the one active ward_leaders record
+//      whose phoneNumber matches its verified number, so rules can recognise it as that leader.
 service cloud.firestore {
   match /databases/{database}/documents {
-  
+
+    // ---- Leader session helpers (draft 2026-11-22) ----
+    function bwProvider() { return request.auth.token.get('firebase', {}).get('sign_in_provider', ''); }
+    function bwLeaderPath(id) { return /databases/$(database)/documents/ward_leaders/$(id); }
+    function bwSessionPath() { return /databases/$(database)/documents/leader_sessions/$(request.auth.uid); }
+    function bwActive(d) { return d.get('active', true) != false; }
+    function bwPlatformAdmin() { return request.auth != null && request.auth.token.get('v', 0) == 2 && request.auth.token.get('w', 0) == 1; }
+    function bwPhoneSession() {
+      return request.auth != null && bwProvider() == 'phone'
+        && request.auth.token.get('phone_number', '').matches('^[+]1[0-9]{10}$');
+    }
+    // Every stored format the hubs have used for a US number, built from the verified E.164 number.
+    // Clients query ward_leaders with where('phoneNumber', 'in', <the same 14 strings>).
+    function bwPhoneVariants() {
+      let p = request.auth.token.phone_number;
+      let a = p[2:5];
+      let b = p[5:8];
+      let c = p[8:12];
+      let d = p[2:12];
+      return [p, d, '1' + d, '(' + a + ') ' + b + '-' + c, '(' + a + ')' + b + '-' + c,
+        a + '-' + b + '-' + c, a + '.' + b + '.' + c, a + ' ' + b + ' ' + c,
+        '+1 ' + a + ' ' + b + ' ' + c, '+1 (' + a + ') ' + b + '-' + c, '+1-' + a + '-' + b + '-' + c,
+        '+1 ' + a + '-' + b + '-' + c, '1-' + a + '-' + b + '-' + c, '1 (' + a + ') ' + b + '-' + c];
+    }
+    function bwPhoneMatches(d) { return bwPhoneSession() && d.get('phoneNumber', '') in bwPhoneVariants(); }
+    function bwPasskeyLeader() {
+      return request.auth != null && bwProvider() == 'custom'
+        && exists(bwLeaderPath(request.auth.uid)) && bwActive(get(bwLeaderPath(request.auth.uid)).data);
+    }
+    function bwBoundLeaderId() { return get(bwSessionPath()).data.get('leaderId', '_none_'); }
+    function bwPhoneLeader() {
+      return bwPhoneSession() && exists(bwSessionPath())
+        && exists(bwLeaderPath(bwBoundLeaderId()))
+        && bwActive(get(bwLeaderPath(bwBoundLeaderId())).data)
+        && bwPhoneMatches(get(bwLeaderPath(bwBoundLeaderId())).data);
+    }
+    function bwLeaderSession() { return bwPasskeyLeader() || bwPhoneLeader(); }
+    function bwSessionLeaderData() {
+      return bwProvider() == 'custom' ? get(bwLeaderPath(request.auth.uid)).data : get(bwLeaderPath(bwBoundLeaderId())).data;
+    }
+    function bwRosterSeat(d) {
+      return d.get('role', '') in ['admin', 'bishopric']
+        || (d.get('rcCodes', []) is list && d.get('rcCodes', []).hasAny(['RC1', 'RC2', 'RC3', 'RC4', 'RC5', 'RC6']));
+    }
+    function bwRosterReader() { return bwPlatformAdmin() || (bwLeaderSession() && bwRosterSeat(bwSessionLeaderData())); }
+    function bwContentEditor() { return bwPlatformAdmin() || bwLeaderSession(); }
+    function wlPasskeyEditor() { return bwPasskeyLeader() && get(bwLeaderPath(request.auth.uid)).data.get('role', '') in ['admin', 'bishopric']; }
+
     match /Combined_events/{id} { allow read, write: if true; }
     match /Priests_events/{id} { allow read, write: if true; }
     match /Teachers_events/{id} { allow read, write: if true; }
@@ -16,16 +75,118 @@ service cloud.firestore {
     match /YW_lessons/{id} { allow read, write: if true; }
     match /Primary_lessons/{id} { allow read, write: if true; }
     
-    // Home Page Content
-    match /home_announcements/{id} { allow read, write: if true; }
-    match /home_content/{id} { allow read, write: if true; }
-    match /home_spotlights/{id} { allow read, write: if true; }
-    match /home_teachers/{id} { allow read, write: if true; }
-    match /home_leaders/{document=**} { allow read, write: if true; }
-    match /teachers/{document=**} { allow read, write: if true; }
-    match /site_feedback/{id} { allow read, write: if true; }
-    match /birthdays/{id} { allow read, write: if true; }
+    // Home Page Content (draft 2026-11-22): public read where a public page reads it; writes need a leader session.
+    match /home_announcements/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /home_content/{id} {
+      // tithing_declaration_* (schedule with household names/members/emails, and the bishop report): leader sessions only
+      // (td draft 2026-11-22). Members move their own appointment through the tdReschedule Function (Admin SDK).
+      allow read: if !id.matches('^tithing_declaration.*') || bwContentEditor();
+      allow write: if bwContentEditor();
+    }
+    // td_public/{year} (td draft 2026-11-22): sanitized /td view (dates, slot times, open/booked, counts; no household,
+    // members, email or notes). Written only by the tdReschedule / tdPublicSync Functions (Admin SDK).
+    match /td_public/{year} { allow read: if true; allow write: if false; }
+    match /home_spotlights/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /home_teachers/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /home_leaders/{document=**} { allow read: if true; allow write: if bwContentEditor(); }
+    match /teachers/{document=**} { allow read: if true; allow write: if bwContentEditor(); }
+    // site_feedback: public pages create feedback (Youth org pages); no client reads it (the Function uses the Admin SDK).
+    match /site_feedback/{id} { allow create: if true; allow read, update, delete: if bwContentEditor(); }
+    // birthdays: youth names and dates; only Youth admin reads it (birthday-protocol.js is not loaded by any page).
+    match /birthdays/{id} { allow read, write: if bwContentEditor(); }
 
+    // Ward Home Page
+    match /Ward_events/{document=**} { allow read, write: if true; }
+    // ward_leaders (draft 2026-11-22). Read: roster readers (full list); a passkey session its own doc;
+    // an SMS session only docs whose phoneNumber is its verified number. Anonymous/email: denied.
+    // (google draft 2026-11-22) A Google session with a Google-verified email: only docs whose email equals that email
+    // (lower-cased; stored emails are lower-case). Home queries where("email", "==", <lower-cased email>).
+    // Create/update: passkey sign-in whose ward_leaders doc has role admin or bishopric, or BW_Platform RC1/RC2.
+    // Delete: never from a client (soft-delete policy: set active=false instead).
+    match /ward_leaders/{leaderId} {
+      allow read: if request.auth != null && (bwRosterReader()
+        || (bwProvider() == 'custom' && request.auth.uid == leaderId)
+        || (bwPhoneSession() && resource.data.phoneNumber in bwPhoneVariants())
+        || (bwProvider() == 'google.com' && request.auth.token.get('email_verified', false) == true
+          && request.auth.token.get('email', '') != '' && resource.data.email == request.auth.token.email.lower()));
+      allow create: if request.auth != null && (wlPasskeyEditor() || bwPlatformAdmin())
+        && !request.resource.data.keys().hasAny(['passwordHash', 'hasPassword']);
+      allow update: if request.auth != null && (wlPasskeyEditor() || bwPlatformAdmin())
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['passwordHash', 'hasPassword']);
+      allow delete: if false;
+      match /{sub=**} {
+        // {sub=**} also matches the ward_leaders doc itself (zero segments), so the same password-field guard is needed here.
+        allow read: if request.auth != null && bwRosterReader();
+        allow create: if request.auth != null && (wlPasskeyEditor() || bwPlatformAdmin())
+          && !request.resource.data.keys().hasAny(['passwordHash', 'hasPassword']);
+        allow update: if request.auth != null && (wlPasskeyEditor() || bwPlatformAdmin())
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['passwordHash', 'hasPassword']);
+        allow delete: if false;
+      }
+    }
+    // leader_sessions (draft 2026-11-22): written by the SMS session itself, only for a matching active leader.
+    match /leader_sessions/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid && bwPhoneSession()
+        && request.resource.data.keys().hasOnly(['leaderId', 'boundAt', 'hub'])
+        && request.resource.data.leaderId is string
+        && request.resource.data.leaderId.matches('^[A-Za-z0-9_-]{1,128}$')
+        && exists(bwLeaderPath(request.resource.data.leaderId))
+        && bwActive(get(bwLeaderPath(request.resource.data.leaderId)).data)
+        && bwPhoneMatches(get(bwLeaderPath(request.resource.data.leaderId)).data);
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // BEGIN ward_permissions_* (lookup draft 2026-11-21; claims draft needs a Functions change and is not included).
+    // Signed-in read of roles and meta; history read is RC1/RC2 editors only (as in the draft).
+    // Write on roles/meta: active passkey leader with RC1 or RC2. History create-only. No deletes.
+    function wpLeaderPath() { return /databases/$(database)/documents/ward_leaders/$(request.auth.uid); }
+    function wpProvider() { return request.auth.token.get('firebase', {}).get('sign_in_provider', ''); }
+    function wpLeaderData() { return get(wpLeaderPath()).data; }
+    function wpHasSeat(d, seat) { return d.get('rcCodes', []) is list && seat in d.get('rcCodes', []); }
+    function wpIsLeaderDoc() {
+      return request.auth != null && exists(wpLeaderPath())
+        && wpLeaderData().get('active', true) != false;
+    }
+    // Passkey sign-in = custom token whose uid is the leader doc id; only RC1/RC2 may edit.
+    function wpEditor() {
+      return request.auth != null
+        && wpProvider() == 'custom'
+        && wpIsLeaderDoc()
+        && (wpHasSeat(wpLeaderData(), 'RC1') || wpHasSeat(wpLeaderData(), 'RC2'));
+    }
+    match /ward_permissions_roles/{rc} {
+      allow read: if request.auth != null;
+      allow create, update: if wpEditor()
+        && rc.matches('^RC[0-9]+$')
+        && request.resource.data.get('rc', '') == rc
+        && request.resource.data.get('schemaVersion', 0) == 1
+        && request.resource.data.get('name', '') is string
+        && request.resource.data.get('name', '').size() > 0
+        && request.resource.data.get('name', '').size() < 200
+        && request.resource.data.get('label', '') is string
+        && request.resource.data.get('label', '').size() < 80
+        && request.resource.data.get('org', []) is list
+        && request.resource.data.get('areas', null) is list
+        && request.resource.data.get('active', true) is bool;
+      allow delete: if false;
+    }
+    match /ward_permissions_meta/{id} {
+      allow read: if request.auth != null;
+      allow create, update: if wpEditor() && id == 'current'
+        && request.resource.data.get('schemaVersion', 1) == 1
+        && request.resource.data.get('roleCount', 0) is int
+        && request.resource.data.get('roleIds', []) is list;
+      allow delete: if false;
+    }
+    match /ward_permissions_history/{id} {
+      allow read: if wpEditor();
+      allow create: if wpEditor()
+        && request.resource.data.get('action', '') in ['import', 'update', 'add', 'retire']
+        && request.resource.data.get('schemaVersion', 1) is int;
+      allow update, delete: if false;
+    }
+    // END ward_permissions_*
   
     // NEW AUCTION SITE RULES
     match /auction_items/{document} {

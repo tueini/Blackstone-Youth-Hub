@@ -10,7 +10,13 @@
       "ignore": [
         "firebase.json",
         "**/.*",
-        "**/node_modules/**"
+        "**/node_modules/**",
+        "**/.agents/**",
+        "**/*.md",
+        "**/*.bak",
+        "**/*.log",
+        "**/*.orig",
+        "**/*~"
       ]
     },
     {
@@ -20,7 +26,13 @@
       "ignore": [
         "firebase.json",
         "**/.*",
-        "**/node_modules/**"
+        "**/node_modules/**",
+        "**/.agents/**",
+        "**/*.md",
+        "**/*.bak",
+        "**/*.log",
+        "**/*.orig",
+        "**/*~"
       ]
     }
   ],
