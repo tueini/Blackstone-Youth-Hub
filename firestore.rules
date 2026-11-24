@@ -1,4 +1,7 @@
 rules_version = '2';
+// DRAFT 2026-11-24 (Chuck, member directory phase 3) - NOT DEPLOYED. Base: BW_Youth/firestore.rules (live, sha256 28d6e23e...).
+// Only change: new households/{H...}, members/{M...} (LCR-derived names-only directory, strictly read-only for every client)
+// and change_requests/{id} (phase 4 'Request a change': leaders create only). Deploying this is a LIVE production change.
 // DRAFT 2026-11-23 (Chuck, #2) — NOT DEPLOYED. Base: BW_Youth/firestore.rules (sha256 cc81695b234d…). Only change: browsers can no
 // longer write ward_leaders.passwordHash or hasPassword (passkeyApi 1.4.0 owns them). ward_leader_credentials needs no rule:
 // with no match block every client read/write is denied. Deploying this is a LIVE production change for every hub.
@@ -211,6 +214,43 @@ service cloud.firestore {
     match /site_settings/item_counter {
       allow read, write: if request.auth != null;
           }
+    // ---- Member directory (draft 2026-11-24, phase 3) ----
+    // LCR-derived, names only. Data flows one way: LCR -> offline master -> local admin sync script -> here.
+    // Read: signed-in leaders (BW_Platform admin claim or a leader session, same as bwContentEditor()).
+    // Write: NEVER from any client (no site UI edits these, including `active`). Only the admin SDK sync writes.
+    // {sub=**} also matches the parent doc itself (zero segments), so the deny is repeated there.
+    match /households/{householdId} {
+      allow read: if request.auth != null && bwContentEditor();
+      allow write: if false;
+      match /{sub=**} {
+        allow read: if request.auth != null && bwContentEditor();
+        allow write: if false;
+      }
+    }
+    match /members/{memberId} {
+      allow read: if request.auth != null && bwContentEditor();
+      allow write: if false;
+      match /{sub=**} {
+        allow read: if request.auth != null && bwContentEditor();
+        allow write: if false;
+      }
+    }
+    // change_requests (phase 4 'Request a change'): a leader proposes a correction; the Ward Clerk makes it in LCR.
+    // Create only, by a signed-in leader, as themselves, status 'open', fixed fields. No client update/delete yet
+    // (clerk status workflow and notification TBD in phase 4). No subcollections.
+    match /change_requests/{requestId} {
+      allow read: if request.auth != null && bwContentEditor();
+      allow create: if request.auth != null && bwContentEditor()
+        && request.resource.data.keys().hasOnly(['targetType', 'targetId', 'proposedChange', 'requesterUid', 'requesterName', 'createdAt', 'status'])
+        && request.resource.data.keys().hasAll(['targetType', 'targetId', 'proposedChange', 'requesterUid', 'createdAt', 'status'])
+        && request.resource.data.targetType in ['household', 'member']
+        && request.resource.data.targetId is string && request.resource.data.targetId.matches('^(H[0-9]{4}|M[0-9]{5})$')
+        && request.resource.data.proposedChange is string && request.resource.data.proposedChange.size() > 0 && request.resource.data.proposedChange.size() <= 2000
+        && request.resource.data.requesterUid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.status == 'open';
+      allow update, delete: if false;
+    }
    match /site_settings/{document=**} { 
       allow read: if true;
       allow write: if false;
