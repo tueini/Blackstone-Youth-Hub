@@ -72,5 +72,11 @@ The agent will activate the `.agents/skills/production-release/` skill:
 1. **Gate 1 (Prompt to Sync)**: The agent explicitly asks for approval to update the local `Website/` repository from `origin/main`.
 2. **Execute Sync**: Upon approval, pulls latest `main` into local `Website/` and aligns branch pointers.
 3. **Gate 2 (Prompt to Deploy)**: The agent explicitly asks for approval to deploy to the live production site.
-4. **Execute Deploy**: Upon approval, runs `firebase deploy --only hosting:youth --public ../Website/public` (`youth.blackstoneward.org`).
+4. **Execute Deploy**: Upon approval, run the production deploy from `zzWeb/BW_Youth` only: `cd /Users/dharris/Documents/0Church/Blackstone_Ward/zzWeb/BW_Youth && firebase deploy --only hosting:youth --project blackstoneward-b861c` (`youth.blackstoneward.org`).
+   - **WARNING (2026-11-19)**: NEVER use `--public ../Website/public`. It publishes the stale legacy `Youth/Website` folder and rolls production back. NEVER deploy production from `BW_Website`, `Youth/Website-beta` or `Youth/Website`. NEVER run `firebase deploy` without `--only hosting:<target>`, because a bare deploy also pushes Firestore rules and Functions to the shared `blackstoneward-b861c` project.
 
+
+## Placeholder / Hint Text Consistency (standing rule, Duane, 2026-11-23 12:13 AM ET)
+- When editing placeholder or hint text in form fields, keep the example pattern already used in this hub or across hubs. Do not replace specific example names (such as "e.g. Mahonri Moriancumer") with generic text, or generic text with specific names, unless Duane explicitly asks.
+- Consistency with prior usage is required. Flag any deviation to Duane and get his approval before making it.
+- Applies to both new code changes and deployment steps (check before staging or production that hint text has not drifted from the established pattern).

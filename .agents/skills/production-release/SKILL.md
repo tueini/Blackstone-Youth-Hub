@@ -63,8 +63,9 @@ Stop and await the user's explicit reply.
 Once approved:
 1. Deploy specifically to the production hosting target (`youth`) referencing the production `public` directory:
    ```bash
-   firebase deploy --only hosting:youth
+   cd /Users/dharris/Documents/0Church/Blackstone_Ward/zzWeb/BW_Youth && firebase deploy --only hosting:youth --project blackstoneward-b861c
    ```
+   **WARNING**: Never add `--public ../Website/public` (stale legacy folder, rolls production back) and never deploy without `--only hosting:youth`.
 2. Verify output confirms:
    - `✔ Deploy complete!`
    - Target is `youth-blackstoneward` (associated with `youth.blackstoneward.org`).

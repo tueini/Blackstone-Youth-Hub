@@ -104,3 +104,7 @@ test-login.js
 
 # Backup Archives
 Youth_Hub_Backup/
+
+# Security cleanup 2026-11-19: keep moved public leftovers and the agent rules file out of git
+_removed_from_public/
+.agents/rules/blackstoneward.md
