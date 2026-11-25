@@ -87,7 +87,9 @@ service cloud.firestore {
     match /home_content/{id} {
       // tithing_declaration_* (schedule with household names/members/emails, and the bishop report): leader sessions only
       // (td draft 2026-11-22). Members move their own appointment through the tdReschedule Function (Admin SDK).
-      allow read: if !id.matches('^tithing_declaration.*') || bwContentEditor();
+      // bishopric_speaker_bank_v1 and bishopric_prayer_bank_v1 (bank draft 2026-11-24): leader sessions only
+      // (they will hold memberId after the map apply). Public pages do not read these two docs.
+      allow read: if !id.matches('^(tithing_declaration.*|bishopric_speaker_bank_v1|bishopric_prayer_bank_v1)$') || bwContentEditor();
       allow write: if bwContentEditor();
     }
     // td_public/{year} (td draft 2026-11-22): sanitized /td view (dates, slot times, open/booked, counts; no household,
