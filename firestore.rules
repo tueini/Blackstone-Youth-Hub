@@ -1,4 +1,9 @@
 rules_version = '2';
+// DRAFT 2026-11-26 (Chuck, shared-rules hardening steps 1, 2 and 4; Duane approved 3:39 PM ET) - NOT DEPLOYED. Base: live BW_Youth/firestore.rules (sha256 b2f7ee18, ruleset b01770b2, live 3:28:52 PM ET).
+// Changes: (1) the 12 Youth calendar/lesson collections and Ward_events (incl. subcollections): public read stays, writes need bwContentEditor() (leader session or BW_Platform admin).
+// (4) mail: create only in the shape the auction pages send (hasOnly to/replyTo/message{subject,html}, one recipient string, size caps); read/update/delete unchanged.
+// NOT changed (step 3 is ON HOLD): auction_items, auction_bids, auction_bidders, site_settings/bid_counter, site_settings/item_counter.
+// Deploying this is a LIVE production change for every hub.
 // DRAFT 2026-11-26 (Chuck, Bish 1.3.15 recommendation date corrections) - NOT DEPLOYED. Base: live BW_Youth/firestore.rules (sha256 aa3fc4ad, ruleset 80965892).
 // Changes, callings_recommendations only: (a) new update branch to correct recorded step dates / who while open (step and status unchanged);
 // (b) each step date must be on or after the previous recorded step date (steps 2-4, decline, and corrections); (c) archive also allowed for open at step 4.
@@ -79,19 +84,21 @@ service cloud.firestore {
     function bwContentEditor() { return bwPlatformAdmin() || bwLeaderSession(); }
     function wlPasskeyEditor() { return bwPasskeyLeader() && get(bwLeaderPath(request.auth.uid)).data.get('role', '') in ['admin', 'bishopric']; }
 
-    match /Combined_events/{id} { allow read, write: if true; }
-    match /Priests_events/{id} { allow read, write: if true; }
-    match /Teachers_events/{id} { allow read, write: if true; }
-    match /Deacons_events/{id} { allow read, write: if true; }
-    match /YW_events/{id} { allow read, write: if true; }
-    match /Primary_events/{id} { allow read, write: if true; }
+    // Youth calendars and lessons (lock-calendars draft 2026-11-26): public read (org pages, Home calendar), writes need a leader session
+    // (passkey, or SMS bound by leader_sessions) or the BW_Platform admin claim. Only the Youth /admin Sync button writes these.
+    match /Combined_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Priests_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Teachers_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Deacons_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /YW_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Primary_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
     
-    match /Combined_lessons/{id} { allow read, write: if true; }
-    match /Priests_lessons/{id} { allow read, write: if true; }
-    match /Teachers_lessons/{id} { allow read, write: if true; }
-    match /Deacons_lessons/{id} { allow read, write: if true; }
-    match /YW_lessons/{id} { allow read, write: if true; }
-    match /Primary_lessons/{id} { allow read, write: if true; }
+    match /Combined_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Priests_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Teachers_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Deacons_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /YW_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Primary_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
     
     // Home Page Content (draft 2026-11-22): public read where a public page reads it; writes need a leader session.
     match /home_announcements/{id} { allow read: if true; allow write: if bwContentEditor(); }
@@ -115,8 +122,8 @@ service cloud.firestore {
     // birthdays: youth names and dates; only Youth admin reads it (birthday-protocol.js is not loaded by any page).
     match /birthdays/{id} { allow read, write: if bwContentEditor(); }
 
-    // Ward Home Page
-    match /Ward_events/{document=**} { allow read, write: if true; }
+    // Ward Home Page. Ward_events (lock-calendars draft 2026-11-26): public read, writes need a leader session. Only Home /admin writes it.
+    match /Ward_events/{document=**} { allow read: if true; allow write: if bwContentEditor(); }
     // ward_leaders (draft 2026-11-22). Read: roster readers (full list); a passkey session its own doc;
     // an SMS session only docs whose phoneNumber is its verified number. Anonymous/email: denied.
     // (google draft 2026-11-22) A Google session with a Google-verified email: only docs whose email equals that email
@@ -221,8 +228,22 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if request.auth != null;
     }
+    // mail (lock-calendars draft 2026-11-26): the public auction pages still create mail docs (Trigger Email extension), but only in
+    // the exact shape they send today: {to, [replyTo], message:{subject, html}}, one recipient, size-capped. Read/update/delete unchanged.
+    function bwMailAddr(v) { return v is string && v.size() >= 3 && v.size() <= 254 && v.matches('^[^@\\s,;<>]+@[^@\\s,;<>]+$'); }
+    function bwMailShape(d) {
+      return d.keys().hasOnly(['to', 'replyTo', 'message'])
+        && d.keys().hasAll(['to', 'message'])
+        && bwMailAddr(d.to)
+        && (!('replyTo' in d) || bwMailAddr(d.replyTo))
+        && d.message is map
+        && d.message.keys().hasOnly(['subject', 'html'])
+        && d.message.keys().hasAll(['subject', 'html'])
+        && d.message.subject is string && d.message.subject.size() >= 1 && d.message.subject.size() <= 500
+        && d.message.html is string && d.message.html.size() >= 1 && d.message.html.size() <= 20000;
+    }
     match /mail/{document} {
-      allow create: if true;
+      allow create: if bwMailShape(request.resource.data);
       allow read, update, delete: if request.auth != null;
     }
     match /site_settings/bid_counter {
