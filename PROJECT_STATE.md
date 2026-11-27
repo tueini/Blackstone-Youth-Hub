@@ -1,6 +1,6 @@
 # Project State: Blackstone Ward Youth Auction
 
-**Current Version:** v1.15.12
+**Current Version:** v1.15.15
 **Status:** In Development
 
 ## Risk Mitigation & Architecture Baselines
@@ -8,6 +8,12 @@
 - **v1.8 Stable Baseline**: Core auction engine code isolated to `.backups/stable_baseline_v1.8/` and synced to the `auction` GitHub branch for total recovery capability prior to the live event.
 
 ## Recent Updates
+- Added hosting ignore rules (`**/.agents/**`, `**/*.md`, `**/*.bak`, `**/*.log`, `**/*.orig`, `**/*~`) to `firebase.json` so agent rules, docs, backups and logs can never publish (v1.15.15). The v1.15.15 cleanup went to the `cleanup-test` preview channel only on 2026-11-19 (expires 2026-11-26). Production is on hold. Not committed or pushed.
+- Version housekeeping (2026-11-20): synced displayed footers and other v1.15.13/14 strings to v1.15.15 locally, while the preview still shows v1.15.13/14; local only, not deployed.
+- Fixed 404 pathing errors in `public/items.html` by converting relative paths to absolute paths.
+- Reconstructed a local `firestore.rules` file and mapped it in `firebase.json` to restore infrastructure-as-code parity and fix public permission denied errors for `auction_items` and `auction_bids`.
+- Decoupled `onSnapshot` listener in `public/js/items.js` to gracefully handle `auction_bids` Firebase Security Rules permissions errors, preventing the public catalog from crashing.
+- Integrated a secure client-side JSON data extraction engine in the Admin Portal for offline state archiving of auction items and bidders.
 - Synchronized HTML footer version strings across all public and administrative views to strictly match the v1.15.12 baseline.
 - Upgraded the print generator with a non-printable control panel allowing volunteers to print all items or a specific range of Item Numbers.
 - Updated print description truncation limit to 600 characters to balance descriptive text and writable space on printed bid sheets.
