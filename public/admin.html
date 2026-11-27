@@ -9,7 +9,10 @@
 <body class="bg-gray-100 font-sans text-gray-800">
     <header class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center">
         <h1 class="text-2xl font-bold">Auction Admin Portal</h1>
-        <button id="logoutBtn" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-4 rounded text-sm transition duration-200">Logout</button>
+        <div class="space-x-2">
+            <button id="btn-export-data" class="hidden bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-4 rounded text-sm transition duration-200 shadow">Export Live Auction Data (JSON)</button>
+            <button id="logoutBtn" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-4 rounded text-sm transition duration-200">Logout</button>
+        </div>
     </header>
 
     <main class="max-w-6xl mx-auto p-6 mt-6">
@@ -277,7 +280,7 @@
 
     <footer class="mt-12 mb-6 text-center">
         <a href="/" class="text-sm text-gray-400 hover:text-blue-600 transition duration-200">Main Site</a>
-        <span class="text-xs text-gray-900 font-semibold ml-2">| v1.15.12</span>
+        <span class="text-xs text-gray-900 font-semibold ml-2">| v1.15.13</span>
     </footer>
 
     <script type="module" src="/js/admin.js"></script>

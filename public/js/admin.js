@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const loginError = document.getElementById('loginError');
     const logoutBtn = document.getElementById('logoutBtn');
+    const btnExportData = document.getElementById('btn-export-data');
     
     // Bidders Elements
     const biddersTableBody = document.getElementById('biddersTableBody');
@@ -500,6 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loginContainer.classList.add('hidden');
             dashboardContainer.classList.remove('hidden');
             logoutBtn.classList.remove('hidden');
+            if (btnExportData) btnExportData.classList.remove('hidden');
             loadBidders();
             await loadItems();
             listenForBids();
@@ -507,6 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loginContainer.classList.remove('hidden');
             dashboardContainer.classList.add('hidden');
             logoutBtn.classList.add('hidden');
+            if (btnExportData) btnExportData.classList.add('hidden');
             if (unsubscribeBids) {
                 unsubscribeBids();
                 unsubscribeBids = null;
@@ -536,6 +539,51 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             await signOut(auth);
+        });
+    }
+
+    // Export Data Handler
+    if (btnExportData) {
+        btnExportData.addEventListener('click', async () => {
+            btnExportData.disabled = true;
+            btnExportData.innerText = 'Exporting...';
+            try {
+                const itemsRef = collection(db, "auction_items");
+                const biddersRef = collection(db, "auction_bidders");
+                
+                const [itemsSnap, biddersSnap] = await Promise.all([
+                    getDocs(itemsRef),
+                    getDocs(biddersRef)
+                ]);
+                
+                const auction_items = [];
+                itemsSnap.forEach(doc => auction_items.push({ id: doc.id, ...doc.data() }));
+                
+                const auction_bidders = [];
+                biddersSnap.forEach(doc => auction_bidders.push({ id: doc.id, ...doc.data() }));
+                
+                const payload = {
+                    export_timestamp: new Date().toISOString(),
+                    auction_items,
+                    auction_bidders
+                };
+                
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'blackstone_auction_data_v1.15.13.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error("Export failed:", err);
+                alert("Failed to export data.");
+            } finally {
+                btnExportData.disabled = false;
+                btnExportData.innerText = 'Export Live Auction Data (JSON)';
+            }
         });
     }
     

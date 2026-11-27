@@ -63,7 +63,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             itemsGrid.appendChild(card);
         });
 
-        // Listen for real-time bid updates
+    } catch (error) {
+        console.error("Error fetching auction items:", error);
+        itemsGrid.innerHTML = '<p class="text-center col-span-full text-red-500 text-lg">Error loading auction items. Please try again later.</p>';
+    }
+
+    // Listen for real-time bid updates separately to prevent permission errors from crashing the catalog
+    try {
         const bidsRef = collection(db, "auction_bids");
         onSnapshot(bidsRef, (bidsSnap) => {
             const highBids = {};
@@ -104,11 +110,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     bidderEl.classList.add('text-blue-700');
                 }
             });
+        }, (err) => {
+            console.warn("Real-time bids restricted or unavailable:", err.message);
         });
-
-
-    } catch (error) {
-        console.error("Error fetching auction items:", error);
-        itemsGrid.innerHTML = '<p class="text-center col-span-full text-red-500 text-lg">Error loading auction items. Please try again later.</p>';
+    } catch (err) {
+        console.warn("Error setting up bids listener:", err);
     }
 });
