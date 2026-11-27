@@ -1,4 +1,20 @@
 rules_version = '2';
+// DRAFT 2026-11-26 (Chuck, shared-rules hardening steps 1, 2 and 4; Duane approved 3:39 PM ET) - NOT DEPLOYED. Base: live BW_Youth/firestore.rules (sha256 b2f7ee18, ruleset b01770b2, live 3:28:52 PM ET).
+// Changes: (1) the 12 Youth calendar/lesson collections and Ward_events (incl. subcollections): public read stays, writes need bwContentEditor() (leader session or BW_Platform admin).
+// (4) mail: create only in the shape the auction pages send (hasOnly to/replyTo/message{subject,html}, one recipient string, size caps); read/update/delete unchanged.
+// NOT changed (step 3 is ON HOLD): auction_items, auction_bids, auction_bidders, site_settings/bid_counter, site_settings/item_counter.
+// Deploying this is a LIVE production change for every hub.
+// DRAFT 2026-11-26 (Chuck, Bish 1.3.15 recommendation date corrections) - NOT DEPLOYED. Base: live BW_Youth/firestore.rules (sha256 aa3fc4ad, ruleset 80965892).
+// Changes, callings_recommendations only: (a) new update branch to correct recorded step dates / who while open (step and status unchanged);
+// (b) each step date must be on or after the previous recorded step date (steps 2-4, decline, and corrections); (c) archive also allowed for open at step 4.
+// Deploying this is a LIVE production change for every hub.
+// DRAFT 2026-11-25 (Chuck, Callings Planner, Bish 1.3.0) - NOT DEPLOYED. Base: live BW_Youth/firestore.rules (sha256 d768e3f5, banks).
+// Adds (BEGIN/END Callings Planner block): callings_meta, callings_imports (client read-only, admin upload only),
+// callings_name_matches, callings_scenarios, callings_recommendations, callings_clerk_packets - read/write only by the
+// five General Bishopric seats RC2-RC6 (cpSeats). change_requests: two added allow lines (hand-off create with packet,
+// set-apart checkbox); the existing create/update lines are unchanged. Deploying this is a LIVE production change.
+// Update 2026-11-25 9:50 PM ET (Bish 1.3.1, Duane): hand-off create also needs handoffKind call|release + mailSubject
+// 'Calling change (sustained)'|'Calling change (released)' matching the recommendation type; set apart only on calls (null on releases).
 // DRAFT 2026-11-24 (Chuck, member directory phase 4) - NOT DEPLOYED. Base: live BW_Youth/firestore.rules (sha256 b918092e, memberdir).
 // Adds: other_names (leaders read/create/update, no client delete); change_requests status update by RC5 or role bishopric/admin;
 // optional requesterEmail on create. households/members stay read-only. mail create rule is NOT changed (tighten after auction season).
@@ -68,19 +84,21 @@ service cloud.firestore {
     function bwContentEditor() { return bwPlatformAdmin() || bwLeaderSession(); }
     function wlPasskeyEditor() { return bwPasskeyLeader() && get(bwLeaderPath(request.auth.uid)).data.get('role', '') in ['admin', 'bishopric']; }
 
-    match /Combined_events/{id} { allow read, write: if true; }
-    match /Priests_events/{id} { allow read, write: if true; }
-    match /Teachers_events/{id} { allow read, write: if true; }
-    match /Deacons_events/{id} { allow read, write: if true; }
-    match /YW_events/{id} { allow read, write: if true; }
-    match /Primary_events/{id} { allow read, write: if true; }
+    // Youth calendars and lessons (lock-calendars draft 2026-11-26): public read (org pages, Home calendar), writes need a leader session
+    // (passkey, or SMS bound by leader_sessions) or the BW_Platform admin claim. Only the Youth /admin Sync button writes these.
+    match /Combined_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Priests_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Teachers_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Deacons_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /YW_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Primary_events/{id} { allow read: if true; allow write: if bwContentEditor(); }
     
-    match /Combined_lessons/{id} { allow read, write: if true; }
-    match /Priests_lessons/{id} { allow read, write: if true; }
-    match /Teachers_lessons/{id} { allow read, write: if true; }
-    match /Deacons_lessons/{id} { allow read, write: if true; }
-    match /YW_lessons/{id} { allow read, write: if true; }
-    match /Primary_lessons/{id} { allow read, write: if true; }
+    match /Combined_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Priests_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Teachers_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Deacons_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /YW_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
+    match /Primary_lessons/{id} { allow read: if true; allow write: if bwContentEditor(); }
     
     // Home Page Content (draft 2026-11-22): public read where a public page reads it; writes need a leader session.
     match /home_announcements/{id} { allow read: if true; allow write: if bwContentEditor(); }
@@ -104,8 +122,8 @@ service cloud.firestore {
     // birthdays: youth names and dates; only Youth admin reads it (birthday-protocol.js is not loaded by any page).
     match /birthdays/{id} { allow read, write: if bwContentEditor(); }
 
-    // Ward Home Page
-    match /Ward_events/{document=**} { allow read, write: if true; }
+    // Ward Home Page. Ward_events (lock-calendars draft 2026-11-26): public read, writes need a leader session. Only Home /admin writes it.
+    match /Ward_events/{document=**} { allow read: if true; allow write: if bwContentEditor(); }
     // ward_leaders (draft 2026-11-22). Read: roster readers (full list); a passkey session its own doc;
     // an SMS session only docs whose phoneNumber is its verified number. Anonymous/email: denied.
     // (google draft 2026-11-22) A Google session with a Google-verified email: only docs whose email equals that email
@@ -210,8 +228,22 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if request.auth != null;
     }
+    // mail (lock-calendars draft 2026-11-26): the public auction pages still create mail docs (Trigger Email extension), but only in
+    // the exact shape they send today: {to, [replyTo], message:{subject, html}}, one recipient, size-capped. Read/update/delete unchanged.
+    function bwMailAddr(v) { return v is string && v.size() >= 3 && v.size() <= 254 && v.matches('^[^@\\s,;<>]+@[^@\\s,;<>]+$'); }
+    function bwMailShape(d) {
+      return d.keys().hasOnly(['to', 'replyTo', 'message'])
+        && d.keys().hasAll(['to', 'message'])
+        && bwMailAddr(d.to)
+        && (!('replyTo' in d) || bwMailAddr(d.replyTo))
+        && d.message is map
+        && d.message.keys().hasOnly(['subject', 'html'])
+        && d.message.keys().hasAll(['subject', 'html'])
+        && d.message.subject is string && d.message.subject.size() >= 1 && d.message.subject.size() <= 500
+        && d.message.html is string && d.message.html.size() >= 1 && d.message.html.size() <= 20000;
+    }
     match /mail/{document} {
-      allow create: if true;
+      allow create: if bwMailShape(request.resource.data);
       allow read, update, delete: if request.auth != null;
     }
     match /site_settings/bid_counter {
@@ -267,6 +299,31 @@ service cloud.firestore {
         && request.resource.data.status in ['done_lcr', 'declined']
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'resolutionNote', 'resolvedBy', 'resolvedAt'])
         && request.resource.data.resolvedBy == request.auth.uid;
+      // Callings Planner hand-off (draft 2026-11-25): same Clerk flow + email, created with its packet in one batch.
+      allow create: if request.auth != null && cpUser()
+        && request.resource.data.keys().hasOnly(['targetType', 'targetId', 'proposedChange', 'requesterUid', 'requesterName', 'requesterEmail', 'createdAt', 'status', 'handoff', 'packetId', 'setApart', 'handoffKind', 'mailSubject'])
+        && request.resource.data.keys().hasAll(['targetType', 'targetId', 'proposedChange', 'requesterUid', 'createdAt', 'status', 'handoff', 'packetId', 'setApart', 'handoffKind', 'mailSubject'])
+        && request.resource.data.handoff == 'callings'
+        // 1.3.1: calls and releases both hand off; kind and subject follow the recommendation type; set apart is N/A (null) for releases.
+        && ((request.resource.data.handoffKind == 'call' && request.resource.data.mailSubject == 'Calling change (sustained)' && request.resource.data.setApart == false
+              && get(cpPath('callings_recommendations', request.resource.data.packetId)).data.type == 'Approved to call to new calling')
+          || (request.resource.data.handoffKind == 'release' && request.resource.data.mailSubject == 'Calling change (released)' && request.resource.data.setApart == null
+              && get(cpPath('callings_recommendations', request.resource.data.packetId)).data.type == 'Approved to release member from calling'))
+        && request.resource.data.targetType == 'member'
+        && request.resource.data.targetId is string && request.resource.data.targetId.matches('^M[0-9]{5}$')
+        && request.resource.data.proposedChange is string && request.resource.data.proposedChange.size() > 0 && request.resource.data.proposedChange.size() <= 2000
+        && request.resource.data.requesterUid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.status == 'open'
+        && (!request.resource.data.keys().hasAny(['requesterEmail']) || (request.resource.data.requesterEmail is string && request.resource.data.requesterEmail.size() < 200))
+        && request.resource.data.packetId is string
+        && getAfter(cpPath('callings_clerk_packets', request.resource.data.packetId)).data.changeRequestId == requestId;
+      // Set-apart checkbox on a hand-off (the Clerk, or anyone in the General Bishopric).
+      allow update: if request.auth != null && (bwCanCloseChangeRequest() || cpUser())
+        && resource.data.get('handoff', '') == 'callings' && resource.data.get('handoffKind', '') == 'call'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['setApart', 'setApartAt', 'setApartBy'])
+        && request.resource.data.setApart is bool
+        && request.resource.data.setApartBy == request.auth.uid && request.resource.data.setApartAt == request.time;
       allow delete: if false;
     }
     // other_names: free-typed outside names. Leaders may create and update; no client deletes.
@@ -298,6 +355,300 @@ service cloud.firestore {
         allow write: if false;
       }
     }
+    // BEGIN Callings Planner (draft 2026-11-25, Chuck, Bish 1.3.0) ----
+    // General Bishopric only: the five Bishopric hub seats. Keep this list identical to
+    // CALLINGS_PLANNER_SEATS in BW_Bish/public/js/callings-core.js and tests/27-callings-planner.test.js.
+    // Bishop RC2, 1st Counselor RC3, 2nd Counselor RC4, Ward Clerk RC5, Executive Secretary RC6.
+    // Session must be a leader session (passkey, or SMS bound via leader_sessions). No role fallback,
+    // no platform-admin claim, no org leaders, no Music Coordinator.
+    function cpSeats() { return ['RC2', 'RC3', 'RC4', 'RC5', 'RC6']; }
+    function cpUser() {
+      return request.auth != null && bwLeaderSession()
+        && bwSessionLeaderData().get('rcCodes', []) is list
+        && bwSessionLeaderData().get('rcCodes', []).hasAny(cpSeats());
+    }
+    function cpPath(col, id) { return /databases/$(database)/documents/$(col)/$(id); }
+    function cpDate(v) { return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'); }
+    function cpRosterId(v) { return v is string && v.matches('^[a-z][a-z0-9_]{1,40}$'); }
+    function cpCurrentImport() { return get(cpPath('callings_meta', 'current')).data.importId; }
+    function cpIsCall(d) { return d.type == 'Approved to call to new calling'; }
+    function cpOnly(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
+    // 1.3.15: date corrections. Dates are cpDate strings (YYYY-MM-DD), so string comparison is date comparison.
+    // 'let' bindings keep the expression count low (Firestore rules stop at 1000 expressions per request).
+    function cpRecOrdered(d) {
+      let a = d.get('agreedAt', '');
+      let e = d.get('extendedAt', '');
+      let c = d.get('acceptedAt', '');
+      let p = d.get('pulpitAt', '');
+      return (a == '' || e == '' || a <= e) && (e == '' || c == '' || e <= c) && (c == '' || p == '' || c <= p) && (c != '' || e == '' || p == '' || e <= p);
+    }
+    // Correction of already-recorded dates / who. The branch itself pins status, step and the allowed keys (cpOnly); here: no key added,
+    // every already-recorded date / who still well-formed (a removed field fails too), and the whole chain in order.
+    function cpRecCorrectionOk() {
+      let d = request.resource.data;
+      let r = resource.data;
+      return d.keys().hasOnly(r.keys())
+        && (!('agreedAt' in r) || cpDate(d.get('agreedAt', ''))) && (!('extendedAt' in r) || cpDate(d.get('extendedAt', '')))
+        && (!('acceptedAt' in r) || cpDate(d.get('acceptedAt', ''))) && (!('pulpitAt' in r) || cpDate(d.get('pulpitAt', '')))
+        && (!('parentApprovalAt' in r) || cpDate(d.get('parentApprovalAt', '')))
+        && (!('extenderId' in r) || cpRosterId(d.get('extenderId', ''))) && (!('conductorId' in r) || cpRosterId(d.get('conductorId', '')))
+        && cpRecOrdered(d);
+    }
+    function cpStamped() { return request.resource.data.updatedBy == request.auth.uid && request.resource.data.updatedAt == request.time; }
+
+    // Read-only imported snapshot + current pointer. Only the offline upload script (admin) writes.
+    match /callings_meta/{id} {
+      allow read: if cpUser();
+      allow write: if false;
+    }
+    match /callings_imports/{importId} {
+      allow read: if cpUser();
+      allow write: if false;
+      match /{sub=**} {
+        allow read: if cpUser();
+        allow write: if false;
+      }
+    }
+    // Manual name matches from the unmatched queue (reused by the next offline import).
+    match /callings_name_matches/{nameKey} {
+      allow read: if cpUser();
+      allow create, update: if cpUser()
+        && nameKey.matches('^[a-z0-9-]{1,120}$')
+        && request.resource.data.keys().hasOnly(['nameKey', 'memberId', 'method', 'needsReview', 'matchedBy', 'matchedAt', 'importId'])
+        && request.resource.data.nameKey == nameKey
+        && request.resource.data.memberId is string && request.resource.data.memberId.matches('^M[0-9]{5}$')
+        && request.resource.data.method == 'manual' && request.resource.data.needsReview == false
+        && request.resource.data.matchedBy == request.auth.uid && request.resource.data.matchedAt == request.time
+        && request.resource.data.importId is string;
+      allow delete: if cpUser();
+    }
+    // What-if scenarios (moves only; never touch the snapshot). 'stale' is set only by the upload script;
+    // a user clears it by rebasing on the current import. Archived scenarios are frozen, then purged.
+    function cpScenarioShape(d) {
+      return d.keys().hasOnly(['name', 'basedOnImportId', 'status', 'staleConflicts', 'staleAt', 'staleImportId', 'moves', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy', 'archivedAt'])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && d.moves is list && d.moves.size() <= 200
+        && d.basedOnImportId is string
+        && d.status in ['draft', 'active', 'stale', 'archived'];
+    }
+    function cpSameStale() {
+      return request.resource.data.get('staleConflicts', null) == resource.data.get('staleConflicts', null)
+        && request.resource.data.get('staleAt', null) == resource.data.get('staleAt', null)
+        && request.resource.data.get('staleImportId', null) == resource.data.get('staleImportId', null);
+    }
+    match /callings_scenarios/{sid} {
+      allow read: if cpUser();
+      allow create: if cpUser() && cpScenarioShape(request.resource.data) && cpStamped()
+        && request.resource.data.status in ['draft', 'active']
+        && request.resource.data.createdBy == request.auth.uid && request.resource.data.createdAt == request.time
+        && request.resource.data.basedOnImportId == cpCurrentImport()
+        && !request.resource.data.keys().hasAny(['staleConflicts', 'staleAt', 'staleImportId', 'archivedAt']);
+      allow update: if cpUser() && cpScenarioShape(request.resource.data) && cpStamped()
+        && resource.data.status != 'archived'
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (
+          (request.resource.data.status in ['draft', 'active', 'stale']
+            && (request.resource.data.status == resource.data.status
+              || (resource.data.status in ['draft', 'active'] && request.resource.data.status in ['draft', 'active']))
+            && request.resource.data.basedOnImportId == resource.data.basedOnImportId && cpSameStale())
+          || (resource.data.status == 'stale' && request.resource.data.status == 'active'
+            && request.resource.data.basedOnImportId == cpCurrentImport()
+            && request.resource.data.get('staleConflicts', []) == [])
+          || (request.resource.data.status == 'archived' && request.resource.data.archivedAt == request.time)
+        );
+      allow delete: if cpUser() && resource.data.status == 'archived';
+    }
+    // Recommendations: exact labels only; four steps, each with a date and who. No notes or free text.
+    match /callings_recommendations/{rid} {
+      allow read: if cpUser();
+      allow create: if cpUser() && cpStamped()
+        && request.resource.data.keys().hasOnly(['scenarioId', 'type', 'memberId', 'callingId', 'relatedRecommendationId', 'youth', 'basedOnImportId', 'status', 'step', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'])
+        && request.resource.data.type in ['Approved to call to new calling', 'Approved to release member from calling']
+        && request.resource.data.memberId is string && request.resource.data.memberId.matches('^M[0-9]{5}$')
+        && request.resource.data.callingId is string && request.resource.data.callingId.matches('^CL[0-9]{4,6}$')
+        && request.resource.data.scenarioId is string && exists(cpPath('callings_scenarios', request.resource.data.scenarioId))
+        && request.resource.data.status == 'open' && request.resource.data.step == 0
+        && request.resource.data.createdBy == request.auth.uid && request.resource.data.createdAt == request.time;
+      allow update: if cpUser() && cpStamped() && (
+        // 1) the bishop and both counselors unanimously agree
+        (resource.data.status == 'open' && resource.data.step == 0 && request.resource.data.step == 1
+          && cpOnly(['step', 'agreedAt', 'agreedByBishop', 'agreedByCounselor1', 'agreedByCounselor2', 'updatedAt', 'updatedBy'])
+          && cpDate(request.resource.data.agreedAt)
+          && request.resource.data.agreedByBishop == true && request.resource.data.agreedByCounselor1 == true
+          && request.resource.data.agreedByCounselor2 == true)
+        // 2) an assigned bishopric member extends the call or release
+        || (resource.data.status == 'open' && resource.data.step == 1 && request.resource.data.step == 2
+          && cpOnly(['step', 'extendedAt', 'extenderId', 'updatedAt', 'updatedBy'])
+          && cpDate(request.resource.data.extendedAt) && cpRosterId(request.resource.data.extenderId)
+          && cpRecOrdered(request.resource.data))
+        // 3) calls only: the member accepts
+        || (resource.data.status == 'open' && resource.data.step == 2 && request.resource.data.step == 3 && cpIsCall(resource.data)
+          && cpOnly(['step', 'acceptedAt', 'updatedAt', 'updatedBy']) && cpDate(request.resource.data.acceptedAt)
+          && cpRecOrdered(request.resource.data))
+        // 3) calls only: the member declines -> stopped (no pulpit, no clerk)
+        || (resource.data.status == 'open' && resource.data.step == 2 && cpIsCall(resource.data)
+          && request.resource.data.status == 'declined'
+          && cpOnly(['status', 'declinedAt', 'updatedAt', 'updatedBy']) && cpDate(request.resource.data.declinedAt)
+          && request.resource.data.declinedAt >= resource.data.get('extendedAt', ''))
+        // 4) released / sustained over the pulpit by the conducting bishopric member
+        || (resource.data.status == 'open' && request.resource.data.step == 4
+          && ((cpIsCall(resource.data) && resource.data.step == 3) || (!cpIsCall(resource.data) && resource.data.step == 2))
+          && cpOnly(['step', 'pulpitAt', 'conductorId', 'updatedAt', 'updatedBy'])
+          && cpDate(request.resource.data.pulpitAt) && cpRosterId(request.resource.data.conductorId)
+          && cpRecOrdered(request.resource.data))
+        // youth calls: parent/guardian approval is a date only
+        || (resource.data.status == 'open'
+          && cpOnly(['parentApprovalAt', 'updatedAt', 'updatedBy']) && cpDate(request.resource.data.parentApprovalAt))
+        // 1.3.15 correct recorded dates / who (open, before the clerk hand-off): step and status unchanged, only already-recorded fields, whole chain in order
+        || (resource.data.status == 'open' && request.resource.data.status == 'open' && request.resource.data.step == resource.data.step
+          && cpOnly(['agreedAt', 'extendedAt', 'extenderId', 'acceptedAt', 'pulpitAt', 'conductorId', 'parentApprovalAt', 'updatedAt', 'updatedBy'])
+          && cpRecCorrectionOk())
+        // clerk hand-off: only after step 4, in the same batch as callings_clerk_packets/{rid}
+        || (resource.data.status == 'open' && resource.data.step == 4 && request.resource.data.status == 'awaiting_confirmation'
+          && cpOnly(['status', 'clerkPacketId', 'clerkHandoffAt', 'updatedAt', 'updatedBy'])
+          && request.resource.data.clerkPacketId == rid && request.resource.data.clerkHandoffAt == request.time
+          && existsAfter(cpPath('callings_clerk_packets', rid)))
+        // archive: finished, or abandoned while open (1.3.15: also at step 4, before the hand-off)
+        || ((resource.data.status in ['declined', 'confirmed', 'diverged'] || resource.data.status == 'open')
+          && request.resource.data.status == 'archived'
+          && cpOnly(['status', 'archivedAt', 'updatedAt', 'updatedBy']) && request.resource.data.archivedAt == request.time)
+      );
+      allow delete: if cpUser() && resource.data.status == 'archived';
+    }
+    // Clerk hand-off packet: one per recommendation (doc id = recommendation id), only after step 4.
+    // Confirmed / diverged is recorded on the recommendation by the next import (upload script).
+    match /callings_clerk_packets/{rid} {
+      allow read: if cpUser();
+      allow create: if cpUser()
+        && request.resource.data.keys().hasOnly(['recommendationId', 'generatedAt', 'generatedBy', 'payload', 'changeRequestId', 'status'])
+        && request.resource.data.recommendationId == rid
+        && request.resource.data.generatedBy == request.auth.uid && request.resource.data.generatedAt == request.time
+        && request.resource.data.status == 'ready' && request.resource.data.payload is map
+        && request.resource.data.changeRequestId is string
+        && get(cpPath('callings_recommendations', rid)).data.status == 'open'
+        && get(cpPath('callings_recommendations', rid)).data.step == 4
+        && getAfter(cpPath('callings_recommendations', rid)).data.status == 'awaiting_confirmation'
+        && existsAfter(cpPath('change_requests', request.resource.data.changeRequestId));
+      allow update, delete: if false;
+    }
+    // Temporary and custom assignments (Bish 1.3.13). NOT LCR callings.
+    // Same General Bishopric seats as the rest of the planner (cpUser / RC2-RC6).
+    // DRAFT ONLY — do not deploy until Duane gives a separate rules approval.
+    // A rules deploy is a live production change for every hub on blackstoneward-b861c.
+    function cpAssignmentKeys() {
+      return ['type', 'orgKey', 'orgId', 'callingId', 'title', 'note', 'memberId', 'status', 'endDate', 'endReason', 'basedOnImportId', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy', 'endedAt', 'endedBy', 'thankYouStatus', 'thankYouAt', 'thankedAt', 'thankedBy', 'dismissedAt', 'dismissedBy', 'filledByImportId', 'filledByMemberId'];
+    }
+    function cpAssignmentShape(d) {
+      return d.keys().hasOnly(cpAssignmentKeys())
+        && d.type in ['vacantFill', 'custom']
+        && d.orgKey is string && d.orgKey.size() > 0 && d.orgKey.size() <= 80
+        && (d.orgId == null || d.orgId is int)
+        && d.title is string && d.title.size() > 0 && d.title.size() <= 80
+        && (d.note == null || (d.note is string && d.note.size() <= 400))
+        && (d.memberId == null || (d.memberId is string && d.memberId.matches('^M[0-9]{5}$')))
+        && d.status in ['active', 'ended', 'deleted']
+        && (d.endDate == null || cpDate(d.endDate))
+        && (d.endReason == null || d.endReason in ['removed', 'lcrFilled', 'deleted'])
+        && d.basedOnImportId is string
+        && ((d.type == 'vacantFill' && d.callingId is string && d.callingId.size() > 0 && d.callingId.size() <= 80)
+          || (d.type == 'custom' && d.callingId == null))
+        && (d.thankYouStatus == null || d.thankYouStatus in ['pending', 'thanked', 'dismissed'])
+        && (d.filledByImportId == null || d.filledByImportId is string)
+        && (d.filledByMemberId == null || (d.filledByMemberId is string && d.filledByMemberId.matches('^M[0-9]{5}$')));
+    }
+    function cpAssignmentIdentityLocked() {
+      return request.resource.data.type == resource.data.type
+        && request.resource.data.orgKey == resource.data.orgKey
+        && request.resource.data.orgId == resource.data.orgId
+        && request.resource.data.callingId == resource.data.callingId
+        && request.resource.data.title == resource.data.title
+        && request.resource.data.basedOnImportId == resource.data.basedOnImportId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.createdBy == resource.data.createdBy;
+    }
+    match /callings_assignments/{aid} {
+      allow read: if cpUser();
+      allow create: if cpUser() && cpAssignmentShape(request.resource.data) && cpStamped()
+        && request.resource.data.status == 'active'
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.basedOnImportId == cpCurrentImport()
+        && request.resource.data.endReason == null
+        && request.resource.data.endedAt == null
+        && request.resource.data.endedBy == null
+        && request.resource.data.thankYouStatus == null
+        && request.resource.data.thankYouAt == null
+        && request.resource.data.thankedAt == null
+        && request.resource.data.thankedBy == null
+        && request.resource.data.dismissedAt == null
+        && request.resource.data.dismissedBy == null
+        && request.resource.data.filledByImportId == null
+        && request.resource.data.filledByMemberId == null;
+      allow update: if cpUser() && cpAssignmentShape(request.resource.data) && cpStamped()
+        && cpAssignmentIdentityLocked()
+        && (
+          // Active edits: assign, unassign, or change note/end date. Soft fields stay unset.
+          (resource.data.status == 'active' && request.resource.data.status == 'active'
+            && request.resource.data.endReason == null
+            && request.resource.data.endedAt == null && request.resource.data.endedBy == null
+            && request.resource.data.thankYouStatus == null
+            && request.resource.data.thankYouAt == null
+            && request.resource.data.thankedAt == null && request.resource.data.thankedBy == null
+            && request.resource.data.dismissedAt == null && request.resource.data.dismissedBy == null
+            && request.resource.data.filledByImportId == null && request.resource.data.filledByMemberId == null)
+          // End a vacantFill (Remove, or auto-end when a later LCR import fills the calling).
+          || (resource.data.status == 'active' && request.resource.data.status == 'ended'
+            && request.resource.data.endedBy == request.auth.uid
+            && request.resource.data.endedAt == request.time
+            && request.resource.data.endReason in ['removed', 'lcrFilled']
+            && (
+              (request.resource.data.endReason == 'removed'
+                && request.resource.data.thankYouStatus == null
+                && request.resource.data.thankYouAt == null
+                && request.resource.data.filledByImportId == null
+                && request.resource.data.filledByMemberId == null
+                && request.resource.data.thankedAt == null && request.resource.data.thankedBy == null
+                && request.resource.data.dismissedAt == null && request.resource.data.dismissedBy == null)
+              || (request.resource.data.endReason == 'lcrFilled'
+                && request.resource.data.thankYouStatus == 'pending'
+                && request.resource.data.thankYouAt == request.time
+                && request.resource.data.filledByImportId is string
+                && request.resource.data.thankedAt == null && request.resource.data.thankedBy == null
+                && request.resource.data.dismissedAt == null && request.resource.data.dismissedBy == null)
+            ))
+          // Soft delete a custom assignment (status 'deleted'; client delete is denied).
+          || (resource.data.status == 'active' && request.resource.data.status == 'deleted'
+            && request.resource.data.type == 'custom'
+            && request.resource.data.endReason == 'deleted'
+            && request.resource.data.endedBy == request.auth.uid
+            && request.resource.data.endedAt == request.time)
+          // Mark a thank-you follow-up thanked or dismissed.
+          || (resource.data.status == 'ended' && request.resource.data.status == 'ended'
+            && resource.data.endReason == 'lcrFilled' && request.resource.data.endReason == 'lcrFilled'
+            && resource.data.thankYouStatus == 'pending'
+            && request.resource.data.memberId == resource.data.memberId
+            && request.resource.data.endedAt == resource.data.endedAt
+            && request.resource.data.endedBy == resource.data.endedBy
+            && request.resource.data.thankYouAt == resource.data.thankYouAt
+            && request.resource.data.filledByImportId == resource.data.filledByImportId
+            && request.resource.data.filledByMemberId == resource.data.filledByMemberId
+            && (
+              (request.resource.data.thankYouStatus == 'thanked'
+                && request.resource.data.thankedBy == request.auth.uid
+                && request.resource.data.thankedAt == request.time
+                && request.resource.data.dismissedAt == null && request.resource.data.dismissedBy == null)
+              || (request.resource.data.thankYouStatus == 'dismissed'
+                && request.resource.data.dismissedBy == request.auth.uid
+                && request.resource.data.dismissedAt == request.time
+                && request.resource.data.thankedAt == null && request.resource.data.thankedBy == null)
+            ))
+        );
+      // No client delete: Remove / Delete set status 'ended' or 'deleted' so a short history remains.
+      allow delete: if false;
+    }
+
+    // END Callings Planner ----
    match /site_settings/{document=**} { 
       allow read: if true;
       allow write: if false;
